@@ -55,6 +55,7 @@ var config = {
                 displayStartDate: true,
                 dueInDays: 14,
                 displayDueDate: true,
+                showCompletionPercent: true,
                 showWithoutStart: true,
                 showWithoutDue: true,
                 dateFormat: "DD.MM.YYYY", 
@@ -86,6 +87,7 @@ var config = {
 | `showWithoutStart`   | *Optional*: Should tasks without a start date be shown? Default `true`
 | `showWithoutDue`     | *Optional*: Should tasks without a due date be shown? Default `true`
 | `dateFormat`         | *Optional*: Format for displaying dates. Default `DD.MM.YYYY` Uses [moment.js formats](https://momentjs.com/docs/#/displaying/format/)
+| `showCompletionPercent`     | *Optional*: Shows the percentage of completion. Default `false`
 
 
 ### Note:

@@ -27,7 +27,8 @@ Module.register("MMM-NextCloud-Tasks", {
 		playSound: true,
 		offsetTop: 0,
 		offsetLeft: 0,
-		toggleTime: 1600 // mseconds
+		toggleTime: 1600, // mseconds
+		showCompletionPercent: false
 	},
 
 	requiresVersion: "2.1.0", // Required version of MagicMirror
@@ -217,6 +218,10 @@ Module.register("MMM-NextCloud-Tasks", {
 			} else {
 				li.innerHTML = "<div class='MMM-NextCloud-Task-List-Item' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" + icon + " " + element.summary + "</div>";
 			}
+			
+			if (typeof element.completion !== "undefined" && self.config.showCompletionPercent === true) {
+				li.innerHTML += " <i>(" + element.completion + "%)</i>";
+			}
 
 			if ((self.config.displayStartDate && element.start) || (self.config.displayDueDate && element.due)) {
 				let dateSection = document.createElement("div");
@@ -398,7 +403,23 @@ Module.register("MMM-NextCloud-Tasks", {
 			typeof config.webDavAuth.username === "undefined" ||
 			typeof config.webDavAuth.password === "undefined" ||
 			typeof config.sortMethod === "undefined" ||
-			typeof config.colorize === "undefined"
+			typeof config.colorize === "undefined" ||
+			typeof config.updateInterval === "undefined" ||
+			typeof config.hideCompletedTasks === "undefined" ||
+			typeof config.startsInDays === "undefined" ||
+			typeof config.displayStartDate === "undefined" ||
+			typeof config.dueInDays === "undefined" ||
+			typeof config.displayDueDate === "undefined" ||
+			typeof config.showWithoutStart === "undefined" ||
+			typeof config.showWithoutDue === "undefined" ||
+			typeof config.hideCompletedTasksAfter === "undefined" ||
+			typeof config.dateFormat === "undefined" ||
+			typeof config.headings === "undefined" ||
+			typeof config.playSound === "undefined" ||
+			typeof config.offsetTop === "undefined" ||
+			typeof config.offsetLeft === "undefined" ||
+			typeof config.toggleTime === "undefined" ||
+			typeof config.showCompletionPercent === "undefined"
 		) {
 			this.error = "Config variable missing";
 			Log.error("Config variable missing");
