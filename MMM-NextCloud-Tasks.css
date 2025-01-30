@@ -69,3 +69,39 @@
     margin-left: 0.4em;
     color: var(--color-text-dimmed);
 }
+
+.MMM-Nextcloud-Tasks-Priority-1 {
+    color: #ff0000; /* Bright Red */
+}
+
+.MMM-Nextcloud-Tasks-Priority-2 {
+    color: #ff4500; /* Orange Red */
+}
+
+.MMM-Nextcloud-Tasks-Priority-3 {
+    color: #ff8c00; /* Dark Orange */
+}
+
+.MMM-Nextcloud-Tasks-Priority-4 {
+    color: #ffd700; /* Gold */
+}
+
+.MMM-Nextcloud-Tasks-Priority-5 {
+    color: #9acd32; /* Yellow Green */
+}
+
+.MMM-Nextcloud-Tasks-Priority-6 {
+    color: #32cd32; /* Lime Green */
+}
+
+.MMM-Nextcloud-Tasks-Priority-7 {
+    color: #228b22; /* Forest Green */
+}
+
+.MMM-Nextcloud-Tasks-Priority-8 {
+    color: #67966a; /* Grey */
+}
+
+.MMM-Nextcloud-Tasks-Priority-9 {
+    color: #a9a9a9; /* Dark Grey */
+}

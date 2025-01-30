@@ -28,7 +28,8 @@ Module.register("MMM-NextCloud-Tasks", {
 		offsetTop: 0,
 		offsetLeft: 0,
 		toggleTime: 1600, // mseconds
-		showCompletionPercent: false
+		showCompletionPercent: false,
+		mapEmptyPriorityTo: 5
 	},
 
 	requiresVersion: "2.1.0", // Required version of MagicMirror
@@ -115,10 +116,10 @@ Module.register("MMM-NextCloud-Tasks", {
 
 		// embed font awesome for testing on windows as you cannot see the icons otherwise
 		// TODO: comment out after testing
-	/* 	let link = document.createElement("link");
+		let link = document.createElement("link");
 		link.rel = "stylesheet";
 		link.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css";
-		document.head.appendChild(link); */
+		document.head.appendChild(link);
 		// end of fontawesome embed
 
 		// create element wrapper for show into the module
@@ -149,6 +150,7 @@ Module.register("MMM-NextCloud-Tasks", {
 	renderList: function (children, isTopLevel = true) {
 		let self = this;
 
+			// TODO: remove
 		let red = "<span style=\"color:#e3516e\">"
 		let yellow = "<span style=\"color:#e1e34f\">"
 		let blue = "<span style=\"color:#2f26f4\">"
@@ -197,7 +199,6 @@ Module.register("MMM-NextCloud-Tasks", {
 				li.classList.add("MMM-NextCloud-Tasks-Toplevel");
 			}
 			let p = element.priority;
-			let color = (p < 5 ? red : (p == 5 ? yellow : (p <= 9 ? blue : grey)));
 
 			if (!this.usedUrlIndices) {
 				this.usedUrlIndices = [];
@@ -214,7 +215,7 @@ Module.register("MMM-NextCloud-Tasks", {
 			}
 
 			if (self.config.colorize) {
-				li.innerHTML = "<div class='MMM-NextCloud-Task-List-Item' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" + color + icon + endSpan + " " + element.summary + "</div>";
+				li.innerHTML = "<div class='MMM-NextCloud-Task-List-Item' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'><span class='MMM-Nextcloud-Tasks-Priority-" + p + "'>" + icon + "</span> " + element.summary + "</div>";
 			} else {
 				li.innerHTML = "<div class='MMM-NextCloud-Task-List-Item' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" + icon + " " + element.summary + "</div>";
 			}
@@ -419,7 +420,8 @@ Module.register("MMM-NextCloud-Tasks", {
 			typeof config.offsetTop === "undefined" ||
 			typeof config.offsetLeft === "undefined" ||
 			typeof config.toggleTime === "undefined" ||
-			typeof config.showCompletionPercent === "undefined"
+			typeof config.showCompletionPercent === "undefined" ||
+			typeof config.mapEmptyPriorityTo === "undefined"
 		) {
 			this.error = "Config variable missing";
 			Log.error("Config variable missing");
