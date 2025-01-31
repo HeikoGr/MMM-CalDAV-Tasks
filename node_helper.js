@@ -7,7 +7,8 @@
 
 var NodeHelper = require("node_helper");
 const { transformData, sortList, appendUrlIndex} = require("./transformer");
-const { initWebDav, fetchList, parseList } = require("./webDavHelper");
+const { initWebDav, fetchList, parseList, mapEmptyPriorityTo } = require("./webDavHelper");
+
 
 module.exports = NodeHelper.create({
 	socketNotificationReceived: function(notification, payload) {
@@ -40,7 +41,8 @@ module.exports = NodeHelper.create({
 				console.log("[MMM-Nextcloud-Tasks] getData - configWithSingleUrl: ", configWithSingleUrl);
 				const icsList = await fetchList(configWithSingleUrl); // also add the filename to the icsStrings
 				const rawList = parseList(icsList);
-				const indexedList = appendUrlIndex(rawList, i);
+				const priorityList = mapEmptyPriorityTo(rawList, config.mapEmptyPriorityTo);
+				const indexedList = appendUrlIndex(priorityList, i);
 				const sortedList = sortList(indexedList, config.sortMethod);
 				const nestedList = transformData(sortedList);
 				allTasks = allTasks.concat(nestedList);

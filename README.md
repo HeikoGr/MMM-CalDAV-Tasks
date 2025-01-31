@@ -98,6 +98,24 @@ If you get a *WebDav: Unknown error!* just wait for the next `updateInterval`. I
 When you toggle a task there is a glow effect which strangely was offset on windows but not on a Raspberry Pi - or maybe it was the different screen. You will know what I mean if you see that there is s.th. wrong with the effect.
 If that is the case use `offsetTop`and `offsetLeft` (in pixels, default is 0) in the settings to fix it.
 
+### Individual styling
+| Class Name                              | Purpose                                                                                       |
+|-----------------------------------------|-----------------------------------------------------------------------------------------------|
+| .MMM-NextCloud-Tasks-wrapper            | Serves as the main container for the module, wrapping all task-related elements.              |
+| .MMM-NextCloud-Tasks-wrapper ul         | Styles unordered lists within the module to manage the layout of task items.                  |
+| .MMM-NextCloud-Tasks-wrapper > ul       | Specifically targets top-level unordered lists directly under the main wrapper for additional styling. |
+| .MMM-NextCloud-Tasks-Toplevel           | Applies styles to top-level task items, distinguishing them from sub-tasks.                   |
+| .MMM-NextCloud-Task-List-Item           | Styles individual task list items, allowing for customization of each task's appearance.      |
+| .MMM-Nextcloud-Tasks-Date-Section       | Styles the section that displays the start and due dates of tasks.                            |
+| .MMM-NextCloud-Tasks-StartDate          | Specifically styles the start date of a task to differentiate it from other text.             |
+| .MMM-NextCloud-Tasks-DueDate            | Specifically styles the due date of a task, making it easily identifiable.                    |
+| .MMM-Nextcloud-Tasks-New-Config-Note    | Styles notes related to new configurations, providing clear visual cues for configuration changes. |
+| .MMM-NextCloud-Task-List-Item > div     | Styles the inner <div> elements within each task list item, enabling interactive features like hover effects. |
+| .MMM-NextCloud-Tasks-Heading-0, .MMM-NextCloud-Tasks-Heading-1, .MMM-NextCloud-Tasks-Heading-2 | Styles for different heading levels within the module, allowing for hierarchical organization of tasks. |
+| .MMM-NextCloud-Tasks-SubList            | Styles sublists within task items, useful for organizing sub-tasks under main tasks.          |
+| .MMM-Nextcloud-Tasks-Priority-1 to .MMM-Nextcloud-Tasks-Priority-9 | Applies color coding based on task priority levels, helping to visually distinguish tasks by their urgency or importance. |
+| .MMM-NextCloud-Tasks-Completed          | Styles completed tasks, typically by reducing opacity and adding a strikethrough to indicate completion. |
+
 ## Screenshots
 
 Sorting on "priority" \

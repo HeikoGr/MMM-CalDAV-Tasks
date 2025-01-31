@@ -77,7 +77,7 @@ Module.register("MMM-NextCloud-Tasks", {
 
 
 			// Schedule update timer.
-			self.getData();
+			self.getData(this.config.mapEmptyPriorityTo); // TODO: here i get the data from
 			setInterval(function () {
 				self.getData();
 				self.updateDom();
@@ -150,12 +150,7 @@ Module.register("MMM-NextCloud-Tasks", {
 	renderList: function (children, isTopLevel = true) {
 		let self = this;
 
-			// TODO: remove
-		let red = "<span style=\"color:#e3516e\">"
-		let yellow = "<span style=\"color:#e1e34f\">"
-		let blue = "<span style=\"color:#2f26f4\">"
-		let grey = "<span style=\"color:#646464\">"
-		let endSpan = "</span>"
+
 		let checked = "<span class=\"fa fa-fw fa-check-square\"></span>"
 		let unchecked = "<span class=\"fa fa-fw fa-square\"></span>"
 
@@ -214,10 +209,15 @@ Module.register("MMM-NextCloud-Tasks", {
 				}
 			}
 
+			let listItemClass = "MMM-NextCloud-Task-List-Item";
+			let parentDivClass = "";
+			if (element.status === "COMPLETED") {
+				parentDivClass += " MMM-NextCloud-Task-List-Item-Completed";
+			}
 			if (self.config.colorize) {
-				li.innerHTML = "<div class='MMM-NextCloud-Task-List-Item' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'><span class='MMM-Nextcloud-Tasks-Priority-" + p + "'>" + icon + "</span> " + element.summary + "</div>";
+				li.innerHTML = "<div class='" + listItemClass + (element.status === "COMPLETED" ? " MMM-NextCloud-Tasks-Completed" : "") + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'><span class='MMM-Nextcloud-Tasks-Priority-" + p + "'>" + icon + "</span> " + element.summary + "</div>";
 			} else {
-				li.innerHTML = "<div class='MMM-NextCloud-Task-List-Item' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" + icon + " " + element.summary + "</div>";
+				li.innerHTML = "<div class='" + listItemClass + (element.status === "COMPLETED" ? " MMM-NextCloud-Tasks-Completed" : "") + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" + icon + " " + element.summary + "</div>";
 			}
 			
 			if (typeof element.completion !== "undefined" && self.config.showCompletionPercent === true) {
@@ -227,6 +227,9 @@ Module.register("MMM-NextCloud-Tasks", {
 			if ((self.config.displayStartDate && element.start) || (self.config.displayDueDate && element.due)) {
 				let dateSection = document.createElement("div");
 				dateSection.className = "MMM-Nextcloud-Tasks-Date-Section";
+				if (element.status === "COMPLETED") {
+					dateSection.classList.add("MMM-NextCloud-Tasks-Completed");
+				}
 
 				if (self.config.displayStartDate && element.start) {
 					let spanStart = document.createElement("span");
@@ -349,6 +352,14 @@ Module.register("MMM-NextCloud-Tasks", {
 					item.style.transition = "none";
 					item.style.filter = "none";
 				}, effecttoggleTime + 1000);
+				item.classList.toggle("MMM-NextCloud-Tasks-Completed");
+				const li = item.closest("li");
+				if (li) {
+					const dateSection = li.querySelector(".MMM-Nextcloud-Tasks-Date-Section");
+					if (dateSection) {
+						dateSection.classList.toggle("MMM-NextCloud-Tasks-Completed");
+					}
+				}
 			};
 
 			const toggleCheck = (listItem) => {

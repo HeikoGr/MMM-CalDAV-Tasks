@@ -22,6 +22,16 @@ function parseList(icsStrings) {
     return elements;
 }
 
+function mapEmptyPriorityTo(parsedList, mapEmptyPriorityTo) {
+    for (let element of parsedList) {
+        if (!element.hasOwnProperty('priority') || element.priority === null || element.priority === "0") { // VTODO uses strings!
+            console.log(`[MMM-Nextcloud-Tasks] Setting priority for element with filename ${element.filename} to ${mapEmptyPriorityTo}`);
+            element.priority = mapEmptyPriorityTo.toString();
+        }
+    }
+    console.log("[MMM-Nextcloud-Tasks] mapEmptyPriorityTo --> parsed List: ", parsedList);
+    return parsedList;
+}
 
 async function fetchList(config) {
     const client = initWebDav(config);
@@ -42,5 +52,6 @@ async function fetchList(config) {
 module.exports = {
     parseList: parseList,
     fetchList: fetchList,
+    mapEmptyPriorityTo: mapEmptyPriorityTo,
     initWebDav: initWebDav,
 };

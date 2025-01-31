@@ -61,7 +61,8 @@ function transformData(children, parents = []) {
 }
 
 function sortList(rawList, method) {
-    
+
+   
     switch (method){
         case "priority":
              rawList.sort(sortPriority);

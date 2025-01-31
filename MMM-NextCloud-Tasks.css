@@ -75,23 +75,23 @@
 }
 
 .MMM-Nextcloud-Tasks-Priority-2 {
-    color: #ff4500; /* Orange Red */
+    color: #ff6228; /* Orange Red */
 }
 
 .MMM-Nextcloud-Tasks-Priority-3 {
-    color: #ff8c00; /* Dark Orange */
+    color: #ffba67; /* Dark Orange */
 }
 
 .MMM-Nextcloud-Tasks-Priority-4 {
-    color: #ffd700; /* Gold */
+    color: #ffeb7c; /* Gold */
 }
 
 .MMM-Nextcloud-Tasks-Priority-5 {
-    color: #9acd32; /* Yellow Green */
+    color: #abcc6a; /* Yellow Green */
 }
 
 .MMM-Nextcloud-Tasks-Priority-6 {
-    color: #32cd32; /* Lime Green */
+    color: #60aa60; /* Lime Green */
 }
 
 .MMM-Nextcloud-Tasks-Priority-7 {
@@ -104,4 +104,9 @@
 
 .MMM-Nextcloud-Tasks-Priority-9 {
     color: #a9a9a9; /* Dark Grey */
+}
+
+.MMM-NextCloud-Tasks-Completed {
+    opacity: 0.2;
+    text-decoration: line-through;
 }
