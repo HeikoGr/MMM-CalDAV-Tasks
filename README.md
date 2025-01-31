@@ -25,7 +25,10 @@ Current development status: **released** \
 ## Installing the module
 
 ```sh
-cd ~/MagicMirror/modules && git clone https://github.com/Coernel82/MMM-NextCloud-Tasks && cd MMM-NextCloud-Tasks && npm install
+cd ~/MagicMirror/modules
+git clone https://github.com/Coernel82/MMM-NextCloud-Tasks
+cd MMM-NextCloud-Tasks
+npm install
 ```
 
 ## Updating the module
