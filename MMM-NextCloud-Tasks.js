@@ -260,7 +260,7 @@ Module.register("MMM-NextCloud-Tasks", {
 	// Animate list element when long clicking
 	initLongPressHandlers: function () {
 		console.debug("[MMM-Nextcloud-Tasks] ready for long press");
-		const items = document.querySelectorAll(".MMM-NextCloud-Task-List-Item");
+		const items = document.querySelectorAll(".MMM-NextCloud-Tasks-List-Item");
 		console.log(items);
 		items.forEach((item) => {
 			let pressTimer = null;
