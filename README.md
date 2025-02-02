@@ -58,6 +58,7 @@ var config = {
                 dueInDays: 14,
                 displayDueDate: true,
                 showCompletionPercent: true,
+                pieChartColor: "white", 
                 showWithoutStart: true,
                 showWithoutDue: true,
                 dateFormat: "DD.MM.YYYY", 
@@ -88,8 +89,11 @@ var config = {
 | `displayDueDate`     | *Optional*: Should the due date of tasks be displayed? Default `true`
 | `showWithoutStart`   | *Optional*: Should tasks without a start date be shown? Default `true`
 | `showWithoutDue`     | *Optional*: Should tasks without a due date be shown? Default `true`
-| `dateFormat`         | *Optional*: Format for displaying dates. Default `DD.MM.YYYY` Uses [moment.js formats](https://momentjs.com/docs/#/displaying/format/)
+| `dateFormat`         | *Optional*: Format for displaying dates. Default `DD.MM.YYYY` Uses [moment.js formats](https://momentjs.com/docs/#/displaying/format/)  
 | `showCompletionPercent`     | *Optional*: Shows the percentage of completion. Default `false`
+| `pieChartColor`      | *Optional*: Color of the pie chart. Accepts named colors, hex codes, rgb(), rgba(), hsl(), hsla(). Default `white`
+| `pieChartBackgroundColor`| *Optional*: Color of the pie chart. Accepts named colors, hex codes, rgb(), rgba(), hsl(), hsla(). Default `rgb(63, 63, 63)` (a really dark grey)
+| `pieChartSize`       | *Optional*: Size of the pie chart in pixels. No relative values! Default `16`
 | `highlightStartedTasks` | *Optional*: Highlights tasks that have already started. Default `true` |
 | `highlightOverdueTasks` | *Optional*: Highlights tasks that are overdue. Default `true` |
 | `developerMode`      | *Optional*: When developing under Windows the Fontawesome Icons do not load. This just embeds Fontawesome from an external source. Default `false`
@@ -121,7 +125,6 @@ If that is the case use `offsetTop`and `offsetLeft` (in pixels, default is 0) in
 | .MMM-NextCloud-Tasks-Completed          | Styles completed tasks, typically by reducing opacity and adding a strikethrough to indicate completion. |
 | .MMM-NextCloud-Tasks-Started           | Styles tasks that have already started, making them visually distinct.                        |
 | .MMM-NextCloud-Tasks-Overdue           | Styles overdue tasks, highlighting them to indicate urgency.                                 |
-
 ## Screenshots
 
 Sorting on "priority" \
