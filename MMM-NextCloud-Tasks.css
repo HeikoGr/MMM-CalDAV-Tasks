@@ -59,7 +59,7 @@
     font-size: var(--font-size-xsmall);
 }
 
-.MMM-NextCloud-Task-List-Item > div {
+.MMM-NextCloud-Tasks-List-Item > div {
     pointer-events: auto;
 }
 

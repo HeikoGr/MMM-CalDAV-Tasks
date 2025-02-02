@@ -220,10 +220,10 @@ Module.register("MMM-NextCloud-Tasks", {
 				}
 			}
 
-			let listItemClass = "MMM-NextCloud-Task-List-Item";
+			let listItemClass = "MMM-NextCloud-Tasks-List-Item";
 			let parentDivClass = "";
 			if (element.status === "COMPLETED") {
-				parentDivClass += " MMM-NextCloud-Task-List-Item-Completed";
+				parentDivClass += " MMM-NextCloud-Tasks-List-Item-Completed";
 			}
 			// Create function to generate task HTML with optional canvas
 			const getTaskHtml = (element, listItemClass, icon) => {
