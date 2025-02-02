@@ -29,9 +29,6 @@ Module.register("MMM-NextCloud-Tasks", {
 		offsetLeft: 0,
 		toggleTime: 1600, // mseconds
 		showCompletionPercent: false,
-		pieChartColor: "white",
-		pieChartBackgroundColor: "rgb(63, 63, 63)",
-		pieChartSize: 16,
 		mapEmptyPriorityTo: 5,
 		developerMode: false,
 		highlightStartedTasks: true,
@@ -220,70 +217,19 @@ Module.register("MMM-NextCloud-Tasks", {
 				}
 			}
 
-			let listItemClass = "MMM-NextCloud-Tasks-List-Item";
+			let listItemClass = "MMM-NextCloud-Task-List-Item";
 			let parentDivClass = "";
 			if (element.status === "COMPLETED") {
-				parentDivClass += " MMM-NextCloud-Tasks-List-Item-Completed";
+				parentDivClass += " MMM-NextCloud-Task-List-Item-Completed";
 			}
-			// Create function to generate task HTML with optional canvas
-			const getTaskHtml = (element, listItemClass, icon) => {
-				let canvasHtml = "";
-				if (typeof element.completion !== "undefined" && self.config.showCompletionPercent === true) {
-					canvasHtml = "<canvas class='MMM-Nextcloud-Tasks-CompletionCanvas' width='" + self.config.pieChartSize + "' height='" + self.config.pieChartSize + "'></canvas>";
-				}
-				const divClass = listItemClass + (element.status === "COMPLETED" ? " MMM-NextCloud-Tasks-Completed" : "");
-				if (self.config.colorize) {
-					return "<div class='" + divClass + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" +
-							"<span class='MMM-Nextcloud-Tasks-Priority-" + element.priority + "'>" + icon + "</span> " +
-							element.summary + " " +
-							canvasHtml +
-							"</div>";
-				} else {
-					return "<div class='" + divClass + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" +
-							icon + " " +
-							element.summary + " " +
-							canvasHtml +
-							"</div>";
-				}
-			};
-
-			// Set innerHTML using the method above.
-			li.innerHTML = getTaskHtml(element, listItemClass, icon);
+			if (self.config.colorize) {
+				li.innerHTML = "<div class='" + listItemClass + (element.status === "COMPLETED" ? " MMM-NextCloud-Tasks-Completed" : "") + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'><span class='MMM-Nextcloud-Tasks-Priority-" + p + "'>" + icon + "</span> " + element.summary + "</div>";
+			} else {
+				li.innerHTML = "<div class='" + listItemClass + (element.status === "COMPLETED" ? " MMM-NextCloud-Tasks-Completed" : "") + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" + icon + " " + element.summary + "</div>";
+			}
 			
-			// If canvas is present, draw the completion percentage.
-			const canvas = li.querySelector("canvas.MMM-Nextcloud-Tasks-CompletionCanvas");
-			if (canvas) {
-				const ctx = canvas.getContext("2d");
-				
-				const size = this.config.pieChartSize;
-				
-				canvas.width = size;
-				canvas.height = size;
-				const completion = Number(element.completion) || 0;
-				const centerX = size / 2;
-				const centerY = size / 2;
-				const outerRadius = size / 2;
-				const innerRadius = outerRadius - outerRadius * 0.9 / 2; // 90% of outer radius
-				const startAngle = -Math.PI / 2; // start at 12 o'clock
-				const endAngle = startAngle + (completion / 100) * 2 * Math.PI;
-
-				// Draw background arc
-				ctx.fillStyle = self.config.pieChartBackgroundColor;
-				ctx.beginPath();
-				ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI, false);
-				ctx.arc(centerX, centerY, innerRadius, 2 * Math.PI, 0, true);
-				ctx.closePath();
-				ctx.fill();
-
-				// Draw completion arc
-				if (completion > 0) {
-					ctx.fillStyle = self.config.pieChartColor;
-					ctx.beginPath();
-					ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle, false);
-					ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
-					ctx.closePath();
-					ctx.fill();
-				}
+			if (typeof element.completion !== "undefined" && self.config.showCompletionPercent === true) {
+				li.innerHTML += " <i>(" + element.completion + "%)</i>";
 			}
 
 			if ((self.config.displayStartDate && element.start) || (self.config.displayDueDate && element.due)) {
@@ -294,24 +240,33 @@ Module.register("MMM-NextCloud-Tasks", {
 				}
 
 				if (self.config.displayStartDate && element.start) {
-					let mStart = moment(element.start);
-					let startDate = mStart.toDate();
+					let startDate = moment(element.start).toDate();
 					let spanStart = document.createElement("span");
-					spanStart.textContent = " " + mStart.format(self.config.dateFormat);
-					spanStart.className = now > startDate ? "MMM-NextCloud-Tasks-Started" : "MMM-NextCloud-Tasks-StartDate";
+					spanStart.textContent = " " + moment(element.start).format(self.config.dateFormat);
+					if (now > startDate) {
+						spanStart.className = "MMM-NextCloud-Tasks-Started";
+					} else {
+						spanStart.className = "MMM-NextCloud-Tasks-StartDate";
+					}
 					dateSection.appendChild(spanStart);
 				}
 				if (self.config.displayDueDate && element.due) {
-					let mDue = moment(element.due);
-					let dueDate = mDue.toDate();
+					let dueDate = moment(element.due).toDate();
 					let spanDue = document.createElement("span");
-					spanDue.textContent = " " + mDue.format(self.config.dateFormat);
-					spanDue.className = now > dueDate ? "MMM-NextCloud-Tasks-Overdue" : "MMM-NextCloud-Tasks-DueDate";
+					console.log("dueDate: " + dueDate);
+					console.log("now: " + now);
+					spanDue.textContent = " " + moment(element.due).format(self.config.dateFormat);
+					if (now > dueDate) {
+						spanDue.className = "MMM-NextCloud-Tasks-Overdue";
+					} else {
+						spanDue.className = "MMM-NextCloud-Tasks-DueDate";
+					}
 					dateSection.appendChild(spanDue);
 				}
 
 				li.appendChild(dateSection);
 			}
+
 
 			if (typeof element.children !== "undefined") {
 				let childList = self.renderList(element.children, false);
@@ -341,14 +296,14 @@ Module.register("MMM-NextCloud-Tasks", {
 			};
 
 			const startEffects = () => {
-				let toggleTime = this.config.toggleTime;
+				toggleTime = this.config.toggleTime;
 				startTime = Date.now();
 				const effectSpeed = toggleTime / 50;
 				blurInterval = setInterval(() => {
 					const elapsed = Date.now() - startTime;
 					if (elapsed >= toggleTime) {
 						clearInterval(blurInterval);
-						let newState = toggleCheck(item);
+						newState = toggleCheck(item);
 						toggleEffectOnTimerEnd(item);
 						console.debug("[MMM-Nextcloud-Tasks] new state: " + newState);
 						console.debug("[MMM-Nextcloud-Tasks] item id: " + item.id);
@@ -374,7 +329,7 @@ Module.register("MMM-NextCloud-Tasks", {
 				this.audio.play().catch(error => console.error("Error playing audio:", error));
 
 				startTime = Date.now();
-				const effecttoggleTime = this.config.toggleTime;
+				const effecttoggleTime = 1200;
 				const overlay = item.cloneNode(true);
 
 				overlay.style.position = "absolute";
@@ -441,21 +396,17 @@ Module.register("MMM-NextCloud-Tasks", {
 
 			const startHandler = () => {
 				Log.info("touch/mouse start on item: " + item.id);
-				// resetEffects();   - why should we reset the effects here?
-				pressTimer = setTimeout(() => {}, this.config.toggleTime); // TODO: this was removed by ai - why?
+				resetEffects();
+				pressTimer = setTimeout(() => {}, this.config.toggleTime);
 				startEffects(item);
 			};
+
 			item.addEventListener("mousedown", startHandler);
 			item.addEventListener("touchstart", startHandler, { passive: true });
 			item.addEventListener("mouseup", resetEffects);
 			item.addEventListener("mouseleave", resetEffects);
 			item.addEventListener("touchend", resetEffects);
 			item.addEventListener("touchcancel", resetEffects);
-
-			// Prevent right-click menu from appearing
-			item.addEventListener("contextmenu", (e) => {
-				e.preventDefault();
-			});
 		});
 	},
 
@@ -505,9 +456,6 @@ Module.register("MMM-NextCloud-Tasks", {
 			typeof config.toggleTime === "undefined" ||
 			typeof config.showCompletionPercent === "undefined" ||
 			typeof config.developerMode === "undefined" ||
-			typeof config.pieChartColor === "undefined" ||
-			typeof config.pieChartBackgroundColor === "undefined" ||
-			typeof config.pieChartSize === "undefined" ||	
 			typeof config.mapEmptyPriorityTo === "undefined"
 		) {
 			this.error = "Config variable missing";
