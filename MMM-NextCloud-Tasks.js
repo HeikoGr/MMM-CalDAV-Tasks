@@ -29,7 +29,10 @@ Module.register("MMM-NextCloud-Tasks", {
 		offsetLeft: 0,
 		toggleTime: 1600, // mseconds
 		showCompletionPercent: false,
-		mapEmptyPriorityTo: 5
+		mapEmptyPriorityTo: 5,
+		developerMode: false,
+		highlightStartedTasks: true,
+		highlightOverdueTasks: true,
 	},
 
 	requiresVersion: "2.1.0", // Required version of MagicMirror
@@ -114,13 +117,18 @@ Module.register("MMM-NextCloud-Tasks", {
 	getDom: function () {
 		let self = this;
 
-		// embed font awesome for testing on windows as you cannot see the icons otherwise
-		// TODO: comment out after testing
-		let link = document.createElement("link");
-		link.rel = "stylesheet";
-		link.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css";
-		document.head.appendChild(link);
-		// end of fontawesome embed
+		// on my computer the Fontawesome Icons do not work without this when working under windows
+		// on the raspberry pi it works without this
+		if (this.config.developerMode) {
+			let link = document.createElement("link");
+			link.rel = "stylesheet";
+			link.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css";
+			document.head.appendChild(link);
+			document.documentElement.style.cursor = "default";
+			
+
+		}
+		
 
 		// create element wrapper for show into the module
 		let wrapper = document.createElement("div");
@@ -232,20 +240,33 @@ Module.register("MMM-NextCloud-Tasks", {
 				}
 
 				if (self.config.displayStartDate && element.start) {
+					let startDate = moment(element.start).toDate();
 					let spanStart = document.createElement("span");
-					spanStart.className = "MMM-NextCloud-Tasks-StartDate";
 					spanStart.textContent = " " + moment(element.start).format(self.config.dateFormat);
+					if (now > startDate) {
+						spanStart.className = "MMM-NextCloud-Tasks-Started";
+					} else {
+						spanStart.className = "MMM-NextCloud-Tasks-StartDate";
+					}
 					dateSection.appendChild(spanStart);
 				}
 				if (self.config.displayDueDate && element.due) {
+					let dueDate = moment(element.due).toDate();
 					let spanDue = document.createElement("span");
-					spanDue.className = "MMM-NextCloud-Tasks-DueDate";
+					console.log("dueDate: " + dueDate);
+					console.log("now: " + now);
 					spanDue.textContent = " " + moment(element.due).format(self.config.dateFormat);
+					if (now > dueDate) {
+						spanDue.className = "MMM-NextCloud-Tasks-Overdue";
+					} else {
+						spanDue.className = "MMM-NextCloud-Tasks-DueDate";
+					}
 					dateSection.appendChild(spanDue);
 				}
 
 				li.appendChild(dateSection);
 			}
+
 
 			if (typeof element.children !== "undefined") {
 				let childList = self.renderList(element.children, false);
@@ -359,6 +380,8 @@ Module.register("MMM-NextCloud-Tasks", {
 					if (dateSection) {
 						dateSection.classList.toggle("MMM-NextCloud-Tasks-Completed");
 					}
+					// Force browser reflow for correct rendering
+					void li.offsetHeight;
 				}
 			};
 
@@ -432,6 +455,7 @@ Module.register("MMM-NextCloud-Tasks", {
 			typeof config.offsetLeft === "undefined" ||
 			typeof config.toggleTime === "undefined" ||
 			typeof config.showCompletionPercent === "undefined" ||
+			typeof config.developerMode === "undefined" ||
 			typeof config.mapEmptyPriorityTo === "undefined"
 		) {
 			this.error = "Config variable missing";

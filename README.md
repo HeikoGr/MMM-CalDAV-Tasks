@@ -90,6 +90,9 @@ var config = {
 | `showWithoutDue`     | *Optional*: Should tasks without a due date be shown? Default `true`
 | `dateFormat`         | *Optional*: Format for displaying dates. Default `DD.MM.YYYY` Uses [moment.js formats](https://momentjs.com/docs/#/displaying/format/)
 | `showCompletionPercent`     | *Optional*: Shows the percentage of completion. Default `false`
+| `highlightStartedTasks` | *Optional*: Highlights tasks that have already started. Default `true` |
+| `highlightOverdueTasks` | *Optional*: Highlights tasks that are overdue. Default `true` |
+| `developerMode`      | *Optional*: When developing under Windows the Fontawesome Icons do not load. This just embeds Fontawesome from an external source. Default `false`
 
 
 ### Note:
@@ -116,6 +119,8 @@ If that is the case use `offsetTop`and `offsetLeft` (in pixels, default is 0) in
 | .MMM-NextCloud-Tasks-SubList            | Styles sublists within task items, useful for organizing sub-tasks under main tasks.          |
 | .MMM-Nextcloud-Tasks-Priority-1 to .MMM-Nextcloud-Tasks-Priority-9 | Applies color coding based on task priority levels, helping to visually distinguish tasks by their urgency or importance. |
 | .MMM-NextCloud-Tasks-Completed          | Styles completed tasks, typically by reducing opacity and adding a strikethrough to indicate completion. |
+| .MMM-NextCloud-Tasks-Started           | Styles tasks that have already started, making them visually distinct.                        |
+| .MMM-NextCloud-Tasks-Overdue           | Styles overdue tasks, highlighting them to indicate urgency.                                 |
 
 ## Screenshots
 
