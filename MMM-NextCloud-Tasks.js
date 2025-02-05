@@ -341,14 +341,14 @@ Module.register("MMM-NextCloud-Tasks", {
 			};
 
 			const startEffects = () => {
-				toggleTime = this.config.toggleTime;
+				let toggleTime = this.config.toggleTime;
 				startTime = Date.now();
 				const effectSpeed = toggleTime / 50;
 				blurInterval = setInterval(() => {
 					const elapsed = Date.now() - startTime;
 					if (elapsed >= toggleTime) {
 						clearInterval(blurInterval);
-						newState = toggleCheck(item);
+						let newState = toggleCheck(item);
 						toggleEffectOnTimerEnd(item);
 						console.debug("[MMM-Nextcloud-Tasks] new state: " + newState);
 						console.debug("[MMM-Nextcloud-Tasks] item id: " + item.id);
@@ -374,7 +374,7 @@ Module.register("MMM-NextCloud-Tasks", {
 				this.audio.play().catch(error => console.error("Error playing audio:", error));
 
 				startTime = Date.now();
-				const effecttoggleTime = 1200;
+				const effecttoggleTime = this.config.toggleTime;
 				const overlay = item.cloneNode(true);
 
 				overlay.style.position = "absolute";
@@ -441,17 +441,21 @@ Module.register("MMM-NextCloud-Tasks", {
 
 			const startHandler = () => {
 				Log.info("touch/mouse start on item: " + item.id);
-				resetEffects();
-				pressTimer = setTimeout(() => {}, this.config.toggleTime);
+				// resetEffects();   - why should we reset the effects here?
+				pressTimer = setTimeout(() => {}, this.config.toggleTime); // TODO: this was removed by ai - why?
 				startEffects(item);
 			};
-
 			item.addEventListener("mousedown", startHandler);
 			item.addEventListener("touchstart", startHandler, { passive: true });
 			item.addEventListener("mouseup", resetEffects);
 			item.addEventListener("mouseleave", resetEffects);
 			item.addEventListener("touchend", resetEffects);
 			item.addEventListener("touchcancel", resetEffects);
+
+			// Prevent right-click menu from appearing
+			item.addEventListener("contextmenu", (e) => {
+				e.preventDefault();
+			});
 		});
 	},
 
