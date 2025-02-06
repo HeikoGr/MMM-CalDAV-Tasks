@@ -429,11 +429,14 @@ Module.register("MMM-NextCloud-Tasks", {
 				if (li) {
 					const dateSection = li.querySelector(".MMM-Nextcloud-Tasks-Date-Section");
 					if (dateSection) {
-						if (this.config.hideDateSectionOnCompletion)
-								dateSection.style.display = dateSection.style.display === "none" ? "block" : "none";
-						} else
+						if (this.config.hideDateSectionOnCompletion) {
+							dateSection.style.display = dateSection.style.display === "none" ? "block" : "none";
+						} else {
 							dateSection.classList.toggle("MMM-NextCloud-Tasks-Completed");
+						}
+					}
 				}
+				
 				
 			};
 

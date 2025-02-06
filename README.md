@@ -104,23 +104,18 @@ var config = {
 
 | `developerMode`             | *Optional*: When developing under Windows the Fontawesome Icons do not load. This just embeds Fontawesome from an external source. Default `false` |
 
-### Note:
-If both conditions `startsInDays` and `dueInDays` are set both are checked after each other. So when one or both conditions are true the task will be shown.
-If you get a *WebDav: Unknown error!* just wait for the next `updateInterval`. It is likely that you fetch your calendar as well from your Nextcloud. My suspicion is that there are too many server requests at the same time. Also, it might be a good idea to use all different prime numbers as `fetchInterval` for your calendar and here for this module (called `updateInterval`) as this minimizes the occurrence of fetching the data at the same time. You can find a list of prime numbers [here](http://compoasso.free.fr/primelistweb/page/prime/liste_online_en.php).
-
 ### The glow effect bug:
 When you toggle a task there is a glow effect which strangely was offset on windows but not on a Raspberry Pi - or maybe it was the different screen. You will know what I mean if you see that there is s.th. wrong with the effect.
 | `developerMode`      | *Optional*: When developing under Windows the Fontawesome Icons do not load. This just embeds Fontawesome from an external source. Default `false`
 
-Also you might not see the effect at all. Be patient, hold down your finger and the task will get toggled. You are welcome to open a pull request to fix this. As it is working on windows I suspect an overload of the Raspi CPU and it might not be a bug at all.
+If you do not see the effect at all this is likely due to another module. For instance I wanted my calendar module to download a public holidays calendar from the internet resulting in hundreds of errors per minute. Removing that calendar solved it.
+
+### 🐞General bug handling:
+See my example some lines above how fast a bug comes from another module. Go to your Magic Mirror folder and `npm run start:dev` to chase the bugs!
 
 ### Note:
 If both conditions `startsInDays`and `dueInDays`are set both are checked after each other. So when one or both conditions are true the task will be shown.
 If you get a *WebDav: Unknown error!* just wait for the next `updateInterval`. It is likely that you fetch your calendar as well from your Nextcloud. My suspicion is that there are too many server requests at the same time. Also, it might be a good idea to use all different prime numbers as `fetchInterval` for your calendar and here for this module (called `updateInterval`) as this minimizes the occurrence of fetching the data at the same time. You can find a list of prime numbers [here](http://compoasso.free.fr/primelistweb/page/prime/liste_online_en.php).
-
-### The glow effect bug:
-When you toggle a task there is a glow effect which strangely was offset on windows but not on a Raspberry Pi - or maybe it was the different screen. You will know what I mean if you see that there is s.th. wrong with the effect.
-If that is the case use `offsetTop`and `offsetLeft` (in pixels, default is 0) in the settings to fix it.
 
 ### Individual styling
 | Class Name                              | Purpose                                                                                       |

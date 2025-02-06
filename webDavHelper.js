@@ -47,7 +47,7 @@ async function fetchList(config) {
                 icsStr = await client.getFileContents(element.filename, { format: "text" });
                 break;
             } catch (error) {
-                console.error(`[MMM-Nextcloud-Tasks] Error fetching file ${element.filename}: ${error.message}. Attempt ${attempt + 1} of 3.`);
+                console.error(`[MMM-Nextcloud-Tasks] Error fetching file ${element.filename}: ${error.message}. Attempt ${attempt + 1} of 5.`);
                 attempt++;
                 if (attempt < 3) {
                     await new Promise(resolve => setTimeout(resolve, 8000)); // wait 8 seconds before retrying
