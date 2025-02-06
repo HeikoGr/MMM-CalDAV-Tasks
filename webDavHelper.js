@@ -40,9 +40,25 @@ async function fetchList(config) {
 
     let icsStrings = [];
     for (const element of directoryItems) {
-        const icsStr = await client.getFileContents(element.filename, { format: "text" });
-        //console.log(icsStr);
-        icsStrings.push({ filename: element.filename, icsStr });
+        let attempt = 0;
+        let icsStr;
+        while (attempt < 3) {
+            try {
+                icsStr = await client.getFileContents(element.filename, { format: "text" });
+                break;
+            } catch (error) {
+                console.error(`[MMM-Nextcloud-Tasks] Error fetching file ${element.filename}: ${error.message}. Attempt ${attempt + 1} of 3.`);
+                attempt++;
+                if (attempt < 3) {
+                    await new Promise(resolve => setTimeout(resolve, 20000)); // wait 20 seconds before retrying
+                } else {
+                    console.error(`[MMM-Nextcloud-Tasks] Failed to fetch file ${element.filename} after 3 attempts.`);
+                }
+            }
+        }
+        if (icsStr) {
+            icsStrings.push({ filename: element.filename, icsStr });
+        }
     }
     return icsStrings;
 }

@@ -35,7 +35,8 @@ Module.register("MMM-NextCloud-Tasks", {
 		highlightOverdueTasks: true,
 		pieChartBackgroundColor: "rgb(138, 138, 138)",
 		pieChartColor: "rgb(255, 255, 255)",
-		pieChartSize: 16
+		pieChartSize: 16,
+		hideDateSectionOnCompletion: true
 	},
 
 	requiresVersion: "2.1.0", // Required version of MagicMirror
@@ -423,11 +424,12 @@ Module.register("MMM-NextCloud-Tasks", {
 				if (li) {
 					const dateSection = li.querySelector(".MMM-Nextcloud-Tasks-Date-Section");
 					if (dateSection) {
-						dateSection.classList.toggle("MMM-NextCloud-Tasks-Completed");
-					}
-					// Force browser reflow for correct rendering
-					void li.offsetHeight;
+						if (this.config.hideDateSectionOnCompletion)
+								dateSection.style.display = dateSection.style.display === "none" ? "block" : "none";
+						} else
+							dateSection.classList.toggle("MMM-NextCloud-Tasks-Completed");
 				}
+				
 			};
 
 			const toggleCheck = (listItem) => {
@@ -504,7 +506,8 @@ Module.register("MMM-NextCloud-Tasks", {
 			typeof config.mapEmptyPriorityTo === "undefined",
 			typeof config.pieChartBackgroundColor === "undefined",
 			typeof config.pieChartColor === "undefined",
-			typeof config.pieChartSize === "undefined"
+			typeof config.pieChartSize === "undefined",
+			typeof config.hideDateSectionOnCompletion === "undefined"
 		) {
 			this.error = "Config variable missing";
 			Log.error("Config variable missing");

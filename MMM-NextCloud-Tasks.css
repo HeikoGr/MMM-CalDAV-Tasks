@@ -114,7 +114,7 @@
 }
 
 .MMM-NextCloud-Tasks-Completed {
-    opacity: 0.2;
+    opacity: 0.2!important;
     text-decoration: line-through;
 }
 
