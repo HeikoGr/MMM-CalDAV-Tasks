@@ -96,6 +96,20 @@ var config = {
 | `pieChartSize`       | *Optional*: Size of the pie chart in pixels. No relative values! Default `16`
 | `highlightStartedTasks` | *Optional*: Highlights tasks that have already started. Default `true` |
 | `highlightOverdueTasks` | *Optional*: Highlights tasks that are overdue. Default `true` |
+| `showCompletionPercent`     | *Optional*: Shows the percentage of completion. Default `false` |
+| `pieChartColor`             | *Optional*: Color of the pie chart. Accepts named colors, hex codes, rgb(), rgba(), hsl(), hsla(). Default `white`. Example: `rgb(255, 255, 255)` (white) |
+| `pieChartBackgroundColor`   | *Optional*: Background color of the pie chart. Accepts named colors, hex codes, rgb(), rgba(), hsl(), hsla(). Default `rgb(63, 63, 63)` (a really dark grey). Example: `rgb(138, 138, 138)` (grey) |
+| `pieChartSize`              | *Optional*: Size of the pie chart in pixels. No relative values! Default `16`. Example: `16` |
+| `hideDateSectionOnCompletion` | *Optional*: Hides the date section of a task once it is completed. Default `true` |
+
+| `developerMode`             | *Optional*: When developing under Windows the Fontawesome Icons do not load. This just embeds Fontawesome from an external source. Default `false` |
+
+### Note:
+If both conditions `startsInDays` and `dueInDays` are set both are checked after each other. So when one or both conditions are true the task will be shown.
+If you get a *WebDav: Unknown error!* just wait for the next `updateInterval`. It is likely that you fetch your calendar as well from your Nextcloud. My suspicion is that there are too many server requests at the same time. Also, it might be a good idea to use all different prime numbers as `fetchInterval` for your calendar and here for this module (called `updateInterval`) as this minimizes the occurrence of fetching the data at the same time. You can find a list of prime numbers [here](http://compoasso.free.fr/primelistweb/page/prime/liste_online_en.php).
+
+### The glow effect bug:
+When you toggle a task there is a glow effect which strangely was offset on windows but not on a Raspberry Pi - or maybe it was the different screen. You will know what I mean if you see that there is s.th. wrong with the effect.
 | `developerMode`      | *Optional*: When developing under Windows the Fontawesome Icons do not load. This just embeds Fontawesome from an external source. Default `false`
 
 

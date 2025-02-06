@@ -282,7 +282,12 @@ Module.register("MMM-NextCloud-Tasks", {
 				let dateSection = document.createElement("div");
 				dateSection.className = "MMM-Nextcloud-Tasks-Date-Section";
 				if (element.status === "COMPLETED") {
-					dateSection.classList.add("MMM-NextCloud-Tasks-Completed");
+					if (self.config.hideDateSectionOnCompletion) {
+						dateSection.classList.add("MMM-NextCloud-Tasks-Completed");
+						dateSection.style.display = "none";
+					} else {
+						dateSection.classList.add("MMM-NextCloud-Tasks-Completed");
+					}
 				}
 
 				if (self.config.displayStartDate && element.start) {
