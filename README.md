@@ -112,6 +112,7 @@ If you get a *WebDav: Unknown error!* just wait for the next `updateInterval`. I
 When you toggle a task there is a glow effect which strangely was offset on windows but not on a Raspberry Pi - or maybe it was the different screen. You will know what I mean if you see that there is s.th. wrong with the effect.
 | `developerMode`      | *Optional*: When developing under Windows the Fontawesome Icons do not load. This just embeds Fontawesome from an external source. Default `false`
 
+Also you might not see the effect at all. Be patient, hold down your finger and the task will get toggled. You are welcome to open a pull request to fix this. As it is working on windows I suspect an overload of the Raspi CPU and it might not be a bug at all.
 
 ### Note:
 If both conditions `startsInDays`and `dueInDays`are set both are checked after each other. So when one or both conditions are true the task will be shown.

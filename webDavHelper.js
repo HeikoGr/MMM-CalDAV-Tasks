@@ -42,7 +42,7 @@ async function fetchList(config) {
     for (const element of directoryItems) {
         let attempt = 0;
         let icsStr;
-        while (attempt < 3) {
+        while (attempt < 5) {
             try {
                 icsStr = await client.getFileContents(element.filename, { format: "text" });
                 break;
@@ -50,9 +50,9 @@ async function fetchList(config) {
                 console.error(`[MMM-Nextcloud-Tasks] Error fetching file ${element.filename}: ${error.message}. Attempt ${attempt + 1} of 3.`);
                 attempt++;
                 if (attempt < 3) {
-                    await new Promise(resolve => setTimeout(resolve, 20000)); // wait 20 seconds before retrying
+                    await new Promise(resolve => setTimeout(resolve, 8000)); // wait 8 seconds before retrying
                 } else {
-                    console.error(`[MMM-Nextcloud-Tasks] Failed to fetch file ${element.filename} after 3 attempts.`);
+                    console.error(`[MMM-Nextcloud-Tasks] Failed to fetch file ${element.filename} after 5 attempts.`);
                 }
             }
         }
