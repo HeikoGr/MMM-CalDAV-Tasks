@@ -117,3 +117,9 @@
     opacity: 0.2;
     text-decoration: line-through;
 }
+
+.MMM-Nextcloud-Tasks-CompletionCanvas {
+    padding-left: 3px;
+    position: relative;
+    top: 3px;
+}

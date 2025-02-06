@@ -33,6 +33,9 @@ Module.register("MMM-NextCloud-Tasks", {
 		developerMode: false,
 		highlightStartedTasks: true,
 		highlightOverdueTasks: true,
+		pieChartBackgroundColor: "rgb(138, 138, 138)",
+		pieChartColor: "rgb(255, 255, 255)",
+		pieChartSize: 16
 	},
 
 	requiresVersion: "2.1.0", // Required version of MagicMirror
@@ -217,19 +220,61 @@ Module.register("MMM-NextCloud-Tasks", {
 				}
 			}
 
-			let listItemClass = "MMM-NextCloud-Task-List-Item";
+			
+
+
+			let listItemClass = "MMM-NextCloud-Tasks-List-Item";
 			let parentDivClass = "";
 			if (element.status === "COMPLETED") {
-				parentDivClass += " MMM-NextCloud-Task-List-Item-Completed";
+				parentDivClass += " MMM-NextCloud-Tasks-List-Item-Completed";
 			}
 			if (self.config.colorize) {
-				li.innerHTML = "<div class='" + listItemClass + (element.status === "COMPLETED" ? " MMM-NextCloud-Tasks-Completed" : "") + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'><span class='MMM-Nextcloud-Tasks-Priority-" + p + "'>" + icon + "</span> " + element.summary + "</div>";
+				li.innerHTML = "<div class='" + listItemClass + (element.status === "COMPLETED" ? " MMM-NextCloud-Tasks-Completed" : "") + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" +
+					"<span class='MMM-Nextcloud-Tasks-Priority-" + p + "'>" + icon + "</span> " + element.summary +
+					(self.config.showCompletionPercent === true ? "<canvas class='MMM-Nextcloud-Tasks-CompletionCanvas'></canvas>" : "") +
+					"</div>";
 			} else {
-				li.innerHTML = "<div class='" + listItemClass + (element.status === "COMPLETED" ? " MMM-NextCloud-Tasks-Completed" : "") + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" + icon + " " + element.summary + "</div>";
+				li.innerHTML = "<div class='" + listItemClass + (element.status === "COMPLETED" ? " MMM-NextCloud-Tasks-Completed" : "") + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" +
+					icon + " " + element.summary +
+					(self.config.showCompletionPercent === true ? "<canvas class='MMM-Nextcloud-Tasks-CompletionCanvas'></canvas>" : "") +
+					"</div>";
 			}
-			
-			if (typeof element.completion !== "undefined" && self.config.showCompletionPercent === true) {
-				li.innerHTML += " <i>(" + element.completion + "%)</i>";
+
+			if (self.config.showCompletionPercent === true) {
+				const canvas = li.querySelector("canvas.MMM-Nextcloud-Tasks-CompletionCanvas");
+				if (canvas) {
+					const ctx = canvas.getContext("2d");
+					
+					const size = this.config.pieChartSize;
+					
+					canvas.width = size;
+					canvas.height = size;
+					const completion = Number(element.completion) || 0;
+					const centerX = size / 2;
+					const centerY = size / 2;
+					const outerRadius = size / 2;
+					const innerRadius = outerRadius - outerRadius * 0.9 / 2; // 90% of outer radius
+					const startAngle = -Math.PI / 2; // start at 12 o'clock
+					const endAngle = startAngle + (completion / 100) * 2 * Math.PI;
+		
+					// Draw background arc
+					ctx.fillStyle = self.config.pieChartBackgroundColor;
+					ctx.beginPath();
+					ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI, false);
+					ctx.arc(centerX, centerY, innerRadius, 2 * Math.PI, 0, true);
+					ctx.closePath();
+					ctx.fill();
+		
+					// Draw completion arc
+					if (completion > 0) {
+						ctx.fillStyle = self.config.pieChartColor;
+						ctx.beginPath();
+						ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle, false);
+						ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
+						ctx.closePath();
+						ctx.fill();
+					}
+				}
 			}
 
 			if ((self.config.displayStartDate && element.start) || (self.config.displayDueDate && element.due)) {
@@ -456,7 +501,10 @@ Module.register("MMM-NextCloud-Tasks", {
 			typeof config.toggleTime === "undefined" ||
 			typeof config.showCompletionPercent === "undefined" ||
 			typeof config.developerMode === "undefined" ||
-			typeof config.mapEmptyPriorityTo === "undefined"
+			typeof config.mapEmptyPriorityTo === "undefined",
+			typeof config.pieChartBackgroundColor === "undefined",
+			typeof config.pieChartColor === "undefined",
+			typeof config.pieChartSize === "undefined"
 		) {
 			this.error = "Config variable missing";
 			Log.error("Config variable missing");
