@@ -121,6 +121,9 @@ Module.register("MMM-NextCloud-Tasks", {
 	getDom: function () {
 		let self = this;
 
+		  // Reinitialize usedUrlIndices before updating the DOM so that the headings are displayed correctly
+		  this.usedUrlIndices = [];
+
 		// on my computer the Fontawesome Icons do not work without this when working under windows
 		// on the raspberry pi it works without this
 		if (this.config.developerMode) {
