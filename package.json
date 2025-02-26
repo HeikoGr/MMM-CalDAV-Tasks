@@ -1,6 +1,6 @@
 {
   "name": "MMM-NextCloud-Tasks",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Todo: Insert description here!",
   "main": "MMM-NextCloud-Tasks.js",
   "author": "Jan Ryklikas",
@@ -16,7 +16,10 @@
     "time-grunt": "latest"
   },
   "dependencies": {
-    "node-ical": "^0.12.8",
-    "webdav": "^4.2.0"
+    "MMM-NextCloud-Tasks": "file:",
+    "moment": "^2.30.1",
+    "node-ical": "^0.20.1",
+    "date-fns": "^4.1.0",
+    "webdav": "^4.11.0"
   }
 }
