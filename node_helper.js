@@ -1,5 +1,5 @@
 /* Magic Mirror
- * Node Helper: MMM-NextCloud-Tasks
+ * Node Helper: MMM-CalDAV-Tasks
  *
  * By Jan Ryklikas
  * MIT Licensed.
@@ -19,7 +19,7 @@ module.exports = NodeHelper.create({
 		const moduleId = payload.id;
 
 		// Refresh the tasks list
-		if (notification === "MMM-NextCloud-Tasks-UPDATE") {
+		if (notification === "MMM-CalDAV-Tasks-UPDATE") {
 
 			self.getData(moduleId, payload.config, (payload) => {
 				self.sendData(moduleId, payload);
@@ -27,8 +27,8 @@ module.exports = NodeHelper.create({
 		}
 
 		// Toggle the status of a task on the server
-		if (notification === "MMM-NextCloud-Tasks-TOGGLE") {
-			console.log("MMM-NextCloud-Tasks-TOGGLE") //, payload);
+		if (notification === "MMM-CalDAV-Tasks-TOGGLE") {
+			console.log("MMM-CalDAV-Tasks-TOGGLE") //, payload);
 			this.toggleStatusViaWebDav(payload.id, payload.status, payload.config, payload.urlIndex, payload.filename);  // up to here the log shows the correct values (92daf9339-baf6 checked {config})
 		};
 	},
@@ -41,7 +41,7 @@ module.exports = NodeHelper.create({
 			// iterate over all urls in the config and fetch the tasks
 			for (let i = 0; i < config.listUrl.length; i++) {
 				let configWithSingleUrl = { ...config, listUrl: config.listUrl[i] };
-				 // console.log("[MMM-Nextcloud-Tasks] getData - configWithSingleUrl: ", configWithSingleUrl);
+				 // console.log("[MMM-CalDAV-Tasks] getData - configWithSingleUrl: ", configWithSingleUrl);
 				const icsList = await fetchList(configWithSingleUrl); // also add the filename to the icsStrings
 				const rawList = parseList(icsList, config.dateFormat);
 				const priorityList = mapEmptyPriorityTo(rawList, config.mapEmptyPriorityTo);
@@ -55,19 +55,19 @@ module.exports = NodeHelper.create({
 		} catch (error) {
 			console.error("WebDav", error);
 			if (error.status === 401) {
-				self.sendError(moduleId, "[MMM-Nextcloud-Tasks] WebDav: Unauthorized!");
+				self.sendError(moduleId, "[MMM-CalDAV-Tasks] WebDav: Unauthorized!");
 			} else if (error.status === 404) {
-				self.sendError(moduleId, "[MMM-Nextcloud-Tasks] WebDav: URL Not Found!");
+				self.sendError(moduleId, "[MMM-CalDAV-Tasks] WebDav: URL Not Found!");
 			} else {
-				self.sendError(moduleId, "[MMM-Nextcloud-Tasks] WebDav: Unknown error!");
-				self.sendLog(moduleId, ["[MMM-Nextcloud-Tasks] WebDav: Unknown error: ", error]);
+				self.sendError(moduleId, "[MMM-CalDAV-Tasks] WebDav: Unknown error!");
+				self.sendLog(moduleId, ["[MMM-CalDAV-Tasks] WebDav: Unknown error: ", error]);
 			}
 		}
 	},
 
 	// TODO: was this the function meant to toggle the status on the server side?
 	sendData: function (moduleId, payload) {
-		this.sendSocketNotification("MMM-NextCloud-Tasks-Helper-TODOS#" + moduleId, payload);
+		this.sendSocketNotification("MMM-CalDAV-Tasks-Helper-TODOS#" + moduleId, payload);
 	},
 
 	toggleStatusViaWebDav: async function (id, status, config, urlIndex, filename) {
@@ -92,10 +92,10 @@ module.exports = NodeHelper.create({
 	},
 
 	sendLog: function (moduleId, payload) {
-		this.sendSocketNotification("MMM-NextCloud-Tasks-Helper-LOG#" + moduleId, payload);
+		this.sendSocketNotification("MMM-CalDAV-Tasks-Helper-LOG#" + moduleId, payload);
 	},
 
 	sendError: function (moduleId, payload) {
-		this.sendSocketNotification("MMM-NextCloud-Tasks-Helper-ERROR#" + moduleId, payload);
+		this.sendSocketNotification("MMM-CalDAV-Tasks-Helper-ERROR#" + moduleId, payload);
 	}
 });

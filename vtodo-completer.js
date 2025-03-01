@@ -36,18 +36,12 @@ class VTodoCompleter {
     }
 
     /**
-     * Update a non-recurring VTODO item.
+     * Check if the VTODO item is recurring.
      * @param {Array} parsed - The parsed ICS data.
-     * @param {Date} completedDate - The completion date.
-     * @returns {string} - The modified ICS content.
+     * @returns {boolean} - True if the VTODO item is recurring, false otherwise.
      */
-    updateNonRecurring(parsed, completedDate) {
-        this.addProperty(parsed, 'VTODO', 'COMPLETED', this.formatDate(completedDate), '', 'CREATED');
-        this.setProperty(parsed, 'VTODO', 'DTSTAMP', this.formatDate(new Date()));
-        this.setProperty(parsed, 'VTODO', 'LAST-MODIFIED', this.formatDate(new Date()));
-        this.setProperty(parsed, 'VTODO', 'STATUS', 'COMPLETED');
-        this.setProperty(parsed, 'VTODO', 'PERCENT-COMPLETE', '100', 'STATUS');
-        return this.generateICS(parsed);
+    isRecurring(parsed) {
+        return parsed.some(i => i.key === 'RRULE' && i.component === 'VTODO');
     }
 
     /**
@@ -114,6 +108,21 @@ class VTodoCompleter {
     }
 
     /**
+     * Update a non-recurring VTODO item.
+     * @param {Array} parsed - The parsed ICS data.
+     * @param {Date} completedDate - The completion date.
+     * @returns {string} - The modified ICS content.
+     */
+    updateNonRecurring(parsed, completedDate) {
+        this.addProperty(parsed, 'VTODO', 'COMPLETED', this.formatDate(completedDate), '', 'CREATED');
+        this.setProperty(parsed, 'VTODO', 'DTSTAMP', this.formatDate(new Date()));
+        this.setProperty(parsed, 'VTODO', 'LAST-MODIFIED', this.formatDate(new Date()));
+        this.setProperty(parsed, 'VTODO', 'STATUS', 'COMPLETED');
+        this.setProperty(parsed, 'VTODO', 'PERCENT-COMPLETE', '100', 'STATUS');
+        return this.generateICS(parsed);
+    }
+
+    /**
      * Update a VTODO item with a new due date.
      * @param {Array} parsed - The parsed ICS data.
      * @param {Date} maxDate - The new due date.
@@ -156,69 +165,6 @@ class VTodoCompleter {
         this.setProperty(parsed, 'VTODO', 'STATUS', 'COMPLETED');
         this.setProperty(parsed, 'VTODO', 'PERCENT-COMPLETE', '100', 'STATUS');
         this.setProperty(parsed, 'VTODO', 'UID', uid);
-    }
-
-    /**
-     * Parse a date string.
-     * @param {string} dateStr - The date string.
-     * @returns {Date} - The parsed date.
-     */
-    parseDate(dateStr) {
-        // Prüfe auf DATE-TIME oder DATE
-        const isDateTime = dateStr.includes('T');
-        let year, month, day, hours = 0, minutes = 0, seconds = 0;
-
-        if (isDateTime) {
-            // DATE-TIME: YYYYMMDDTHHMMSSZ
-            const [datePart, timePart] = dateStr.split('T');
-            year = parseInt(datePart.substr(0, 4));
-            month = parseInt(datePart.substr(4, 2)) - 1; // Monat ist 0-basiert
-            day = parseInt(datePart.substr(6, 2));
-
-            const time = timePart.replace('Z', '');
-            hours = parseInt(time.substr(0, 2));
-            minutes = parseInt(time.substr(2, 2));
-            seconds = parseInt(time.substr(4, 2));
-        } else {
-            // DATE: YYYYMMDD
-            year = parseInt(dateStr.substr(0, 4));
-            month = parseInt(dateStr.substr(4, 2)) - 1;
-            day = parseInt(dateStr.substr(6, 2));
-        }
-
-        return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
-    }
-
-    /**
-     * Parse a datetime string.
-     * @param {string} dateStr - The datetime string.
-     * @returns {Date} - The parsed datetime.
-     */
-    parseDatetime(dateStr) {
-        // Prüfe auf DATE-TIME oder DATE
-        const isDateTime = dateStr.includes('T');
-        let year, month, day, hours = 0, minutes = 0, seconds = 0;
-
-        if (isDateTime) {
-            // DATE-TIME: YYYYMMDDTHHMMSSZ
-            const [datePart, timePart] = dateStr.split('T');
-            year = parseInt(datePart.substr(0, 4));
-            month = parseInt(datePart.substr(4, 2)); // Monat ist 0-basiert
-            day = parseInt(datePart.substr(6, 2));
-
-            const time = timePart.replace('Z', '');
-            hours = parseInt(time.substr(0, 2));
-            minutes = parseInt(time.substr(2, 2));
-            seconds = parseInt(time.substr(4, 2));
-
-            return new datetime(year, month, day, hours, minutes, seconds);
-        } else {
-            // DATE: YYYYMMDD
-            year = parseInt(dateStr.substr(0, 4));
-            month = parseInt(dateStr.substr(4, 2));
-            day = parseInt(dateStr.substr(6, 2));
-            return datetime(year, month, day);
-        }
     }
 
     /**
@@ -267,12 +213,66 @@ class VTodoCompleter {
     }
 
     /**
-     * Check if the VTODO item is recurring.
-     * @param {Array} parsed - The parsed ICS data.
-     * @returns {boolean} - True if the VTODO item is recurring, false otherwise.
+     * Parse a date string.
+     * @param {string} dateStr - The date string.
+     * @returns {Date} - The parsed date.
      */
-    isRecurring(parsed) {
-        return parsed.some(i => i.key === 'RRULE' && i.component === 'VTODO');
+    parseDate(dateStr) {
+        // Prüfe auf DATE-TIME oder DATE
+        const isDateTime = dateStr.includes('T');
+        let year, month, day, hours = 0, minutes = 0, seconds = 0;
+
+        if (isDateTime) {
+            // DATE-TIME: YYYYMMDDTHHMMSSZ
+            const [datePart, timePart] = dateStr.split('T');
+            year = parseInt(datePart.substring(0, 4));
+            month = parseInt(datePart.substring(4, 2)) - 1; // Monat ist 0-basiert
+            day = parseInt(datePart.substring(6, 2));
+
+            const time = timePart.replace('Z', '');
+            hours = parseInt(time.substring(0, 2));
+            minutes = parseInt(time.substring(2, 2));
+            seconds = parseInt(time.substring(4, 2));
+        } else {
+            // DATE: YYYYMMDD
+            year = parseInt(dateStr.substring(0, 4));
+            month = parseInt(dateStr.substring(4, 2)) - 1;
+            day = parseInt(dateStr.substring(6, 2));
+        }
+
+        return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
+    }
+
+    /**
+     * Parse a datetime string.
+     * @param {string} dateStr - The datetime string.
+     * @returns {Date} - The parsed datetime.
+     */
+    parseDatetime(dateStr) {
+        // Prüfe auf DATE-TIME oder DATE
+        const isDateTime = dateStr.includes('T');
+        let year, month, day, hours = 0, minutes = 0, seconds = 0;
+
+        if (isDateTime) {
+            // DATE-TIME: YYYYMMDDTHHMMSSZ
+            const [datePart, timePart] = dateStr.split('T');
+            year = parseInt(datePart.substring(0, 4));
+            month = parseInt(datePart.substring(4, 2)); // Monat ist 0-basiert
+            day = parseInt(datePart.substring(6, 2));
+
+            const time = timePart.replace('Z', '');
+            hours = parseInt(time.substring(0, 2));
+            minutes = parseInt(time.substring(2, 2));
+            seconds = parseInt(time.substring(4, 2));
+
+            return new datetime(year, month, day, hours, minutes, seconds);
+        } else {
+            // DATE: YYYYMMDD
+            year = parseInt(dateStr.substring(0, 4));
+            month = parseInt(dateStr.substring(4, 2));
+            day = parseInt(dateStr.substring(6, 2));
+            return datetime(year, month, day);
+        }
     }
 
     /**
@@ -301,18 +301,6 @@ class VTodoCompleter {
             return element.original.split(':')[1] || null;
         }
         return element.value || null;
-    }
-
-    /**
-     * Generate a unique identifier (UID).
-     * @returns {string} - The generated UID.
-     */
-    generateUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-            const r = Math.random() * 16 | 0;
-            const v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        }).toUpperCase();
     }
 
     /**
@@ -393,17 +381,6 @@ class VTodoCompleter {
     }
 
     /**
-     * Format a date according to the specified value type.
-     * @param {Date} date - The date to format.
-     * @param {string} [valueType='DATE-TIME'] - The value type ('DATE' or 'DATE-TIME').
-     * @returns {string} - The formatted date.
-     */
-    formatDate(date) {
-        const isoString = date.toISOString();
-        return isoString.replace(/[-:]/g, '').split('.')[0] + 'Z';
-    }
-
-    /**
      * Generate ICS content from the parsed ICS data.
      * @param {Array} parsed - The parsed ICS data.
      * @returns {string} - The generated ICS content.
@@ -445,6 +422,28 @@ class VTodoCompleter {
         }
 
         return `${item.key}${params}:${item.value}`;
+    }
+
+    /**
+     * Format a date according to the specified value type.
+     * @param {Date} date - The date to format.
+     * @returns {string} - The formatted date.
+     */
+    formatDate(date) {
+        const isoString = date.toISOString();
+        return isoString.replace(/[-:]/g, '').split('.')[0] + 'Z';
+    }
+
+    /**
+     * Generate a unique identifier (UID).
+     * @returns {string} - The generated UID.
+     */
+    generateUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        }).toUpperCase();
     }
 }
 

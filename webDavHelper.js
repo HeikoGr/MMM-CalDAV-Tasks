@@ -29,7 +29,7 @@ function parseList(icsStrings,dateFormat) {
 function mapEmptyPriorityTo(parsedList, mapEmptyPriorityTo) {
     for (let element of parsedList) {
         if (!element.hasOwnProperty('priority') || element.priority === null || element.priority === "0") { // VTODO uses strings!
-            // console.log(`[MMM-Nextcloud-Tasks] setting prio for element ${element.filename} to ${mapEmptyPriorityTo}`);
+            // console.log(`[MMM-CalDAV-Tasks] setting prio for element ${element.filename} to ${mapEmptyPriorityTo}`);
             element.priority = mapEmptyPriorityTo.toString();
         }
     }
@@ -39,7 +39,7 @@ function mapEmptyPriorityTo(parsedList, mapEmptyPriorityTo) {
 async function fetchList(config) {
     const client = initWebDav(config);
     const directoryItems = await client.getDirectoryContents("/");
-    // console.log("[MMM-Nextcloud-Tasks] fetchList:", directoryItems);
+    // console.log("[MMM-CalDAV-Tasks] fetchList:", directoryItems);
 
     let icsStrings = [];
     for (const element of directoryItems) {
@@ -50,12 +50,12 @@ async function fetchList(config) {
                 icsStr = await client.getFileContents(element.filename, { format: "text" });
                 break;
             } catch (error) {
-                console.error(`[MMM-Nextcloud-Tasks] Error fetching file ${element.filename}: ${error.message}. Attempt ${attempt + 1} of 5.`);
+                console.error(`[MMM-CalDAV-Tasks] Error fetching file ${element.filename}: ${error.message}. Attempt ${attempt + 1} of 5.`);
                 attempt++;
                 if (attempt < 3) {
                     await new Promise(resolve => setTimeout(resolve, 8000)); // wait 8 seconds before retrying
                 } else {
-                    console.error(`[MMM-Nextcloud-Tasks] Failed to fetch file ${element.filename} after 5 attempts.`);
+                    console.error(`[MMM-CalDAV-Tasks] Failed to fetch file ${element.filename} after 5 attempts.`);
                 }
             }
         }

@@ -1,8 +1,8 @@
 {
-  "name": "MMM-NextCloud-Tasks",
+  "name": "MMM-CalDAV-Tasks",
   "version": "1.1.1",
   "description": "Todo: Insert description here!",
-  "main": "MMM-NextCloud-Tasks.js",
+  "main": "MMM-CalDAV-Tasks.js",
   "author": "Jan Ryklikas",
   "license": "MIT",
   "devDependencies": {
@@ -16,7 +16,7 @@
     "time-grunt": "latest"
   },
   "dependencies": {
-    "MMM-NextCloud-Tasks": "file:",
+    "MMM-CalDAV-Tasks": "file:",
     "moment": "^2.30.1",
     "node-ical": "^0.20.1",
     "date-fns": "^4.1.0",

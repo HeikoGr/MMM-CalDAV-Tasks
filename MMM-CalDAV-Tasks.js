@@ -1,13 +1,13 @@
 /* global Module, Log */
 
 /* Magic Mirror
- * Module: MMM-NextCloud-Tasks
+ * Module: MMM-CalDAV-Tasks
  *
  * By Jan Ryklikas
  * MIT Licensed.
  */
 
-Module.register("MMM-NextCloud-Tasks", {
+Module.register("MMM-CalDAV-Tasks", {
 	defaults: {
 		updateInterval: 60000,
 		hideCompletedTasks: null,
@@ -50,15 +50,15 @@ Module.register("MMM-NextCloud-Tasks", {
 		self.loaded = false;
 
 		// Preload the sound
-		this.audio = new Audio('/modules/MMM-NextCloud-Tasks/sounds/task_finished.wav');
+		this.audio = new Audio('/modules/MMM-CalDAV-Tasks/sounds/task_finished.wav');
 		this.audio.load();
 
 		// A little fallback if the config is still of the old type
 		// this is for "listUrl" which was a string before
 		if (self.verifyConfig(self.config)) {
 			if (self.isListUrlSingleValue(self.config.listUrl)) {
-				self.error = "A little config Error in MMM-Nextcloud-Task: 'listUrl' should be an array now as the module now supports multiple urls. Example:<br>" +
-					"<div class='MMM-Nextcloud-Tasks-New-Config-Note'>" +
+				self.error = "A little config Error in MMM-CalDAV-Task: 'listUrl' should be an array now as the module now supports multiple urls. Example:<br>" +
+					"<div class='MMM-CalDAV-Tasks-New-Config-Note'>" +
 					"<span style='color: #e34c26;'>Old:</span><br> <span style='font-family: Courier; color: lightblue;'>listUrl</span>: <span style='font-family: Courier; color: brown;'>\"https://my-nextcloud.com/remote.php/dav/calendars/cornelius/private-tasks/\"</span><span style='font-family: Courier; color: white;'>,</span><br>" +
 					"<span style='color: #4caf50;'>New:</span><br> <span style='font-family: Courier; color: lightblue;'>listUrl</span>: [<span style='font-family: Courier; color: brown;'>\"https://my-nextcloud.com/remote.php/dav/calendars/cornelius/private-tasks/\"</span><span style='font-family: Courier; color: white;'>,</span>]" +
 					"<span style='color: #4caf50;'><br>Example with two urls:</span><br> <span style='font-family: Courier; color: lightblue;'>listUrl</span>: [" +
@@ -107,7 +107,7 @@ Module.register("MMM-NextCloud-Tasks", {
 	 */
 	getData: function () {
 		this.sendSocketNotification(
-			"MMM-NextCloud-Tasks-UPDATE",
+			"MMM-CalDAV-Tasks-UPDATE",
 			{
 				id: this.identifier,
 				config: this.config
@@ -133,7 +133,7 @@ Module.register("MMM-NextCloud-Tasks", {
 
 		// create element wrapper for show into the module
 		let wrapper = document.createElement("div");
-		wrapper.className = "MMM-NextCloud-Tasks-wrapper";
+		wrapper.className = "MMM-CalDAV-Tasks-wrapper";
 
 		if (self.toDoList) {
 			wrapper.appendChild(self.renderList(self.toDoList));
@@ -161,8 +161,11 @@ Module.register("MMM-NextCloud-Tasks", {
 		let checked = "<span class=\"fa fa-fw fa-check-square\"></span>"
 		let unchecked = "<span class=\"fa fa-fw fa-square\"></span>"
 
+
 		let ul = document.createElement("ul");
+
 		for (const element of children) {
+
 			if (element.status === "COMPLETED") {
 				if (typeof this.config.hideCompletedTasksAfter === "number" && element.completed) {
 					// convert ISO 8601 string to date-objekt without moment.js
@@ -199,7 +202,7 @@ Module.register("MMM-NextCloud-Tasks", {
 			let icon = (element.status === "COMPLETED" ? checked : unchecked);
 			let li = document.createElement("li");
 			if (isTopLevel) {
-				li.classList.add("MMM-NextCloud-Tasks-Toplevel");
+				li.classList.add("MMM-CalDAV-Tasks-Toplevel");
 			}
 			let p = element.priority;
 
@@ -211,31 +214,31 @@ Module.register("MMM-NextCloud-Tasks", {
 				const headingText = this.config.headings[element.urlIndex];
 				if (headingText !== null && headingText !== "null" && headingText !== undefined) {
 					let h2 = document.createElement("h2");
-					h2.className = "MMM-NextCloud-Tasks-Heading-" + element.urlIndex;
+					h2.className = "MMM-CalDAV-Tasks-Heading-" + element.urlIndex;
 					h2.textContent = headingText;
 					ul.appendChild(h2);
 				}
 			}
 
-			let listItemClass = "MMM-NextCloud-Tasks-List-Item";
+			let listItemClass = "MMM-CalDAV-Tasks-List-Item";
 			let parentDivClass = "";
 			if (element.status === "COMPLETED") {
-				parentDivClass += " MMM-NextCloud-Tasks-List-Item-Completed";
+				parentDivClass += " MMM-CalDAV-Tasks-List-Item-Completed";
 			}
 			if (self.config.colorize) {
-				li.innerHTML = "<div class='" + listItemClass + (element.status === "COMPLETED" ? " MMM-NextCloud-Tasks-Completed" : "") + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" +
-					"<span class='MMM-Nextcloud-Tasks-Priority-" + p + "'>" + icon + "</span> " + element.summary +
-					(self.config.showCompletionPercent === true ? "<canvas class='MMM-Nextcloud-Tasks-CompletionCanvas'></canvas>" : "") +
+				li.innerHTML = "<div class='" + listItemClass + (element.status === "COMPLETED" ? " MMM-CalDAV-Tasks-Completed" : "") + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" +
+					"<span class='MMM-CalDAV-Tasks-Priority-" + p + "'>" + icon + "</span> " + element.summary +
+					(self.config.showCompletionPercent === true ? "<canvas class='MMM-CalDAV-Tasks-CompletionCanvas'></canvas>" : "") +
 					"</div>";
 			} else {
-				li.innerHTML = "<div class='" + listItemClass + (element.status === "COMPLETED" ? " MMM-NextCloud-Tasks-Completed" : "") + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" +
+				li.innerHTML = "<div class='" + listItemClass + (element.status === "COMPLETED" ? " MMM-CalDAV-Tasks-Completed" : "") + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" +
 					icon + " " + element.summary +
-					(self.config.showCompletionPercent === true ? "<canvas class='MMM-Nextcloud-Tasks-CompletionCanvas'></canvas>" : "") +
+					(self.config.showCompletionPercent === true ? "<canvas class='MMM-CalDAV-Tasks-CompletionCanvas'></canvas>" : "") +
 					"</div>";
 			}
 
 			if (self.config.showCompletionPercent === true) {
-				const canvas = li.querySelector("canvas.MMM-Nextcloud-Tasks-CompletionCanvas");
+				const canvas = li.querySelector("canvas.MMM-CalDAV-Tasks-CompletionCanvas");
 				if (canvas) {
 					const ctx = canvas.getContext("2d");
 					const size = this.config.pieChartSize;
@@ -271,13 +274,13 @@ Module.register("MMM-NextCloud-Tasks", {
 
 			if ((self.config.displayStartDate && element.start) || (self.config.displayDueDate && element.due)) {
 				let dateSection = document.createElement("div");
-				dateSection.className = "MMM-Nextcloud-Tasks-Date-Section";
+				dateSection.className = "MMM-CalDAV-Tasks-Date-Section";
 				if (element.status === "COMPLETED") {
 					if (self.config.hideDateSectionOnCompletion) {
-						dateSection.classList.add("MMM-NextCloud-Tasks-Completed");
+						dateSection.classList.add("MMM-CalDAV-Tasks-Completed");
 						dateSection.style.display = "none";
 					} else {
-						dateSection.classList.add("MMM-NextCloud-Tasks-Completed");
+						dateSection.classList.add("MMM-CalDAV-Tasks-Completed");
 					}
 				}
 
@@ -286,9 +289,9 @@ Module.register("MMM-NextCloud-Tasks", {
 					let spanStart = document.createElement("span");
 					spanStart.textContent = " " + startDate.toLocaleDateString(undefined, self.config.dateFormat);
 					if (now > startDate) {
-						spanStart.className = "MMM-NextCloud-Tasks-Started";
+						spanStart.className = "MMM-CalDAV-Tasks-Started";
 					} else {
-						spanStart.className = "MMM-NextCloud-Tasks-StartDate";
+						spanStart.className = "MMM-CalDAV-Tasks-StartDate";
 					}
 					dateSection.appendChild(spanStart);
 				}
@@ -300,9 +303,9 @@ Module.register("MMM-NextCloud-Tasks", {
 					console.log("now: " + now);
 					spanDue.textContent = " " + element.dueFormatted; //Date.toLocaleDateString(undefined, self.config.dateFormat);
 					if (now > dueDate) {
-						spanDue.className = "MMM-NextCloud-Tasks-Overdue";
+						spanDue.className = "MMM-CalDAV-Tasks-Overdue";
 					} else {
-						spanDue.className = "MMM-NextCloud-Tasks-DueDate";
+						spanDue.className = "MMM-CalDAV-Tasks-DueDate";
 					}
 					dateSection.appendChild(spanDue);
 				}
@@ -312,7 +315,7 @@ Module.register("MMM-NextCloud-Tasks", {
 
 			if (typeof element.children !== "undefined") {
 				let childList = self.renderList(element.children, false);
-				childList.classList.add("MMM-NextCloud-Tasks-SubList");
+				childList.classList.add("MMM-CalDAV-Tasks-SubList");
 				li.appendChild(childList);
 			}
 			ul.appendChild(li);
@@ -322,8 +325,8 @@ Module.register("MMM-NextCloud-Tasks", {
 
 	// Animate list element when long clicking
 	initLongPressHandlers: function () {
-		console.debug("[MMM-Nextcloud-Tasks] ready for long press");
-		const items = document.querySelectorAll(".MMM-NextCloud-Tasks-List-Item");
+		console.debug("[MMM-CalDAV-Tasks] ready for long press");
+		const items = document.querySelectorAll(".MMM-CalDAV-Tasks-List-Item");
 		console.log(items);
 		items.forEach((item) => {
 			let pressTimer = null;
@@ -347,10 +350,10 @@ Module.register("MMM-NextCloud-Tasks", {
 						clearInterval(blurInterval);
 						newState = toggleCheck(item);
 						toggleEffectOnTimerEnd(item);
-						console.debug("[MMM-Nextcloud-Tasks] new state: " + newState);
-						console.debug("[MMM-Nextcloud-Tasks] item id: " + item.id);
+						console.debug("[MMM-CalDAV-Tasks] new state: " + newState);
+						console.debug("[MMM-CalDAV-Tasks] item id: " + item.id);
 
-						this.sendSocketNotification("MMM-NextCloud-Tasks-TOGGLE", {
+						this.sendSocketNotification("MMM-CalDAV-Tasks-TOGGLE", {
 							id: item.id,
 							status: newState,
 							config: this.config,
@@ -367,7 +370,7 @@ Module.register("MMM-NextCloud-Tasks", {
 			};
 
 			const toggleEffectOnTimerEnd = (item) => {
-				console.debug("[MMM-Nextcloud-Tasks] toggleEffectOnTimerEnd called");
+				console.debug("[MMM-CalDAV-Tasks] toggleEffectOnTimerEnd called");
 				this.audio.play().catch(error => console.error("Error playing audio:", error));
 
 				startTime = Date.now();
@@ -415,15 +418,15 @@ Module.register("MMM-NextCloud-Tasks", {
 					item.style.transition = "none";
 					item.style.filter = "none";
 				}, effecttoggleTime + 1000);
-				item.classList.toggle("MMM-NextCloud-Tasks-Completed");
+				item.classList.toggle("MMM-CalDAV-Tasks-Completed");
 				const li = item.closest("li");
 				if (li) {
-					const dateSection = li.querySelector(".MMM-Nextcloud-Tasks-Date-Section");
+					const dateSection = li.querySelector(".MMM-CalDAV-Tasks-Date-Section");
 					if (dateSection) {
 						if (this.config.hideDateSectionOnCompletion) {
 							dateSection.style.display = dateSection.style.display === "none" ? "block" : "none";
 						} else {
-							dateSection.classList.toggle("MMM-NextCloud-Tasks-Completed");
+							dateSection.classList.toggle("MMM-CalDAV-Tasks-Completed");
 						}
 					}
 				}
@@ -457,20 +460,20 @@ Module.register("MMM-NextCloud-Tasks", {
 
 	getStyles: function () {
 		return [
-			"MMM-NextCloud-Tasks.css",
+			"MMM-CalDAV-Tasks.css",
 		];
 	},
 
 	socketNotificationReceived: function (notification, payload) {
-		if (notification === "MMM-NextCloud-Tasks-Helper-TODOS#" + this.identifier) {
+		if (notification === "MMM-CalDAV-Tasks-Helper-TODOS#" + this.identifier) {
 			this.toDoList = payload;
-			Log.log("[MMM-NextCloud-Tasks] received payload: ", payload);
+			Log.log("[MMM-CalDAV-Tasks] received payload: ", payload);
 			this.updateDom();
 		}
-		if (notification === "MMM-NextCloud-Tasks-Helper-LOG#" + this.identifier) {
+		if (notification === "MMM-CalDAV-Tasks-Helper-LOG#" + this.identifier) {
 			Log.log("LOG: ", payload);
 		}
-		if (notification === "MMM-NextCloud-Tasks-Helper-ERROR#" + this.identifier) {
+		if (notification === "MMM-CalDAV-Tasks-Helper-ERROR#" + this.identifier) {
 			Log.error("ERROR: ", payload);
 			this.error = payload + "<br>";
 			this.updateDom();
