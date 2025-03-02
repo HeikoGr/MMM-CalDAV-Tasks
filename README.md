@@ -100,7 +100,6 @@ var config = {
 | `pieChartBackgroundColor`   | *Optional*: Background color of the pie chart. Accepts named colors, hex codes, rgb(), rgba(), hsl(), hsla(). Default `rgb(63, 63, 63)` (a really dark grey). Example: `rgb(138, 138, 138)` (grey) |
 | `pieChartSize`              | *Optional*: Size of the pie chart in pixels. No relative values! Default `16`. Example: `16` |
 | `hideDateSectionOnCompletion` | *Optional*: Hides the date section of a task once it is completed. Default `true` |
-
 | `developerMode`             | *Optional*: When developing under Windows the Fontawesome Icons do not load. This just embeds Fontawesome from an external source. Default `false` |
 
 ### The glow effect bug:
