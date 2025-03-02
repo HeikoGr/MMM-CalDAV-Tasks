@@ -2,7 +2,7 @@
 
 This is a module for the [MagicMirror²](https://github.com/MichMich/MagicMirror/). Originally developed by [SoulofN00b](https://github.com/SoulOfNoob/MMM-CalDAV-Tasks/), further developed by [Starlingfire](https://github.com/starlingfire/MMM-CalDAV-Tasks). I have forked it and added new features.
 
-This module loads a ToDo list via CalDAV (e.g. from the CalDAV Tasks app using the "private link" and [CalDAV Managed Devices](https://docs.CalDAV.com/server/latest/user_manual/en/session_management.html#managing-devices) )
+This module loads a ToDo list via CalDAV (e.g. from the NextCloud Tasks app using the "private link" and [Nextcloud Managed Devices](https://docs.nextcloud.com/server/latest/user_manual/en/session_management.html#managing-devices) )
 
 You can toggle the status of the task via longpress / long touch and it will be sent to the Server.
 
@@ -11,12 +11,11 @@ Current development status: **released** \
 
 ## Dependencies
 
-- Working CalDAV installation
-- Installed Tasks app
+- Working CalDAV Server (e.g. NextCloud with installed Tasks app)
 
 ## CalDAV preparations
 
-1. Create a new app password in your CalDAV installation at Settings > Security (under Personal) > Create New App Password
+1. Create a new app password in your NextCloud installation at Settings > Security (under Personal) > Create New App Password
 2. Give your app a name and generate the password: \
 ![App password screenshot](/assets/create-app-password.png?raw=true)
 3. Create the Private Link to the ToDo list you want to display like this: \
