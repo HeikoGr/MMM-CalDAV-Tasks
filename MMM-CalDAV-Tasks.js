@@ -28,6 +28,7 @@ Module.register("MMM-CalDAV-Tasks", {
 		toggleTime: 1600, // mseconds
 		showCompletionPercent: false,
 		mapEmptyPriorityTo: 5,
+		mapEmptySortIndexTo: 99,
 		developerMode: false,
 		highlightStartedTasks: true,
 		highlightOverdueTasks: true,
@@ -136,7 +137,19 @@ Module.register("MMM-CalDAV-Tasks", {
 		wrapper.className = "MMM-CalDAV-Tasks-wrapper";
 
 		if (self.toDoList) {
-			wrapper.appendChild(self.renderList(self.toDoList));
+
+			for (element of self.toDoList) {
+				let calWrapper = document.createElement("div");
+				calWrapper.className = "MMM-CalDAV-Tasks-Calendar-wrapper";
+				let h1 = document.createElement("h1");
+				h1.textContent = element['summary'];
+				h1.className = "MMM-CalDAV-Tasks-Calendar-Heading";
+				h1.style.color = element['calendarColor'];
+				calWrapper.appendChild(h1);
+				calWrapper.appendChild(self.renderList(element['tasks']));
+				wrapper.appendChild(calWrapper);
+			}
+			
 			self.error = null;
 		} else {
 			wrapper.innerHTML = "<div>Loading...</div>";
@@ -160,7 +173,6 @@ Module.register("MMM-CalDAV-Tasks", {
 		let self = this;
 		let checked = "<span class=\"fa fa-fw fa-check-square\"></span>"
 		let unchecked = "<span class=\"fa fa-fw fa-square\"></span>"
-
 
 		let ul = document.createElement("ul");
 
@@ -430,7 +442,6 @@ Module.register("MMM-CalDAV-Tasks", {
 						}
 					}
 				}
-
 			};
 
 			const toggleCheck = (listItem) => {
@@ -467,6 +478,7 @@ Module.register("MMM-CalDAV-Tasks", {
 	socketNotificationReceived: function (notification, payload) {
 		if (notification === "MMM-CalDAV-Tasks-Helper-TODOS#" + this.identifier) {
 			this.toDoList = payload;
+
 			Log.log("[MMM-CalDAV-Tasks] received payload: ", payload);
 			this.updateDom();
 		}

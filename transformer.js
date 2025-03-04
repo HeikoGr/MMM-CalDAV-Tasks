@@ -1,6 +1,6 @@
 /* eslint-disable curly */
 /* eslint-disable indent */
-const { sortPriority, sortPriorityDesc, sortCreated, sortCreatedDesc, sortModified, sortModifiedDesc } = require("./sort_helper");
+const { sortPriority, sortPriorityDesc, sortCreated, sortCreatedDesc, sortModified, sortModifiedDesc, sortApple } = require("./sort_helper");
 
 function findParent(parents, uid) {
     // Search parents for parent
@@ -86,6 +86,10 @@ function sortList(rawList, method) {
 
         case "modified desc":
             rawList.sort(sortModifiedDesc);
+            break;
+
+        case "apple":
+            rawList.sort(sortApple);
             break;
     }
 
