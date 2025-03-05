@@ -171,175 +171,174 @@ Module.register("MMM-CalDAV-Tasks", {
 
 	renderList: function (children, isTopLevel = true) {
 		let self = this;
-		let checked = "<span class=\"fa fa-fw fa-check-square\"></span>"
-		let unchecked = "<span class=\"fa fa-fw fa-square\"></span>"
+		let checked = "<span class=\"fa fa-fw fa-check-square\"></span>";
+		let unchecked = "<span class=\"fa fa-fw fa-square\"></span>";
 
 		let ul = document.createElement("ul");
 
-		for (const element of children) {
+		children.forEach(element => {
+			if (self.shouldHideElement(element)) return;
 
-			if (element.status === "COMPLETED") {
-				if (typeof this.config.hideCompletedTasksAfter === "number" && element.completed) {
-					// convert ISO 8601 string to date-objekt without moment.js
-					const completedDate = new Date(element.completed);
-					const daysSinceCompleted = (new Date() - completedDate) / (1000 * 60 * 60 * 24);
-					if (daysSinceCompleted > this.config.hideCompletedTasksAfter) {
-						continue;
-					}
-				}
-			}
-
-			const now = new Date();
-
-			if (element.start) {
-				const start = new Date(element.start);
-				const daysUntilStart = (start - now) / (1000 * 60 * 60 * 24);
-				if (daysUntilStart > self.config.startsInDays) {
-					continue;
-				}
-			} else if (!self.config.showWithoutStart) {
-				continue;
-			}
-
-			if (element.end) {
-				const end = new Date(element.end);
-				const daysUntilDue = (end - now) / (1000 * 60 * 60 * 24);
-				if (daysUntilDue > self.config.dueInDays) {
-					continue;
-				}
-			} else if (!self.config.showWithoutDue) {
-				continue;
-			}
-
-			let icon = (element.status === "COMPLETED" ? checked : unchecked);
 			let li = document.createElement("li");
-			if (isTopLevel) {
-				li.classList.add("MMM-CalDAV-Tasks-Toplevel");
-			}
-			let p = element.priority;
+			if (isTopLevel) li.classList.add("MMM-CalDAV-Tasks-Toplevel");
 
-			if (!this.usedUrlIndices) {
-				this.usedUrlIndices = [];
-			}
-			if (!this.usedUrlIndices.includes(element.urlIndex)) {
-				this.usedUrlIndices.push(element.urlIndex);
-				const headingText = this.config.headings[element.urlIndex];
-				if (headingText !== null && headingText !== "null" && headingText !== undefined) {
-					let h2 = document.createElement("h2");
-					h2.className = "MMM-CalDAV-Tasks-Heading-" + element.urlIndex;
-					h2.textContent = headingText;
-					ul.appendChild(h2);
-				}
-			}
+			self.addHeadingIfNeeded(ul, element);
 
 			let listItemClass = "MMM-CalDAV-Tasks-List-Item";
-			let parentDivClass = "";
-			if (element.status === "COMPLETED") {
-				parentDivClass += " MMM-CalDAV-Tasks-List-Item-Completed";
-			}
-			if (self.config.colorize) {
-				li.innerHTML = "<div class='" + listItemClass + (element.status === "COMPLETED" ? " MMM-CalDAV-Tasks-Completed" : "") + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" +
-					"<span class='MMM-CalDAV-Tasks-Priority-" + p + "'>" + icon + "</span> " + element.summary +
-					(self.config.showCompletionPercent === true ? "<canvas class='MMM-CalDAV-Tasks-CompletionCanvas'></canvas>" : "") +
-					"</div>";
-			} else {
-				li.innerHTML = "<div class='" + listItemClass + (element.status === "COMPLETED" ? " MMM-CalDAV-Tasks-Completed" : "") + "' data-url-index='" + element.urlIndex + "' id='" + element.uid + "' vtodo-filename='" + element.filename + "'>" +
-					icon + " " + element.summary +
-					(self.config.showCompletionPercent === true ? "<canvas class='MMM-CalDAV-Tasks-CompletionCanvas'></canvas>" : "") +
-					"</div>";
-			}
+			let icon = (element.status === "COMPLETED" ? checked : unchecked);
+			li.innerHTML = self.createListItemHTML(element, listItemClass, icon);
 
 			if (self.config.showCompletionPercent === true) {
-				const canvas = li.querySelector("canvas.MMM-CalDAV-Tasks-CompletionCanvas");
-				if (canvas) {
-					const ctx = canvas.getContext("2d");
-					const size = this.config.pieChartSize;
-					canvas.width = size;
-					canvas.height = size;
-					const completion = Number(element.completion) || 0;
-					const centerX = size / 2;
-					const centerY = size / 2;
-					const outerRadius = size / 2;
-					const innerRadius = outerRadius - outerRadius * 0.9 / 2; // 90% of outer radius
-					const startAngle = -Math.PI / 2; // start at 12 o'clock
-					const endAngle = startAngle + (completion / 100) * 2 * Math.PI;
-
-					// Draw background arc
-					ctx.fillStyle = self.config.pieChartBackgroundColor;
-					ctx.beginPath();
-					ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI, false);
-					ctx.arc(centerX, centerY, innerRadius, 2 * Math.PI, 0, true);
-					ctx.closePath();
-					ctx.fill();
-
-					// Draw completion arc
-					if (completion > 0) {
-						ctx.fillStyle = self.config.pieChartColor;
-						ctx.beginPath();
-						ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle, false);
-						ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
-						ctx.closePath();
-						ctx.fill();
-					}
-				}
+				self.drawCompletionCanvas(li, element);
 			}
 
-			if ((self.config.displayStartDate && element.start) || (self.config.displayDueDate && element.due)) {
-				let dateSection = document.createElement("div");
-				dateSection.className = "MMM-CalDAV-Tasks-Date-Section";
-				if (element.status === "COMPLETED") {
-					if (self.config.hideDateSectionOnCompletion) {
-						dateSection.classList.add("MMM-CalDAV-Tasks-Completed");
-						dateSection.style.display = "none";
-					} else {
-						dateSection.classList.add("MMM-CalDAV-Tasks-Completed");
-					}
-				}
-
-				if (self.config.displayStartDate && element.start) {
-					let startDate = new Date(element.start);
-					let spanStart = document.createElement("span");
-					spanStart.textContent = " " + startDate.toLocaleDateString(undefined, self.config.dateFormat);
-					if (now > startDate) {
-						spanStart.className = "MMM-CalDAV-Tasks-Started";
-					} else {
-						spanStart.className = "MMM-CalDAV-Tasks-StartDate";
-					}
-					dateSection.appendChild(spanStart);
-				}
-				if (self.config.displayDueDate && element.dueFormatted) {
-					;
-					let spanDue = document.createElement("span");
-					let dueDate = new Date(element.start);
-					console.log("dueDate: " + element.dueFormatted);
-					console.log("now: " + now);
-					spanDue.textContent = " " + element.dueFormatted; //Date.toLocaleDateString(undefined, self.config.dateFormat);
-					if (now > dueDate) {
-						spanDue.className = "MMM-CalDAV-Tasks-Overdue";
-					} else {
-						spanDue.className = "MMM-CalDAV-Tasks-DueDate";
-					}
-					dateSection.appendChild(spanDue);
-				}
-
-				li.appendChild(dateSection);
+			if ((self.config.displayStartDate && element.start) || (self.config.displayDueDate && element.dueFormatted)) {
+				li.appendChild(self.createDateSection(element));
 			}
 
-			if (typeof element.children !== "undefined") {
+			if (element.children) {
 				let childList = self.renderList(element.children, false);
 				childList.classList.add("MMM-CalDAV-Tasks-SubList");
 				li.appendChild(childList);
 			}
+
 			ul.appendChild(li);
-		}
+		});
+
 		return ul;
+	},
+
+	shouldHideElement: function (element) {
+		const now = new Date();
+
+		if (element.status === "COMPLETED" && this.config.hideCompletedTasksAfter !== null) {
+			const completedDate = new Date(element.completed);
+			const daysSinceCompleted = (now - completedDate) / (1000 * 60 * 60 * 24);
+			if (daysSinceCompleted > this.config.hideCompletedTasksAfter) return true;
+		}
+
+		if (element.start) {
+			const start = new Date(element.start);
+			const daysUntilStart = (start - now) / (1000 * 60 * 60 * 24);
+			if (daysUntilStart > this.config.startsInDays) return true;
+		} else if (!this.config.showWithoutStart) {
+			return true;
+		}
+
+		if (element.end) {
+			const end = new Date(element.end);
+			const daysUntilDue = (end - now) / (1000 * 60 * 60 * 24);
+			if (daysUntilDue > this.config.dueInDays) return true;
+		} else if (!this.config.showWithoutDue) {
+			return true;
+		}
+
+		return false;
+	},
+
+	addHeadingIfNeeded: function (ul, element) {
+		if (!this.usedUrlIndices) this.usedUrlIndices = [];
+		if (!this.usedUrlIndices.includes(element.urlIndex)) {
+			this.usedUrlIndices.push(element.urlIndex);
+			const headingText = this.config.headings[element.urlIndex];
+			if (headingText !== null && headingText !== "null" && headingText !== undefined) {
+				let h2 = document.createElement("h2");
+				h2.className = "MMM-CalDAV-Tasks-Heading-" + element.urlIndex;
+				h2.textContent = headingText;
+				ul.appendChild(h2);
+			}
+		}
+	},
+
+	createListItemHTML: function (element, listItemClass, icon) {
+		let p = element.priority;
+		let listItemHTML = `<div class='${listItemClass} ${element.status === "COMPLETED" ? "MMM-CalDAV-Tasks-Completed" : ""}' data-url-index='${element.urlIndex}' id='${element.uid}' vtodo-filename='${element.filename}'>`;
+
+		if (this.config.colorize) {
+			listItemHTML += `<span class='MMM-CalDAV-Tasks-Priority-${p}'>${icon}</span> ${element.summary}`;
+		} else {
+			listItemHTML += `${icon} ${element.summary}`;
+		}
+
+		if (this.config.showCompletionPercent === true) {
+			listItemHTML += "<canvas class='MMM-CalDAV-Tasks-CompletionCanvas'></canvas>";
+		}
+
+		listItemHTML += "</div>";
+		return listItemHTML;
+	},
+
+	drawCompletionCanvas: function (li, element) {
+		const canvas = li.querySelector("canvas.MMM-CalDAV-Tasks-CompletionCanvas");
+		if (canvas) {
+			const ctx = canvas.getContext("2d");
+			const size = this.config.pieChartSize;
+			canvas.width = size;
+			canvas.height = size;
+			const completion = Number(element.completion) || 0;
+			const centerX = size / 2;
+			const centerY = size / 2;
+			const outerRadius = size / 2;
+			const innerRadius = outerRadius - outerRadius * 0.9 / 2; // 90% of outer radius
+			const startAngle = -Math.PI / 2; // start at 12 o'clock
+			const endAngle = startAngle + (completion / 100) * 2 * Math.PI;
+
+			// Draw background arc
+			ctx.fillStyle = this.config.pieChartBackgroundColor;
+			ctx.beginPath();
+			ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI, false);
+			ctx.arc(centerX, centerY, innerRadius, 2 * Math.PI, 0, true);
+			ctx.closePath();
+			ctx.fill();
+
+			// Draw completion arc
+			if (completion > 0) {
+				ctx.fillStyle = this.config.pieChartColor;
+				ctx.beginPath();
+				ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle, false);
+				ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
+				ctx.closePath();
+				ctx.fill();
+			}
+		}
+	},
+
+	createDateSection: function (element) {
+		const now = new Date();
+		let dateSection = document.createElement("div");
+		dateSection.className = "MMM-CalDAV-Tasks-Date-Section";
+		if (element.status === "COMPLETED") {
+			if (this.config.hideDateSectionOnCompletion) {
+				dateSection.classList.add("MMM-CalDAV-Tasks-Completed");
+				dateSection.style.display = "none";
+			} else {
+				dateSection.classList.add("MMM-CalDAV-Tasks-Completed");
+			}
+		}
+
+		if (this.config.displayStartDate && element.start) {
+			let startDate = new Date(element.start);
+			let spanStart = document.createElement("span");
+			spanStart.textContent = " " + startDate.toLocaleDateString(undefined, this.config.dateFormat);
+			spanStart.className = now > startDate ? "MMM-CalDAV-Tasks-Started" : "MMM-CalDAV-Tasks-StartDate";
+			dateSection.appendChild(spanStart);
+		}
+
+		if (this.config.displayDueDate && element.dueFormatted) {
+			let spanDue = document.createElement("span");
+			spanDue.textContent = " " + element.dueFormatted;
+			spanDue.className = now > new Date(element.dueFormatted) ? "MMM-CalDAV-Tasks-Overdue" : "MMM-CalDAV-Tasks-DueDate";
+			dateSection.appendChild(spanDue);
+		}
+
+		return dateSection;
 	},
 
 	// Animate list element when long clicking
 	initLongPressHandlers: function () {
 		console.debug("[MMM-CalDAV-Tasks] ready for long press");
 		const items = document.querySelectorAll(".MMM-CalDAV-Tasks-List-Item");
-		console.log(items);
+		
 		items.forEach((item) => {
 			let pressTimer = null;
 			let startTime = 0;

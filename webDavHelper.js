@@ -4,9 +4,79 @@ const  ical  = require('node-ical');
 const  moment  = require('moment');
 const  transformer  = require("./transformer");
 
-// TODO: this support a single instance of NexCloud as there is just one webDavAuth, however multiple urls are supported
-function initWebDav(config) {
-    return client = createClient(config.listUrl, config.webDavAuth);
+let client;
+
+function initDAVClient(config) {
+    client = new DAVClient({
+        serverUrl: config.webDavAuth.url,
+        credentials: {
+            username: config.webDavAuth.username,
+            password: config.webDavAuth.password,
+        },
+        authMethod: 'Basic',
+        defaultAccountType: 'caldav',
+    });
+    return client;
+}
+
+async function getFileContentsNew(config, url) {
+    client = initDAVClient(config);
+    await client.login();
+    const calendars = await client.fetchCalendars();
+
+    const filters = [
+        {
+            'comp-filter': {
+                _attributes: { name: 'VCALENDAR' },
+                'comp-filter': {
+                    _attributes: { name: 'VTODO' },
+                },
+            },
+        },
+    ];
+
+    let objects = null;
+    let urlO = [];
+    urlO[0] = url;
+
+    for (const calendar of calendars) {
+        objects = await client.fetchCalendarObjects({
+            calendar,
+            objectUrls: urlO,
+            filters: filters,
+        });
+    }
+
+    return objects[0];
+}
+
+async function putFileContentsNew(config, url, data) {
+    client = initDAVClient(config);
+    await client.login();
+    const result = client.updateCalendarObject({
+        calendarObject: {
+            url: url,
+            data: data
+        }
+    });
+    return result;
+}
+
+async function putNewFileContentsNew(config, url, filename, data) {
+    client = initDAVClient(config);
+    await client.login();
+
+    const result = client.updateCalendarObject({
+        calendarObject: {
+            calendar: calendars[0],
+            filename: 'test.ics',
+            url: url,
+            data: data
+        }
+
+    });
+
+    return result;
 }
 
 function parseList(icsStrings, dateFormat) {
@@ -23,6 +93,7 @@ function parseList(icsStrings, dateFormat) {
             }
         });
     }
+
     return elements;
 }
 
@@ -47,17 +118,7 @@ function mapEmptySortIndexTo(parsedList, mapEmptySortIndexTo) {
 }
 
 async function fetchCalendarData(config) {
-    let configWithSingleUrl = { ...config, listUrl: config.listUrl[0] };
-    const client = new DAVClient({
-        serverUrl: configWithSingleUrl.listUrl,
-        credentials: {
-            username: configWithSingleUrl.webDavAuth.username,
-            password: configWithSingleUrl.webDavAuth.password,
-        },
-        authMethod: 'Basic',
-        defaultAccountType: 'caldav',
-    });
-
+    client = initDAVClient(config);
     await client.login();
     const calendars = await client.fetchCalendars();
     let calendarData = [];
@@ -100,5 +161,8 @@ module.exports = {
     fetchCalendarData: fetchCalendarData,
     mapEmptyPriorityTo: mapEmptyPriorityTo,
     mapEmptySortIndexTo: mapEmptySortIndexTo,
-    initWebDav: initWebDav,
+    initDAVClient: initDAVClient,
+    getFileContentsNew: getFileContentsNew,
+    putNewFileContentsNew: putNewFileContentsNew,
+    putFileContentsNew: putFileContentsNew
 };

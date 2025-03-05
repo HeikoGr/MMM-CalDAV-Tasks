@@ -8,8 +8,9 @@
 //import TodoManager from './todo-manager.js';
 
 var NodeHelper = require("node_helper");
+const { DAVClient } = require("tsdav");
 const { transformData, sortList, appendUrlIndex } = require("./transformer");
-const { initWebDav, parseList, mapEmptyPriorityTo, mapEmptySortIndexTo, fetchCalendarData } = require("./webDavHelper");
+const { initWebDav, parseList, mapEmptyPriorityTo, mapEmptySortIndexTo, fetchCalendarData, initDAVClient } = require("./webDavHelper");
 const VTodoCompleter = require('./vtodo-completer.js');
 const Log = require("logger");
 
@@ -79,10 +80,9 @@ module.exports = NodeHelper.create({
 
 	toggleStatusViaWebDav: async function (id, status, config, urlIndex, filename) {
 		// pick the correct url from the config
-		let configWithSingleUrl = { ...config, listUrl: config.listUrl[urlIndex] };
-        const client = initWebDav(configWithSingleUrl);
+        const client = initDAVClient(config);
 		const completer = new VTodoCompleter(client);
-		await completer.completeVTodo(filename);
+		await completer.completeVTodo(config, filename);
 	},
 
 	sendLog: function (moduleId, payload) {

@@ -1,5 +1,6 @@
 const { datetime, RRule } = require('rrule');
-const { parse, isValid, max } = require('date-fns');
+const { getFileContentsNew, putFileContentsNew } = require('./webDavHelper');
+const { config, file } = require('grunt');
 
 /**
  * Class representing a VTodoCompleter.
@@ -21,16 +22,17 @@ class VTodoCompleter {
      * @param {Date} [completedDate=new Date()] - The completion date.
      * @returns {Object} - An object containing the original filename.
      */
-    async completeVTodo(filename, completedDate = new Date()) {
-        const icsContent = await this.client.getFileContents(filename, { format: 'text' });
-        const parsed = this.parseICS(icsContent);
+    async completeVTodo(config, filename, completedDate = new Date()) {
+
+        const icsContent = await getFileContentsNew(config, filename);
+        const parsed = this.parseICS(icsContent.data);
 
         if (this.isRecurring(parsed)) {
-            const newFilename = await this.handleRecurrence(parsed, filename, completedDate);
+            const newFilename = await this.handleRecurrence(config, parsed, filename, completedDate);
             return { original: filename, new: newFilename };
         } else {
             const modifiedContent = this.updateNonRecurring(parsed, completedDate);
-            await this.client.putFileContents(filename, modifiedContent);
+            await putFileContentsNew(config, filename, modifiedContent);
             return { original: filename };
         }
     }
@@ -51,16 +53,18 @@ class VTodoCompleter {
      * @param {Date} completedDate - The completion date.
      * @returns {string} - The new filename for the next occurrence.
      */
-    async handleRecurrence(parsed, filename, completedDate) {
+    async handleRecurrence(config, parsed, filename, completedDate) {
+
         const oDTSTART = this.getElementValue(parsed, 'VTODO', 'DTSTART', true);
-        const startDate = this.parseDate(oDTSTART);
+        const startDate = this.parseIcsDate(oDTSTART);
 
         const oRrule = this.getElementLine(parsed, 'VTODO', 'RRULE');
         const rfcString = `DTSTART:${this.formatDate(startDate)}\r\n${oRrule}`;
         const rule = RRule.fromString(rfcString);
 
         const oDue = this.getElementValue(parsed, 'VTODO', 'DUE', true);
-        const nextDue = rule.after(this.parseDatetime(oDue));
+        const oldUid = this.getElementValue(parsed, 'VTODO', 'UID', true);
+        const nextDue = rule.after(this.parseIcsDatetime(oDue));
 
         const nextOccurrence = rule.after(new Date(new Date().setHours(0, 0, 0, 0)), false);
 
@@ -69,20 +73,20 @@ class VTodoCompleter {
         const future = rule.after(futureDate, false);
         let maxDate = new Date(Math.max(nextDue, nextOccurrence));
 
-        if (this.parseDatetime(oDue).toISOString() === maxDate.toISOString()) {
+        if (this.parseIcsDatetime(oDue).toISOString() === maxDate.toISOString()) {
             maxDate = future;
         }
 
         if (!maxDate) {
             console.log('No more occurrences in RRULE');
             const modifiedContent = this.updateNonRecurring(parsed, completedDate);
-            await this.client.putFileContents(filename, modifiedContent);
+            await putFileContents(config, filename, modifiedContent);
             return filename;
         }
 
         console.log('RRULE:', rfcString);
         console.log('Next occurrence date:', nextOccurrence);
-        console.log('Original due date:', this.parseDatetime(oDue).toISOString());
+        console.log('Original due date:', this.parseIcsDatetime(oDue).toISOString());
         console.log('Future date:', futureDate.toISOString());
         console.log('Occurrence from due:', nextDue);
         console.log('Occurrence from future:', future);
@@ -92,7 +96,7 @@ class VTodoCompleter {
         this.updateVTodoItem(parsed, maxDate);
 
         const oldContent = this.generateICS(parsed);
-        await this.client.putFileContents(filename, oldContent);
+        await putFileContentsNew(config, filename, oldContent);
 
         // Create a new VTODO instance for the next occurrence
         const newParsed = JSON.parse(JSON.stringify(parsed)); // Deep copy of parsed data
@@ -100,11 +104,11 @@ class VTodoCompleter {
 
         this.completeNewVTodoItem(newParsed, completedDate, uid);
 
-        const newFilename = `${uid}.ics`;
+        const newFilename = filename.replace(oldUid, uid);
         const newContent = this.generateICS(newParsed);
 
-        await this.client.putFileContents(newFilename, newContent);
-        return newFilename;
+        const result = await putFileContentsNew(config, newFilename, newContent);
+        return result;
     }
 
     /**
@@ -137,7 +141,7 @@ class VTodoCompleter {
         const trigger = this.getElementValue(parsed, 'VALARM', 'TRIGGER', false);
 
         if (trigger) {
-            const oldAlarmDate = this.parseDate(trigger);
+            const oldAlarmDate = this.parseIcsDate(trigger);
             console.log('old Alarm date:', oldAlarmDate);
             let newAlarmDate = new Date();
             newAlarmDate = new Date(newAlarmDate.setDate(oldAlarmDate.getDate() + 1));
@@ -173,7 +177,7 @@ class VTodoCompleter {
      * @returns {Array} - An array containing the parsed lines.
      */
     parseICS(icsContent) {
-        const lines = icsContent.split('\r\n');
+        const lines = icsContent.split('\n');
         return lines.map(line => {
             const [keyPart, ...valueParts] = line.split(':');
             const value = valueParts.join(':');
@@ -217,7 +221,8 @@ class VTodoCompleter {
      * @param {string} dateStr - The date string.
      * @returns {Date} - The parsed date.
      */
-    parseDate(dateStr) {
+    parseIcsDate(dateStr) {
+ 
         // Prüfe auf DATE-TIME oder DATE
         const isDateTime = dateStr.includes('T');
         let year, month, day, hours = 0, minutes = 0, seconds = 0;
@@ -226,18 +231,18 @@ class VTodoCompleter {
             // DATE-TIME: YYYYMMDDTHHMMSSZ
             const [datePart, timePart] = dateStr.split('T');
             year = parseInt(datePart.substring(0, 4));
-            month = parseInt(datePart.substring(4, 2)) - 1; // Monat ist 0-basiert
-            day = parseInt(datePart.substring(6, 2));
+            month = parseInt(datePart.substring(4, 6)) - 1; // date is 0-based
+            day = parseInt(datePart.substring(6, 8));
 
             const time = timePart.replace('Z', '');
             hours = parseInt(time.substring(0, 2));
-            minutes = parseInt(time.substring(2, 2));
-            seconds = parseInt(time.substring(4, 2));
+            minutes = parseInt(time.substring(2, 4));
+            seconds = parseInt(time.substring(4, 6));
         } else {
             // DATE: YYYYMMDD
             year = parseInt(dateStr.substring(0, 4));
-            month = parseInt(dateStr.substring(4, 2)) - 1;
-            day = parseInt(dateStr.substring(6, 2));
+            month = parseInt(dateStr.substring(4, 6)) - 1;
+            day = parseInt(dateStr.substring(6, 8));
         }
 
         return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
@@ -248,7 +253,7 @@ class VTodoCompleter {
      * @param {string} dateStr - The datetime string.
      * @returns {Date} - The parsed datetime.
      */
-    parseDatetime(dateStr) {
+    parseIcsDatetime(dateStr) {
         // Prüfe auf DATE-TIME oder DATE
         const isDateTime = dateStr.includes('T');
         let year, month, day, hours = 0, minutes = 0, seconds = 0;
@@ -257,21 +262,20 @@ class VTodoCompleter {
             // DATE-TIME: YYYYMMDDTHHMMSSZ
             const [datePart, timePart] = dateStr.split('T');
             year = parseInt(datePart.substring(0, 4));
-            month = parseInt(datePart.substring(4, 2)); // Monat ist 0-basiert
-            day = parseInt(datePart.substring(6, 2));
+            month = parseInt(datePart.substring(4, 6));  // datetime is not 0-based
+            day = parseInt(datePart.substring(6, 8));
 
             const time = timePart.replace('Z', '');
             hours = parseInt(time.substring(0, 2));
-            minutes = parseInt(time.substring(2, 2));
-            seconds = parseInt(time.substring(4, 2));
+            minutes = parseInt(time.substring(2, 4));
+            seconds = parseInt(time.substring(4, 6));
 
             return new datetime(year, month, day, hours, minutes, seconds);
         } else {
             // DATE: YYYYMMDD
             year = parseInt(dateStr.substring(0, 4));
-            month = parseInt(dateStr.substring(4, 2));
-            day = parseInt(dateStr.substring(6, 2));
-            return datetime(year, month, day);
+            month = parseInt(dateStr.substring(4, 6)) - 1;
+            day = parseInt(dateStr.substring(6, 8));
         }
     }
 
