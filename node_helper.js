@@ -15,6 +15,7 @@ module.exports = NodeHelper.create({
 	socketNotificationReceived: function (notification, payload) {
 		let self = this;
 		const moduleId = payload.id;
+		console.log("Module ID: " + moduleId);
 
 		// Refresh the tasks list
 		if (notification === "MMM-CalDAV-Tasks-UPDATE") {

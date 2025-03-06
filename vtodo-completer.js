@@ -25,8 +25,8 @@ class VTodoCompleter {
      */
     async completeVTodo(config, filename, completedDate = new Date()) {
 
-        console.log(`Completing VTODO: ${filename}`);
-
+            console.log(`Completing VTODO: ${filename}`);
+      
             const icsContent = await getFileContentsNew(config, filename);
             const parsed = this.parseICS(icsContent.data);
 
@@ -59,18 +59,15 @@ class VTodoCompleter {
      * @returns {string} - The new filename for the next occurrence.
      */
     async handleRecurrence(config, parsed, filename, completedDate) {
-
         console.log('Handling recurrence for VTODO');
-
         const originalRRULE = this.getElementLine(parsed, 'VTODO', 'RRULE');
         const originalDTSTART = this.getElementValue(parsed, 'VTODO', 'DTSTART', true);
         const startDate = this.parseIcsDate(originalDTSTART);
         const rfcString = `DTSTART:${this.formatDate(startDate)}\r\n${originalRRULE}`;
         const rule = RRule.fromString(rfcString);
-
         const originalDue = this.getElementValue(parsed, 'VTODO', 'DUE', true);
         const originalUID = this.getElementValue(parsed, 'VTODO', 'UID', true);
-
+      
         const occurenceAfterDue   = rule.after(this.parseIcsDatetime(originalDue));
         const occurenceAfterToday = rule.after(new Date(new Date().setHours(0, 0, 0, 0)), false);
 
@@ -111,10 +108,9 @@ class VTodoCompleter {
         const uid = this.generateUID();
 
         this.completeNewVTodoItem(newParsed, completedDate, uid);
-
         const newFilename = filename.replace(originalUID, uid);
-        const newContent = this.generateICS(newParsed);
 
+        const newContent = this.generateICS(newParsed);
         const result = await putFileContentsNew(config, newFilename, newContent);
         return result;
     }
@@ -281,6 +277,22 @@ class VTodoCompleter {
 
             return new datetime(year, month, day);
         }
+
+        return {
+            currentComponent: this.componentStack[this.componentStack.length - 1],
+            hierarchy: [...this.componentStack]
+        };
+    }
+
+    /**
+     * Generate a unique identifier (UID) for ICS entries.
+     * @returns {string} RFC4122 version 4 compliant UUID in uppercase
+     */
+    generateUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16).toUpperCase();
+        });
     }
 
     /**

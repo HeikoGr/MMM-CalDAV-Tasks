@@ -52,6 +52,7 @@ async function getFileContentsNew(config, url) {
 
 async function putFileContentsNew(config, url, data) {
 
+
     client = initDAVClient(config);
     await client.login();
     const result = client.updateCalendarObject({
