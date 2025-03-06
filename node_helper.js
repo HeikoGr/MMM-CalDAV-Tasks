@@ -10,7 +10,7 @@
 var NodeHelper = require("node_helper");
 const { DAVClient } = require("tsdav");
 const { transformData, sortList, appendUrlIndex } = require("./transformer");
-const { initWebDav, parseList, mapEmptyPriorityTo, mapEmptySortIndexTo, fetchCalendarData, initDAVClient } = require("./webDavHelper");
+const { parseList, mapEmptyPriorityTo, mapEmptySortIndexTo, fetchCalendarData, initDAVClient } = require("./webDavHelper");
 const VTodoCompleter = require('./vtodo-completer.js');
 const Log = require("logger");
 
@@ -18,6 +18,8 @@ module.exports = NodeHelper.create({
 	socketNotificationReceived: function (notification, payload) {
 		let self = this;
 		const moduleId = payload.id;
+
+                console.log("xxx " + moduleId);
 
 		// Refresh the tasks list
 		if (notification === "MMM-CalDAV-Tasks-UPDATE") {

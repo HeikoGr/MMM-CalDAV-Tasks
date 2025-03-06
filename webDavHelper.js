@@ -7,6 +7,7 @@ const  transformer  = require("./transformer");
 let client;
 
 function initDAVClient(config) {
+    console.log("init webDav");
     client = new DAVClient({
         serverUrl: config.webDavAuth.url,
         credentials: {
@@ -121,6 +122,13 @@ async function fetchCalendarData(config) {
     client = initDAVClient(config);
     await client.login();
     const calendars = await client.fetchCalendars();
+
+console.log(calendars);
+
+const vtodoCalendars = calendars.filter(calendar => 
+  calendar.components.includes('VTODO')
+);
+
     let calendarData = [];
 
     const filters = [
@@ -134,7 +142,7 @@ async function fetchCalendarData(config) {
         },
     ];
 
-    for (const calendar of calendars) {
+    for (const calendar of vtodoCalendars) {
         const objects = await client.fetchCalendarObjects({
             calendar,
             filters: filters,
@@ -153,6 +161,9 @@ async function fetchCalendarData(config) {
             icsStrings: icsStrings
         });
     }
+
+    console.log("Jetz:  x");
+
     return calendarData;
 }
 
