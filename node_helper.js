@@ -5,10 +5,7 @@
  * MIT Licensed.
  */
 
-//import TodoManager from './todo-manager.js';
-
 var NodeHelper = require("node_helper");
-const { DAVClient } = require("tsdav");
 const { transformData, sortList, appendUrlIndex } = require("./transformer");
 const { parseList, mapEmptyPriorityTo, mapEmptySortIndexTo, fetchCalendarData, initDAVClient } = require("./webDavHelper");
 const VTodoCompleter = require('./vtodo-completer.js');
@@ -18,8 +15,7 @@ module.exports = NodeHelper.create({
 	socketNotificationReceived: function (notification, payload) {
 		let self = this;
 		const moduleId = payload.id;
-
-                console.log("xxx " + moduleId);
+		console.log("Module ID: " + moduleId);
 
 		// Refresh the tasks list
 		if (notification === "MMM-CalDAV-Tasks-UPDATE") {
@@ -32,7 +28,7 @@ module.exports = NodeHelper.create({
 		// Toggle the status of a task on the server
 		if (notification === "MMM-CalDAV-Tasks-TOGGLE") {
 			console.log("MMM-CalDAV-Tasks-TOGGLE") //, payload);
-			this.toggleStatusViaWebDav(payload.id, payload.status, payload.config, payload.urlIndex, payload.filename);  // up to here the log shows the correct values (92daf9339-baf6 checked {config})
+			this.toggleStatusViaWebDav(payload.config, payload.filename);  // up to here the log shows the correct values (92daf9339-baf6 checked {config})
 		};
 	},
 
@@ -59,7 +55,6 @@ module.exports = NodeHelper.create({
 				calendarData[i]["tasks"] = nestedList;
 			}
 
-			// console.log("[MMM-CalDAV-Tasks] calendar: ", JSON.stringify(calendarData,null,2));
 			callback(calendarData);
 
 		} catch (error) {
@@ -80,8 +75,7 @@ module.exports = NodeHelper.create({
 		this.sendSocketNotification("MMM-CalDAV-Tasks-Helper-TODOS#" + moduleId, payload);
 	},
 
-	toggleStatusViaWebDav: async function (id, status, config, urlIndex, filename) {
-		// pick the correct url from the config
+	toggleStatusViaWebDav: async function (config, filename) {
         const client = initDAVClient(config);
 		const completer = new VTodoCompleter(client);
 		await completer.completeVTodo(config, filename);

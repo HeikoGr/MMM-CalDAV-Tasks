@@ -1,8 +1,8 @@
 /* eslint-disable indent */
 const { DAVClient } = require("tsdav");
-const  ical  = require('node-ical');
-const  moment  = require('moment');
-const  transformer  = require("./transformer");
+const ical = require('node-ical');
+const moment = require('moment');
+const transformer = require("./transformer");
 
 let client;
 
@@ -123,11 +123,9 @@ async function fetchCalendarData(config) {
     await client.login();
     const calendars = await client.fetchCalendars();
 
-console.log(calendars);
-
-const vtodoCalendars = calendars.filter(calendar => 
-  calendar.components.includes('VTODO')
-);
+    const vtodoCalendars = calendars.filter(calendar =>
+        calendar.components.includes('VTODO')
+    );
 
     let calendarData = [];
 
@@ -161,8 +159,6 @@ const vtodoCalendars = calendars.filter(calendar =>
             icsStrings: icsStrings
         });
     }
-
-    console.log("Jetz:  x");
 
     return calendarData;
 }

@@ -470,7 +470,8 @@ Module.register("MMM-CalDAV-Tasks", {
 
 	getStyles: function () {
 		return [
-			"MMM-CalDAV-Tasks.css",
+			'MMM-CalDAV-Tasks.css',
+			'font-awesome.css'
 		];
 	},
 

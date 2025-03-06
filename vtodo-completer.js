@@ -1,21 +1,22 @@
 const { datetime, RRule } = require('rrule');
 const { getFileContentsNew, putFileContentsNew } = require('./webDavHelper');
-const { config, file } = require('grunt');
 
 /**
  * Class representing a VTodoCompleter.
  */
 class VTodoCompleter {
     /**
-     * Create a VTodoCompleter.
-     * @param {Object} webdavClient - The WebDAV client.
-     */
+      * Create a VTodoCompleter.
+      * @param {Object} webdavClient - The tsdav webdav client.
+      */
     constructor(webdavClient) {
+        if (!webdavClient) {
+            throw new Error('WebDAV client is required');
+        }
         this.client = webdavClient;
         this.componentStack = [];
         this.currentDepth = 0;
     }
-
     /**
      * Complete a VTODO item.
      * @param {string} filename - The filename of the VTODO item.
@@ -23,17 +24,21 @@ class VTodoCompleter {
      * @returns {Object} - An object containing the original filename.
      */
     async completeVTodo(config, filename, completedDate = new Date()) {
+        try {
+            const icsContent = await getFileContentsNew(config, filename);
+            const parsed = this.parseICS(icsContent.data);
 
-        const icsContent = await getFileContentsNew(config, filename);
-        const parsed = this.parseICS(icsContent.data);
-
-        if (this.isRecurring(parsed)) {
-            const newFilename = await this.handleRecurrence(config, parsed, filename, completedDate);
-            return { original: filename, new: newFilename };
-        } else {
-            const modifiedContent = this.updateNonRecurring(parsed, completedDate);
-            await putFileContentsNew(config, filename, modifiedContent);
-            return { original: filename };
+            if (this.isRecurring(parsed)) {
+                const newFilename = await this.handleRecurrence(config, parsed, filename, completedDate);
+                return { original: filename, new: newFilename };
+            } else {
+                const modifiedContent = this.updateNonRecurring(parsed, completedDate);
+                await putFileContentsNew(config, filename, modifiedContent);
+                return { original: filename };
+            }
+        } catch (error) {
+            console.error(`Error completing VTodo: ${error.message}`);
+            throw error; // Or handle appropriately
         }
     }
 
@@ -217,13 +222,12 @@ class VTodoCompleter {
     }
 
     /**
-     * Parse a date string.
-     * @param {string} dateStr - The date string.
-     * @returns {Date} - The parsed date.
+     * Parse a date string from ICS format.
+     * @param {string} dateStr - The date string in YYYYMMDD or YYYYMMDDTHHMMSSz format
+     * @returns {Date} UTC date object
+     * @throws {Error} If date string format is invalid
      */
     parseIcsDate(dateStr) {
- 
-        // Prüfe auf DATE-TIME oder DATE
         const isDateTime = dateStr.includes('T');
         let year, month, day, hours = 0, minutes = 0, seconds = 0;
 
@@ -245,24 +249,30 @@ class VTodoCompleter {
             day = parseInt(dateStr.substring(6, 8));
         }
 
+        if (isNaN(year) || isNaN(month) || isNaN(day)) {
+            throw new Error('Invalid date string format');
+        }
+
         return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
     }
 
     /**
-     * Parse a datetime string.
-     * @param {string} dateStr - The datetime string.
-     * @returns {Date} - The parsed datetime.
+     * Format a date object to ICS format.
+     * @param {string} dateStr - The datetime string in YYYYMMDD or YYYYMMDDTHHMMSSz format
+     * @returns {datetime} RRule datetime object for recurrence calculations
+     * @throws {Error} If datetime string format is invalid
      */
     parseIcsDatetime(dateStr) {
-        // Prüfe auf DATE-TIME oder DATE
+
         const isDateTime = dateStr.includes('T');
         let year, month, day, hours = 0, minutes = 0, seconds = 0;
 
         if (isDateTime) {
-            // DATE-TIME: YYYYMMDDTHHMMSSZ
+
             const [datePart, timePart] = dateStr.split('T');
             year = parseInt(datePart.substring(0, 4));
-            month = parseInt(datePart.substring(4, 6));  // datetime is not 0-based
+
+            month = parseInt(datePart.substring(4, 6));
             day = parseInt(datePart.substring(6, 8));
 
             const time = timePart.replace('Z', '');
@@ -270,13 +280,68 @@ class VTodoCompleter {
             minutes = parseInt(time.substring(2, 4));
             seconds = parseInt(time.substring(4, 6));
 
+            if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+                throw new Error('Invalid datetime string format');
+            }
+
             return new datetime(year, month, day, hours, minutes, seconds);
         } else {
-            // DATE: YYYYMMDD
+
             year = parseInt(dateStr.substring(0, 4));
-            month = parseInt(dateStr.substring(4, 6)) - 1;
+
+            month = parseInt(dateStr.substring(4, 6));
             day = parseInt(dateStr.substring(6, 8));
+
+            if (isNaN(year) || isNaN(month) || isNaN(day)) {
+                throw new Error('Invalid date string format');
+            }
+
+            return new datetime(year, month, day);
         }
+    }
+
+    /**
+     * Handle recurrence for a VTODO item.
+     * @param {Object} config - The WebDAV configuration object
+     * @param {Array} parsed - The parsed ICS data array
+     * @param {string} filename - The filename of the VTODO item
+     * @param {Date} completedDate - The completion date
+     * @returns {Promise<string>} The filename for the next occurrence
+     * @throws {Error} If WebDAV operations fail or recurrence cannot be processed
+     */
+    async handleRecurrence(config, parsed, filename, completedDate) {
+        // Implementation to be added
+    }
+
+    /**
+     * Get the current context from a line in ICS file.
+     * @param {string} line - The ICS line to process
+     * @returns {{currentComponent: string, hierarchy: string[]}} Object containing current component and hierarchy stack
+     */
+    getCurrentContext(line) {
+        if (line.startsWith('BEGIN:')) {
+            this.componentStack.push(line.split(':')[1]);
+            this.currentDepth++;
+        } else if (line.startsWith('END:')) {
+            this.componentStack.pop();
+            this.currentDepth = Math.max(0, this.currentDepth - 1);
+        }
+
+        return {
+            currentComponent: this.componentStack[this.componentStack.length - 1],
+            hierarchy: [...this.componentStack]
+        };
+    }
+
+    /**
+     * Generate a unique identifier (UID) for ICS entries.
+     * @returns {string} RFC4122 version 4 compliant UUID in uppercase
+     */
+    generateUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16).toUpperCase();
+        });
     }
 
     /**
