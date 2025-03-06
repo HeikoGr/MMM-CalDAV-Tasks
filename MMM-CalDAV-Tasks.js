@@ -255,9 +255,9 @@ Module.register("MMM-CalDAV-Tasks", {
 		let listItemHTML = `<div class='${listItemClass} ${element.status === "COMPLETED" ? "MMM-CalDAV-Tasks-Completed" : ""}' data-url-index='${element.urlIndex}' id='${element.uid}' vtodo-filename='${element.filename}'>`;
 
 		if (this.config.colorize) {
-			listItemHTML += `<span class='MMM-CalDAV-Tasks-Priority-${p}'>${icon}</span> ${element.summary}`;
+			listItemHTML += `<span class='MMM-CalDAV-Tasks-Priority-${p}'>${icon}</span> <span>${element.summary}</span>`;
 		} else {
-			listItemHTML += `${icon} ${element.summary}`;
+			listItemHTML += `${icon} <span>${element.summary}</span>`;
 		}
 
 		if (this.config.showCompletionPercent === true) {

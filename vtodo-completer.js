@@ -24,22 +24,22 @@ class VTodoCompleter {
      * @returns {Object} - An object containing the original filename.
      */
     async completeVTodo(config, filename, completedDate = new Date()) {
-        try {
+
+            console.log(`Completing VTODO: ${filename}`);
+      
             const icsContent = await getFileContentsNew(config, filename);
             const parsed = this.parseICS(icsContent.data);
 
             if (this.isRecurring(parsed)) {
+                console.log('VTODO is recurring');
                 const newFilename = await this.handleRecurrence(config, parsed, filename, completedDate);
                 return { original: filename, new: newFilename };
             } else {
+                console.log('VTODO is not recurring');
                 const modifiedContent = this.updateNonRecurring(parsed, completedDate);
                 await putFileContentsNew(config, filename, modifiedContent);
                 return { original: filename };
             }
-        } catch (error) {
-            console.error(`Error completing VTodo: ${error.message}`);
-            throw error; // Or handle appropriately
-        }
     }
 
     /**
@@ -59,43 +59,43 @@ class VTodoCompleter {
      * @returns {string} - The new filename for the next occurrence.
      */
     async handleRecurrence(config, parsed, filename, completedDate) {
-
-        const oDTSTART = this.getElementValue(parsed, 'VTODO', 'DTSTART', true);
-        const startDate = this.parseIcsDate(oDTSTART);
-
-        const oRrule = this.getElementLine(parsed, 'VTODO', 'RRULE');
-        const rfcString = `DTSTART:${this.formatDate(startDate)}\r\n${oRrule}`;
+        console.log('Handling recurrence for VTODO');
+        const originalRRULE = this.getElementLine(parsed, 'VTODO', 'RRULE');
+        const originalDTSTART = this.getElementValue(parsed, 'VTODO', 'DTSTART', true);
+        const startDate = this.parseIcsDate(originalDTSTART);
+        const rfcString = `DTSTART:${this.formatDate(startDate)}\r\n${originalRRULE}`;
         const rule = RRule.fromString(rfcString);
+        const originalDue = this.getElementValue(parsed, 'VTODO', 'DUE', true);
+        const originalUID = this.getElementValue(parsed, 'VTODO', 'UID', true);
+      
+        const occurenceAfterDue   = rule.after(this.parseIcsDatetime(originalDue));
+        const occurenceAfterToday = rule.after(new Date(new Date().setHours(0, 0, 0, 0)), false);
 
-        const oDue = this.getElementValue(parsed, 'VTODO', 'DUE', true);
-        const oldUid = this.getElementValue(parsed, 'VTODO', 'UID', true);
-        const nextDue = rule.after(this.parseIcsDatetime(oDue));
-
-        const nextOccurrence = rule.after(new Date(new Date().setHours(0, 0, 0, 0)), false);
-
-        const futureDate = new Date(nextOccurrence);
+        const futureDate = new Date(occurenceAfterToday);
         futureDate.setDate(futureDate.getDate() + 1);
-        const future = rule.after(futureDate, false);
-        let maxDate = new Date(Math.max(nextDue, nextOccurrence));
+        const occurenceAfterFuture = rule.after(futureDate, false);
 
-        if (this.parseIcsDatetime(oDue).toISOString() === maxDate.toISOString()) {
-            maxDate = future;
+        // compare next occurence with due date
+        let maxDate = new Date(Math.max(occurenceAfterDue, occurenceAfterToday));
+
+        // compare next occurence with occurence after today+1
+        if (this.parseIcsDatetime(originalDue).toISOString() === maxDate.toISOString()) {
+            maxDate = occurenceAfterFuture;
         }
 
         if (!maxDate) {
             console.log('No more occurrences in RRULE');
             const modifiedContent = this.updateNonRecurring(parsed, completedDate);
-            await putFileContents(config, filename, modifiedContent);
+            await putFileContentsNew(config, filename, modifiedContent);
             return filename;
         }
 
-        console.log('RRULE:', rfcString);
-        console.log('Next occurrence date:', nextOccurrence);
-        console.log('Original due date:', this.parseIcsDatetime(oDue).toISOString());
-        console.log('Future date:', futureDate.toISOString());
-        console.log('Occurrence from due:', nextDue);
-        console.log('Occurrence from future:', future);
-        console.log('Set occurrence to:', maxDate);
+        console.log('RRULE:                  ', rfcString.replace(/\r\n/g, '[newLine]'));
+        console.log('actual due date:        ', this.parseIcsDatetime(originalDue).toISOString());
+        console.log('occurrence after today: ', occurenceAfterToday);
+        console.log('occurence after today+1:', futureDate.toISOString());
+        console.log('occurrence after due:   ', occurenceAfterDue);
+        console.log('Set occurrence to:      ', maxDate);
 
         // Update the original VTODO item
         this.updateVTodoItem(parsed, maxDate);
@@ -108,10 +108,9 @@ class VTodoCompleter {
         const uid = this.generateUID();
 
         this.completeNewVTodoItem(newParsed, completedDate, uid);
+        const newFilename = filename.replace(originalUID, uid);
 
-        const newFilename = filename.replace(oldUid, uid);
         const newContent = this.generateICS(newParsed);
-
         const result = await putFileContentsNew(config, newFilename, newContent);
         return result;
     }
@@ -137,7 +136,7 @@ class VTodoCompleter {
      * @param {Date} maxDate - The new due date.
      */
     updateVTodoItem(parsed, maxDate) {
-        console.log(`\r\n\r\nUpdating VTODO item with new due date:`, maxDate.toISOString());
+        console.log(`\r\n\r\nUpdating existing VTODO item:`);
         this.setProperty(parsed, 'VTODO', 'DTSTART', this.formatDate(maxDate));
         this.setProperty(parsed, 'VTODO', 'DUE', this.formatDate(maxDate));
         this.setProperty(parsed, 'VTODO', 'DTSTAMP', this.formatDate(new Date()));
@@ -199,26 +198,6 @@ class VTodoCompleter {
                 modified: false
             };
         });
-    }
-
-    /**
-     * Get the current context from a line.
-     * @param {string} line - The line to get the context from.
-     * @returns {Object} - The current context.
-     */
-    getCurrentContext(line) {
-        if (line.startsWith('BEGIN:')) {
-            this.componentStack.push(line.split(':')[1]);
-            this.currentDepth++;
-        } else if (line.startsWith('END:')) {
-            this.componentStack.pop();
-            this.currentDepth = Math.max(0, this.currentDepth - 1);
-        }
-
-        return {
-            currentComponent: this.componentStack[this.componentStack.length - 1],
-            hierarchy: [...this.componentStack] // Kopie des Breadcrumb-Stacks
-        };
     }
 
     /**
@@ -298,19 +277,22 @@ class VTodoCompleter {
 
             return new datetime(year, month, day);
         }
+
+        return {
+            currentComponent: this.componentStack[this.componentStack.length - 1],
+            hierarchy: [...this.componentStack]
+        };
     }
 
     /**
-     * Handle recurrence for a VTODO item.
-     * @param {Object} config - The WebDAV configuration object
-     * @param {Array} parsed - The parsed ICS data array
-     * @param {string} filename - The filename of the VTODO item
-     * @param {Date} completedDate - The completion date
-     * @returns {Promise<string>} The filename for the next occurrence
-     * @throws {Error} If WebDAV operations fail or recurrence cannot be processed
+     * Generate a unique identifier (UID) for ICS entries.
+     * @returns {string} RFC4122 version 4 compliant UUID in uppercase
      */
-    async handleRecurrence(config, parsed, filename, completedDate) {
-        // Implementation to be added
+    generateUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16).toUpperCase();
+        });
     }
 
     /**
@@ -394,8 +376,8 @@ class VTodoCompleter {
         // Find the position of the "END:VTODO" element
         const endIndex = parsed.findIndex(i => i.key === before && i.component === component);
 
-        console.log("component: " + component + " key: " + before + " value: " + value + " params: " + params);
-        console.log("add property: " + key + " value: " + value + " at position: " + endIndex);
+        console.log("component:      " + component + " key: " + before + " value: " + value + " params: " + params);
+        console.log("add property:   " + key + " value: " + value + " at position: " + endIndex);
 
         if (endIndex !== -1) {
             // Insert the new item before the "END:VTODO" element
@@ -419,7 +401,7 @@ class VTodoCompleter {
         if (existingEntries.length > 0) {
             existingEntries.forEach(entry => {
                 entry.delete = true;
-                console.log("delete property: " + key);
+                console.log("del property:   " + key);
             });
         } else {
             console.log("cannot delete non-existing property: " + key);
@@ -442,7 +424,7 @@ class VTodoCompleter {
         if (existing) {
             existing.value = value;
             existing.modified = true;
-            console.log("setProperty: " + key + " to " + value);
+            console.log("set property:   " + key + " to " + value);
         } else {
             console.log("cannot modify non-existing property, try to add: " + key + " in front of " + addBefore);
             this.addProperty(parsed, component, key, value, origParams, addBefore);
@@ -503,17 +485,6 @@ class VTodoCompleter {
         return isoString.replace(/[-:]/g, '').split('.')[0] + 'Z';
     }
 
-    /**
-     * Generate a unique identifier (UID).
-     * @returns {string} - The generated UID.
-     */
-    generateUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-            const r = Math.random() * 16 | 0;
-            const v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        }).toUpperCase();
-    }
 }
 
 module.exports = VTodoCompleter;

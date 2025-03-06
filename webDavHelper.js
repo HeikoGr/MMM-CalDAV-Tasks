@@ -7,7 +7,6 @@ const transformer = require("./transformer");
 let client;
 
 function initDAVClient(config) {
-    console.log("init webDav");
     client = new DAVClient({
         serverUrl: config.webDavAuth.url,
         credentials: {
@@ -52,6 +51,8 @@ async function getFileContentsNew(config, url) {
 }
 
 async function putFileContentsNew(config, url, data) {
+
+
     client = initDAVClient(config);
     await client.login();
     const result = client.updateCalendarObject({
@@ -60,23 +61,6 @@ async function putFileContentsNew(config, url, data) {
             data: data
         }
     });
-    return result;
-}
-
-async function putNewFileContentsNew(config, url, filename, data) {
-    client = initDAVClient(config);
-    await client.login();
-
-    const result = client.updateCalendarObject({
-        calendarObject: {
-            calendar: calendars[0],
-            filename: 'test.ics',
-            url: url,
-            data: data
-        }
-
-    });
-
     return result;
 }
 
@@ -170,6 +154,5 @@ module.exports = {
     mapEmptySortIndexTo: mapEmptySortIndexTo,
     initDAVClient: initDAVClient,
     getFileContentsNew: getFileContentsNew,
-    putNewFileContentsNew: putNewFileContentsNew,
     putFileContentsNew: putFileContentsNew
 };
