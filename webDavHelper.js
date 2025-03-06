@@ -1,15 +1,86 @@
 /* eslint-disable indent */
-const { createClient } = require("webdav");
+const { DAVClient } = require("tsdav");
 const ical = require('node-ical');
 const moment = require('moment');
 const transformer = require("./transformer");
 
-// TODO: this support a single instance of NexCloud as there is just one webDavAuth, however multiple urls are supported
-function initWebDav(config) {
-    return client = createClient(config.listUrl, config.webDavAuth);
+let client;
+
+function initDAVClient(config) {
+    console.log("init webDav");
+    client = new DAVClient({
+        serverUrl: config.webDavAuth.url,
+        credentials: {
+            username: config.webDavAuth.username,
+            password: config.webDavAuth.password,
+        },
+        authMethod: 'Basic',
+        defaultAccountType: 'caldav',
+    });
+    return client;
 }
 
-function parseList(icsStrings,dateFormat) {
+async function getFileContentsNew(config, url) {
+    client = initDAVClient(config);
+    await client.login();
+    const calendars = await client.fetchCalendars();
+
+    const filters = [
+        {
+            'comp-filter': {
+                _attributes: { name: 'VCALENDAR' },
+                'comp-filter': {
+                    _attributes: { name: 'VTODO' },
+                },
+            },
+        },
+    ];
+
+    let objects = null;
+    let urlO = [];
+    urlO[0] = url;
+
+    for (const calendar of calendars) {
+        objects = await client.fetchCalendarObjects({
+            calendar,
+            objectUrls: urlO,
+            filters: filters,
+        });
+    }
+
+    return objects[0];
+}
+
+async function putFileContentsNew(config, url, data) {
+    client = initDAVClient(config);
+    await client.login();
+    const result = client.updateCalendarObject({
+        calendarObject: {
+            url: url,
+            data: data
+        }
+    });
+    return result;
+}
+
+async function putNewFileContentsNew(config, url, filename, data) {
+    client = initDAVClient(config);
+    await client.login();
+
+    const result = client.updateCalendarObject({
+        calendarObject: {
+            calendar: calendars[0],
+            filename: 'test.ics',
+            url: url,
+            data: data
+        }
+
+    });
+
+    return result;
+}
+
+function parseList(icsStrings, dateFormat) {
     let elements = [];
     for (const { filename, icsStr } of icsStrings) {
         const icsObj = ical.sync.parseICS(icsStr);
@@ -23,6 +94,7 @@ function parseList(icsStrings,dateFormat) {
             }
         });
     }
+
     return elements;
 }
 
@@ -36,39 +108,68 @@ function mapEmptyPriorityTo(parsedList, mapEmptyPriorityTo) {
     return parsedList;
 }
 
-async function fetchList(config) {
-    const client = initWebDav(config);
-    const directoryItems = await client.getDirectoryContents("/");
-    // console.log("[MMM-CalDAV-Tasks] fetchList:", directoryItems);
-
-    let icsStrings = [];
-    for (const element of directoryItems) {
-        let attempt = 0;
-        let icsStr;
-        while (attempt < 5) {
-            try {
-                icsStr = await client.getFileContents(element.filename, { format: "text" });
-                break;
-            } catch (error) {
-                console.error(`[MMM-CalDAV-Tasks] Error fetching file ${element.filename}: ${error.message}. Attempt ${attempt + 1} of 5.`);
-                attempt++;
-                if (attempt < 3) {
-                    await new Promise(resolve => setTimeout(resolve, 8000)); // wait 8 seconds before retrying
-                } else {
-                    console.error(`[MMM-CalDAV-Tasks] Failed to fetch file ${element.filename} after 5 attempts.`);
-                }
-            }
-        }
-        if (icsStr) {
-            icsStrings.push({ filename: element.filename, icsStr });
+function mapEmptySortIndexTo(parsedList, mapEmptySortIndexTo) {
+    for (let element of parsedList) {
+        if (!element.hasOwnProperty('APPLE-SORT-ORDER') || element['APPLE-SORT-ORDER'] === null || element['APPLE-SORT-ORDER'] === "0") { // VTODO uses strings!
+            // console.log(`[MMM-CalDAV-Tasks] setting prio for element ${element.filename} to ${mapEmptyPriorityTo}`);
+            element['APPLE-SORT-ORDER'] = mapEmptySortIndexTo.toString();
         }
     }
-    return icsStrings;
+    return parsedList;
+}
+
+async function fetchCalendarData(config) {
+    client = initDAVClient(config);
+    await client.login();
+    const calendars = await client.fetchCalendars();
+
+    const vtodoCalendars = calendars.filter(calendar =>
+        calendar.components.includes('VTODO')
+    );
+
+    let calendarData = [];
+
+    const filters = [
+        {
+            'comp-filter': {
+                _attributes: { name: 'VCALENDAR' },
+                'comp-filter': {
+                    _attributes: { name: 'VTODO' },
+                },
+            },
+        },
+    ];
+
+    for (const calendar of vtodoCalendars) {
+        const objects = await client.fetchCalendarObjects({
+            calendar,
+            filters: filters,
+        });
+
+        let icsStrings = [];
+        for (const object of objects) {
+            icsStrings.push({ filename: object.url, icsStr: object.data });
+        }
+
+        calendarData.push({
+            url: calendar.url,
+            calendarColor: calendar.calendarColor,
+            summary: calendar.displayName,
+            description: calendar.description,
+            icsStrings: icsStrings
+        });
+    }
+
+    return calendarData;
 }
 
 module.exports = {
     parseList: parseList,
-    fetchList: fetchList,
+    fetchCalendarData: fetchCalendarData,
     mapEmptyPriorityTo: mapEmptyPriorityTo,
-    initWebDav: initWebDav,
+    mapEmptySortIndexTo: mapEmptySortIndexTo,
+    initDAVClient: initDAVClient,
+    getFileContentsNew: getFileContentsNew,
+    putNewFileContentsNew: putNewFileContentsNew,
+    putFileContentsNew: putFileContentsNew
 };

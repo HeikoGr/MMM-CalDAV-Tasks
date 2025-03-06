@@ -5,18 +5,17 @@
  * MIT Licensed.
  */
 
-//import TodoManager from './todo-manager.js';
-
 var NodeHelper = require("node_helper");
 const { transformData, sortList, appendUrlIndex } = require("./transformer");
-const { initWebDav, fetchList, parseList, mapEmptyPriorityTo } = require("./webDavHelper");
-const { createClient } = require('webdav');
+const { parseList, mapEmptyPriorityTo, mapEmptySortIndexTo, fetchCalendarData, initDAVClient } = require("./webDavHelper");
 const VTodoCompleter = require('./vtodo-completer.js');
+const Log = require("logger");
 
 module.exports = NodeHelper.create({
 	socketNotificationReceived: function (notification, payload) {
 		let self = this;
 		const moduleId = payload.id;
+		console.log("Module ID: " + moduleId);
 
 		// Refresh the tasks list
 		if (notification === "MMM-CalDAV-Tasks-UPDATE") {
@@ -29,28 +28,34 @@ module.exports = NodeHelper.create({
 		// Toggle the status of a task on the server
 		if (notification === "MMM-CalDAV-Tasks-TOGGLE") {
 			console.log("MMM-CalDAV-Tasks-TOGGLE") //, payload);
-			this.toggleStatusViaWebDav(payload.id, payload.status, payload.config, payload.urlIndex, payload.filename);  // up to here the log shows the correct values (92daf9339-baf6 checked {config})
+			this.toggleStatusViaWebDav(payload.config, payload.filename);  // up to here the log shows the correct values (92daf9339-baf6 checked {config})
 		};
 	},
 
 
 	getData: async function (moduleId, config, callback) {
 		let self = this;
+		let calendarData = [];
+
 		try {
 			let allTasks = [];
-			// iterate over all urls in the config and fetch the tasks
-			for (let i = 0; i < config.listUrl.length; i++) {
-				let configWithSingleUrl = { ...config, listUrl: config.listUrl[i] };
-				 // console.log("[MMM-CalDAV-Tasks] getData - configWithSingleUrl: ", configWithSingleUrl);
-				const icsList = await fetchList(configWithSingleUrl); // also add the filename to the icsStrings
+			calendarData = await fetchCalendarData(config)
+
+			// iterate over all Arrays
+			for (let i = 0; i < calendarData.length; i++) {
+				icsList = calendarData[i]["icsStrings"];
 				const rawList = parseList(icsList, config.dateFormat);
 				const priorityList = mapEmptyPriorityTo(rawList, config.mapEmptyPriorityTo);
-				const indexedList = appendUrlIndex(priorityList, i);
+				const sortIndexList = mapEmptySortIndexTo(priorityList, config.mapEmptySortIndexTo);
+				const indexedList = appendUrlIndex(sortIndexList, i);
 				const sortedList = sortList(indexedList, config.sortMethod);
-				const nestedList = transformData(sortedList);
+				const sortedAppleList = sortList(sortedList, 'apple');
+				const nestedList = transformData(sortedAppleList);
 				allTasks = allTasks.concat(nestedList);
+				calendarData[i]["tasks"] = nestedList;
 			}
-			callback(allTasks);
+
+			callback(calendarData);
 
 		} catch (error) {
 			console.error("WebDav", error);
@@ -70,25 +75,10 @@ module.exports = NodeHelper.create({
 		this.sendSocketNotification("MMM-CalDAV-Tasks-Helper-TODOS#" + moduleId, payload);
 	},
 
-	toggleStatusViaWebDav: async function (id, status, config, urlIndex, filename) {
-		// pick the correct url from the config
-//
-		let configWithSingleUrl = { ...config, listUrl: config.listUrl[urlIndex] };
-//
-//		const webdavUrl = 'https://***REMOVED***/dav.php/calendars/***REMOVED***/default/';
-//		const username = '***REMOVED***';
-//		const password = '***REMOVED***';
-//
-//		const client = createClient(webdavUrl, { username: username, password: password });
-                const client = initWebDav(configWithSingleUrl);
-
-		//const todoManager = new TodoManager(client);
-
-		// Aufruf mit optionalem Abschlussdatum
-		//await todoManager.completeTask(filename);
+	toggleStatusViaWebDav: async function (config, filename) {
+        const client = initDAVClient(config);
 		const completer = new VTodoCompleter(client);
-		await completer.completeVTodo(filename);
-
+		await completer.completeVTodo(config, filename);
 	},
 
 	sendLog: function (moduleId, payload) {

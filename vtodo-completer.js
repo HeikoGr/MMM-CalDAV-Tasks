@@ -1,37 +1,44 @@
 const { datetime, RRule } = require('rrule');
-const { parse, isValid, max } = require('date-fns');
+const { getFileContentsNew, putFileContentsNew } = require('./webDavHelper');
 
 /**
  * Class representing a VTodoCompleter.
  */
 class VTodoCompleter {
     /**
-     * Create a VTodoCompleter.
-     * @param {Object} webdavClient - The WebDAV client.
-     */
+      * Create a VTodoCompleter.
+      * @param {Object} webdavClient - The tsdav webdav client.
+      */
     constructor(webdavClient) {
+        if (!webdavClient) {
+            throw new Error('WebDAV client is required');
+        }
         this.client = webdavClient;
         this.componentStack = [];
         this.currentDepth = 0;
     }
-
     /**
      * Complete a VTODO item.
      * @param {string} filename - The filename of the VTODO item.
      * @param {Date} [completedDate=new Date()] - The completion date.
      * @returns {Object} - An object containing the original filename.
      */
-    async completeVTodo(filename, completedDate = new Date()) {
-        const icsContent = await this.client.getFileContents(filename, { format: 'text' });
-        const parsed = this.parseICS(icsContent);
+    async completeVTodo(config, filename, completedDate = new Date()) {
+        try {
+            const icsContent = await getFileContentsNew(config, filename);
+            const parsed = this.parseICS(icsContent.data);
 
-        if (this.isRecurring(parsed)) {
-            const newFilename = await this.handleRecurrence(parsed, filename, completedDate);
-            return { original: filename, new: newFilename };
-        } else {
-            const modifiedContent = this.updateNonRecurring(parsed, completedDate);
-            await this.client.putFileContents(filename, modifiedContent);
-            return { original: filename };
+            if (this.isRecurring(parsed)) {
+                const newFilename = await this.handleRecurrence(config, parsed, filename, completedDate);
+                return { original: filename, new: newFilename };
+            } else {
+                const modifiedContent = this.updateNonRecurring(parsed, completedDate);
+                await putFileContentsNew(config, filename, modifiedContent);
+                return { original: filename };
+            }
+        } catch (error) {
+            console.error(`Error completing VTodo: ${error.message}`);
+            throw error; // Or handle appropriately
         }
     }
 
@@ -51,16 +58,18 @@ class VTodoCompleter {
      * @param {Date} completedDate - The completion date.
      * @returns {string} - The new filename for the next occurrence.
      */
-    async handleRecurrence(parsed, filename, completedDate) {
+    async handleRecurrence(config, parsed, filename, completedDate) {
+
         const oDTSTART = this.getElementValue(parsed, 'VTODO', 'DTSTART', true);
-        const startDate = this.parseDate(oDTSTART);
+        const startDate = this.parseIcsDate(oDTSTART);
 
         const oRrule = this.getElementLine(parsed, 'VTODO', 'RRULE');
         const rfcString = `DTSTART:${this.formatDate(startDate)}\r\n${oRrule}`;
         const rule = RRule.fromString(rfcString);
 
         const oDue = this.getElementValue(parsed, 'VTODO', 'DUE', true);
-        const nextDue = rule.after(this.parseDatetime(oDue));
+        const oldUid = this.getElementValue(parsed, 'VTODO', 'UID', true);
+        const nextDue = rule.after(this.parseIcsDatetime(oDue));
 
         const nextOccurrence = rule.after(new Date(new Date().setHours(0, 0, 0, 0)), false);
 
@@ -69,20 +78,20 @@ class VTodoCompleter {
         const future = rule.after(futureDate, false);
         let maxDate = new Date(Math.max(nextDue, nextOccurrence));
 
-        if (this.parseDatetime(oDue).toISOString() === maxDate.toISOString()) {
+        if (this.parseIcsDatetime(oDue).toISOString() === maxDate.toISOString()) {
             maxDate = future;
         }
 
         if (!maxDate) {
             console.log('No more occurrences in RRULE');
             const modifiedContent = this.updateNonRecurring(parsed, completedDate);
-            await this.client.putFileContents(filename, modifiedContent);
+            await putFileContents(config, filename, modifiedContent);
             return filename;
         }
 
         console.log('RRULE:', rfcString);
         console.log('Next occurrence date:', nextOccurrence);
-        console.log('Original due date:', this.parseDatetime(oDue).toISOString());
+        console.log('Original due date:', this.parseIcsDatetime(oDue).toISOString());
         console.log('Future date:', futureDate.toISOString());
         console.log('Occurrence from due:', nextDue);
         console.log('Occurrence from future:', future);
@@ -92,7 +101,7 @@ class VTodoCompleter {
         this.updateVTodoItem(parsed, maxDate);
 
         const oldContent = this.generateICS(parsed);
-        await this.client.putFileContents(filename, oldContent);
+        await putFileContentsNew(config, filename, oldContent);
 
         // Create a new VTODO instance for the next occurrence
         const newParsed = JSON.parse(JSON.stringify(parsed)); // Deep copy of parsed data
@@ -100,11 +109,11 @@ class VTodoCompleter {
 
         this.completeNewVTodoItem(newParsed, completedDate, uid);
 
-        const newFilename = `${uid}.ics`;
+        const newFilename = filename.replace(oldUid, uid);
         const newContent = this.generateICS(newParsed);
 
-        await this.client.putFileContents(newFilename, newContent);
-        return newFilename;
+        const result = await putFileContentsNew(config, newFilename, newContent);
+        return result;
     }
 
     /**
@@ -137,7 +146,7 @@ class VTodoCompleter {
         const trigger = this.getElementValue(parsed, 'VALARM', 'TRIGGER', false);
 
         if (trigger) {
-            const oldAlarmDate = this.parseDate(trigger);
+            const oldAlarmDate = this.parseIcsDate(trigger);
             console.log('old Alarm date:', oldAlarmDate);
             let newAlarmDate = new Date();
             newAlarmDate = new Date(newAlarmDate.setDate(oldAlarmDate.getDate() + 1));
@@ -173,7 +182,7 @@ class VTodoCompleter {
      * @returns {Array} - An array containing the parsed lines.
      */
     parseICS(icsContent) {
-        const lines = icsContent.split('\r\n');
+        const lines = icsContent.split('\n');
         return lines.map(line => {
             const [keyPart, ...valueParts] = line.split(':');
             const value = valueParts.join(':');
@@ -213,12 +222,12 @@ class VTodoCompleter {
     }
 
     /**
-     * Parse a date string.
-     * @param {string} dateStr - The date string.
-     * @returns {Date} - The parsed date.
+     * Parse a date string from ICS format.
+     * @param {string} dateStr - The date string in YYYYMMDD or YYYYMMDDTHHMMSSz format
+     * @returns {Date} UTC date object
+     * @throws {Error} If date string format is invalid
      */
-    parseDate(dateStr) {
-        // Prüfe auf DATE-TIME oder DATE
+    parseIcsDate(dateStr) {
         const isDateTime = dateStr.includes('T');
         let year, month, day, hours = 0, minutes = 0, seconds = 0;
 
@@ -226,53 +235,113 @@ class VTodoCompleter {
             // DATE-TIME: YYYYMMDDTHHMMSSZ
             const [datePart, timePart] = dateStr.split('T');
             year = parseInt(datePart.substring(0, 4));
-            month = parseInt(datePart.substring(4, 2)) - 1; // Monat ist 0-basiert
-            day = parseInt(datePart.substring(6, 2));
+            month = parseInt(datePart.substring(4, 6)) - 1; // date is 0-based
+            day = parseInt(datePart.substring(6, 8));
 
             const time = timePart.replace('Z', '');
             hours = parseInt(time.substring(0, 2));
-            minutes = parseInt(time.substring(2, 2));
-            seconds = parseInt(time.substring(4, 2));
+            minutes = parseInt(time.substring(2, 4));
+            seconds = parseInt(time.substring(4, 6));
         } else {
             // DATE: YYYYMMDD
             year = parseInt(dateStr.substring(0, 4));
-            month = parseInt(dateStr.substring(4, 2)) - 1;
-            day = parseInt(dateStr.substring(6, 2));
+            month = parseInt(dateStr.substring(4, 6)) - 1;
+            day = parseInt(dateStr.substring(6, 8));
+        }
+
+        if (isNaN(year) || isNaN(month) || isNaN(day)) {
+            throw new Error('Invalid date string format');
         }
 
         return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
     }
 
     /**
-     * Parse a datetime string.
-     * @param {string} dateStr - The datetime string.
-     * @returns {Date} - The parsed datetime.
+     * Format a date object to ICS format.
+     * @param {string} dateStr - The datetime string in YYYYMMDD or YYYYMMDDTHHMMSSz format
+     * @returns {datetime} RRule datetime object for recurrence calculations
+     * @throws {Error} If datetime string format is invalid
      */
-    parseDatetime(dateStr) {
-        // Prüfe auf DATE-TIME oder DATE
+    parseIcsDatetime(dateStr) {
+
         const isDateTime = dateStr.includes('T');
         let year, month, day, hours = 0, minutes = 0, seconds = 0;
 
         if (isDateTime) {
-            // DATE-TIME: YYYYMMDDTHHMMSSZ
+
             const [datePart, timePart] = dateStr.split('T');
             year = parseInt(datePart.substring(0, 4));
-            month = parseInt(datePart.substring(4, 2)); // Monat ist 0-basiert
-            day = parseInt(datePart.substring(6, 2));
+
+            month = parseInt(datePart.substring(4, 6));
+            day = parseInt(datePart.substring(6, 8));
 
             const time = timePart.replace('Z', '');
             hours = parseInt(time.substring(0, 2));
-            minutes = parseInt(time.substring(2, 2));
-            seconds = parseInt(time.substring(4, 2));
+            minutes = parseInt(time.substring(2, 4));
+            seconds = parseInt(time.substring(4, 6));
+
+            if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+                throw new Error('Invalid datetime string format');
+            }
 
             return new datetime(year, month, day, hours, minutes, seconds);
         } else {
-            // DATE: YYYYMMDD
+
             year = parseInt(dateStr.substring(0, 4));
-            month = parseInt(dateStr.substring(4, 2));
-            day = parseInt(dateStr.substring(6, 2));
-            return datetime(year, month, day);
+
+            month = parseInt(dateStr.substring(4, 6));
+            day = parseInt(dateStr.substring(6, 8));
+
+            if (isNaN(year) || isNaN(month) || isNaN(day)) {
+                throw new Error('Invalid date string format');
+            }
+
+            return new datetime(year, month, day);
         }
+    }
+
+    /**
+     * Handle recurrence for a VTODO item.
+     * @param {Object} config - The WebDAV configuration object
+     * @param {Array} parsed - The parsed ICS data array
+     * @param {string} filename - The filename of the VTODO item
+     * @param {Date} completedDate - The completion date
+     * @returns {Promise<string>} The filename for the next occurrence
+     * @throws {Error} If WebDAV operations fail or recurrence cannot be processed
+     */
+    async handleRecurrence(config, parsed, filename, completedDate) {
+        // Implementation to be added
+    }
+
+    /**
+     * Get the current context from a line in ICS file.
+     * @param {string} line - The ICS line to process
+     * @returns {{currentComponent: string, hierarchy: string[]}} Object containing current component and hierarchy stack
+     */
+    getCurrentContext(line) {
+        if (line.startsWith('BEGIN:')) {
+            this.componentStack.push(line.split(':')[1]);
+            this.currentDepth++;
+        } else if (line.startsWith('END:')) {
+            this.componentStack.pop();
+            this.currentDepth = Math.max(0, this.currentDepth - 1);
+        }
+
+        return {
+            currentComponent: this.componentStack[this.componentStack.length - 1],
+            hierarchy: [...this.componentStack]
+        };
+    }
+
+    /**
+     * Generate a unique identifier (UID) for ICS entries.
+     * @returns {string} RFC4122 version 4 compliant UUID in uppercase
+     */
+    generateUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16).toUpperCase();
+        });
     }
 
     /**

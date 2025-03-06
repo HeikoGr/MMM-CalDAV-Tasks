@@ -13,12 +13,14 @@ Current development status: **released** \
 
 - Working CalDAV Server (e.g. NextCloud with installed Tasks app)
 
-## CalDAV preparations
+## NextCloud preparations
+> [!WARNING]
+> While you could login with your normal NextCloud credentials, you should generate a new app password for performance reasons (https://help.nextcloud.com/t/very-high-latency-on-card-cal-webdav-due-to-http-authorization-basic/200107)
 
-1. Create a new app password in your NextCloud installation at Settings > Security (under Personal) > Create New App Password
-2. Give your app a name and generate the password: \
+1. Create a new app password in your NextCloud installation at Settings > Security (under Personal) > Create New App Password\
+3. Give your app a name and generate the password: \
 ![App password screenshot](/assets/create-app-password.png?raw=true)
-3. Create the Private Link to the ToDo list you want to display like this: \
+4. Create the Private Link to the ToDo list you want to display like this: \
 ![Tasks Screenshot](/assets/generate_private_link.png?raw=true)
 
 ## Installing the module
