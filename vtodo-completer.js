@@ -1,5 +1,5 @@
 const { datetime, RRule } = require('rrule');
-const { getFileContentsNew, putFileContentsNew } = require('./webDavHelper');
+const { getFileContents, putFileContents } = require('./webDavHelper');
 
 /**
  * Class representing a VTodoCompleter.
@@ -27,7 +27,7 @@ class VTodoCompleter {
 
             console.log(`Completing VTODO: ${filename}`);
       
-            const icsContent = await getFileContentsNew(config, filename);
+            const icsContent = await getFileContents(config, filename);
             const parsed = this.parseICS(icsContent.data);
 
             if (this.isRecurring(parsed)) {
@@ -37,7 +37,7 @@ class VTodoCompleter {
             } else {
                 console.log('VTODO is not recurring');
                 const modifiedContent = this.updateNonRecurring(parsed, completedDate);
-                await putFileContentsNew(config, filename, modifiedContent);
+                await putFileContents(config, filename, modifiedContent);
                 return { original: filename };
             }
     }
@@ -86,7 +86,7 @@ class VTodoCompleter {
         if (!maxDate) {
             console.log('No more occurrences in RRULE');
             const modifiedContent = this.updateNonRecurring(parsed, completedDate);
-            await putFileContentsNew(config, filename, modifiedContent);
+            await putFileContents(config, filename, modifiedContent);
             return filename;
         }
 
@@ -101,7 +101,7 @@ class VTodoCompleter {
         this.updateVTodoItem(parsed, maxDate);
 
         const oldContent = this.generateICS(parsed);
-        await putFileContentsNew(config, filename, oldContent);
+        await putFileContents(config, filename, oldContent);
 
         // Create a new VTODO instance for the next occurrence
         const newParsed = JSON.parse(JSON.stringify(parsed)); // Deep copy of parsed data
@@ -111,7 +111,7 @@ class VTodoCompleter {
         const newFilename = filename.replace(originalUID, uid);
 
         const newContent = this.generateICS(newParsed);
-        const result = await putFileContentsNew(config, newFilename, newContent);
+        const result = await putFileContents(config, newFilename, newContent);
         return result;
     }
 
@@ -461,8 +461,10 @@ class VTodoCompleter {
         if (dateTimeFields.includes(item.key)) {
             let v = item.value;
             let o = item.original.split(':')[1];
-            v = v.length > o.length ? v.slice(0, o.length) : v;
-            item.value = v;
+            if(o){
+                v = v.length > o.length ? v.slice(0, o.length) : v;
+                item.value = v;
+            }
         }
 
         if (item.params === 'VALUE=DATE') {

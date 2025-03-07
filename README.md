@@ -77,11 +77,9 @@ var config = {
 
 | Option               | Description
 |----------------------|-----------
-| `listUrl`            | *Required*: "Private Link" url from your desired CalDAV task-list. Supports an array of urls from the *same* CalDAV instance
-| `webDavAuth`         | *Required*: WebDav Authentication object consisting of username and password. <br> Example: `{username: "<CalDAV_APP_USERNAME>", password: "<CalDAV_APP_PASSWORD>",}`
-| `toggleTime`         | *Optional*: How long do you need to click / touch the task list item to toggle it. Default `1600` (1.6 seconds)
+| `webDavAuth`         | *Required*: WebDav Authentication object consisting of username and password. <br> Example: `{url: "<URL>, username: "<CalDAV_APP_USERNAME>", password: "<CalDAV_APP_PASSWORD>",}`
+| `arrayIncludeCalendars`  | *Optional*: Array of calendar names to include. Default is set to `[]` and includes all calendars.
 | `updateInterval`     | *Optional*: How often should the data be refreshed (in milliseconds)
-| ~~`hideCompletedTasks`~~ | ~~*Optional*: should completed tasks show up or not~~
 | `sortMethod`         | *Optional*: How to sort tasks. Options: "priority" "priority desc" "created" "created desc" "modified" "modified desc"
 | `colorize`           | *Optional*: Should the icons be colorized based on priority?
 | `startsInDays`       | *Optional*: Filter tasks which start within x days. Default `999999`. *see note
@@ -90,19 +88,24 @@ var config = {
 | `displayDueDate`     | *Optional*: Should the due date of tasks be displayed? Default `true`
 | `showWithoutStart`   | *Optional*: Should tasks without a start date be shown? Default `true`
 | `showWithoutDue`     | *Optional*: Should tasks without a due date be shown? Default `true`
+| `hideCompletedTasksAfter ` | *Optional*: How many days after completion should tasks be hidden? Default `1`
 | `dateFormat`         | *Optional*: Format for displaying dates. Default `DD.MM.YYYY` Uses [moment.js formats](https://momentjs.com/docs/#/displaying/format/)  
+| `headings`         | *Optional*: Array of headings for the tasks. 
+| `playsound`         | *Optional*: Should a sound be played when a task is toggled? Default `true`
+| `offsetTop`             | *Optional*: Offset of the module in pixels. Default `0`
+| `offsetLeft`             | *Optional*: Offset of the module in pixels. Default `0`
+| `toggleTime`         | *Optional*: How long do you need to click / touch the task list item to toggle it. Default `1600` (1.6 seconds)
 | `showCompletionPercent`     | *Optional*: Shows the percentage of completion. Default `false`
-| `pieChartColor`      | *Optional*: Color of the pie chart. Accepts named colors, hex codes, rgb(), rgba(), hsl(), hsla(). Default `white`
-| `pieChartBackgroundColor`| *Optional*: Color of the pie chart. Accepts named colors, hex codes, rgb(), rgba(), hsl(), hsla(). Default `rgb(63, 63, 63)` (a really dark grey)
-| `pieChartSize`       | *Optional*: Size of the pie chart in pixels. No relative values! Default `16`
+| `mapEmptyPriorityTo`     | *Optional*: Map empty priority to a value. Default `5`
+| `mapEmptySortIndexTo`     | *Optional*: Map empty sort index to a value. Default `999999`
 | `highlightStartedTasks` | *Optional*: Highlights tasks that have already started. Default `true` |
 | `highlightOverdueTasks` | *Optional*: Highlights tasks that are overdue. Default `true` |
-| `showCompletionPercent`     | *Optional*: Shows the percentage of completion. Default `false` |
-| `pieChartColor`             | *Optional*: Color of the pie chart. Accepts named colors, hex codes, rgb(), rgba(), hsl(), hsla(). Default `white`. Example: `rgb(255, 255, 255)` (white) |
-| `pieChartBackgroundColor`   | *Optional*: Background color of the pie chart. Accepts named colors, hex codes, rgb(), rgba(), hsl(), hsla(). Default `rgb(63, 63, 63)` (a really dark grey). Example: `rgb(138, 138, 138)` (grey) |
-| `pieChartSize`              | *Optional*: Size of the pie chart in pixels. No relative values! Default `16`. Example: `16` |
+| `pieChartBackgroundColor`| *Optional*: Color of the pie chart. Accepts named colors, hex codes, rgb(), rgba(), hsl(), hsla(). Default `rgb(63, 63, 63)` (a really dark grey)
+| `pieChartColor`      | *Optional*: Color of the pie chart. Accepts named colors, hex codes, rgb(), rgba(), hsl(), hsla(). Default `white`
+| `pieChartSize`       | *Optional*: Size of the pie chart in pixels. No relative values! Default `16`
 | `hideDateSectionOnCompletion` | *Optional*: Hides the date section of a task once it is completed. Default `true` |
 | `developerMode`             | *Optional*: When developing under Windows the Fontawesome Icons do not load. This just embeds Fontawesome from an external source. Default `false` |
+| ~~`hideCompletedTasks`~~ | ~~*Optional*: should completed tasks show up or not~~
 
 ### The glow effect bug:
 When you toggle a task there is a glow effect which strangely was offset on windows but not on a Raspberry Pi - or maybe it was the different screen. You will know what I mean if you see that there is s.th. wrong with the effect.

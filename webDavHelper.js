@@ -19,7 +19,7 @@ function initDAVClient(config) {
     return client;
 }
 
-async function getFileContentsNew(config, url) {
+async function getFileContents(config, url) {
     client = initDAVClient(config);
     await client.login();
     const calendars = await client.fetchCalendars();
@@ -46,12 +46,10 @@ async function getFileContentsNew(config, url) {
             filters: filters,
         });
     }
-
     return objects[0];
 }
 
-async function putFileContentsNew(config, url, data) {
-
+async function putFileContents(config, url, data) {
 
     client = initDAVClient(config);
     await client.login();
@@ -102,14 +100,32 @@ function mapEmptySortIndexTo(parsedList, mapEmptySortIndexTo) {
     return parsedList;
 }
 
+function filterByNameMatches(objArray, matchStrings) {
+    return objArray.filter(obj => {
+        return matchStrings.some(matchString =>
+            obj.displayName.toLowerCase().includes(matchString.toLowerCase())
+        );
+    });
+}
+
 async function fetchCalendarData(config) {
     client = initDAVClient(config);
     await client.login();
-    const calendars = await client.fetchCalendars();
 
-    const vtodoCalendars = calendars.filter(calendar =>
+    let calendars = await client.fetchCalendars();
+    calendars = calendars.filter(calendar =>
         calendar.components.includes('VTODO')
     );
+
+    // filter NextCloud Decks, as they are read-only
+    calendars = calendars.filter(calendar =>
+        !calendar.url.includes('app-generated--deck')
+    );
+
+    // filter by calendars from user config
+    if (config.includeCalendars.length > 0) {
+        calendars = filterByNameMatches(calendars, config.includeCalendars);
+    }
 
     let calendarData = [];
 
@@ -124,7 +140,7 @@ async function fetchCalendarData(config) {
         },
     ];
 
-    for (const calendar of vtodoCalendars) {
+    for (const calendar of calendars) {
         const objects = await client.fetchCalendarObjects({
             calendar,
             filters: filters,
@@ -153,6 +169,6 @@ module.exports = {
     mapEmptyPriorityTo: mapEmptyPriorityTo,
     mapEmptySortIndexTo: mapEmptySortIndexTo,
     initDAVClient: initDAVClient,
-    getFileContentsNew: getFileContentsNew,
-    putFileContentsNew: putFileContentsNew
+    getFileContents: getFileContents,
+    putFileContents: putFileContents
 };

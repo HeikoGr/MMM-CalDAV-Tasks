@@ -9,13 +9,21 @@
 
 Module.register("MMM-CalDAV-Tasks", {
 	defaults: {
+		// required
+		webDavAuth: {
+			//yx url: "https://die-bergers.servehalflife.com/remote.php/dav/
+			url: "https://<your-nextcloud-server>/remote.php/dav/",
+			username: "<USERNAME>",
+			password: "<PASSWORD>",
+		},
+		// optional
+		includeCalendars: [],
 		updateInterval: 60000,
-		hideCompletedTasks: null,
 		sortMethod: "priority",
 		colorize: false,
 		startsInDays: 999999,
-		displayStartDate: true,
 		dueInDays: 999999,
+		displayStartDate: true,
 		displayDueDate: true,
 		showWithoutStart: true,
 		showWithoutDue: true,
@@ -25,17 +33,17 @@ Module.register("MMM-CalDAV-Tasks", {
 		playSound: true,
 		offsetTop: 0,
 		offsetLeft: 0,
-		toggleTime: 1600, // mseconds
+		toggleTime: 100, // mseconds
 		showCompletionPercent: false,
 		mapEmptyPriorityTo: 5,
-		mapEmptySortIndexTo: 99,
-		developerMode: false,
+		mapEmptySortIndexTo: 999999,
 		highlightStartedTasks: true,
 		highlightOverdueTasks: true,
 		pieChartBackgroundColor: "rgb(138, 138, 138)",
 		pieChartColor: "rgb(255, 255, 255)",
 		pieChartSize: 16,
-		hideDateSectionOnCompletion: true
+		hideDateSectionOnCompletion: true,
+		developerMode: false,
 	},
 
 	requiresVersion: "2.1.0", // Required version of MagicMirror
@@ -71,7 +79,7 @@ Module.register("MMM-CalDAV-Tasks", {
 			}
 
 			// this is for the old "hideCompletedTasks" boolean which now is "hideCompletedTasksAfter" with a number
-			if (this.config.hideCompletedTasks !== null) {
+			if (this.config.hideCompletedTasks) {
 				const infoText =
 					"<span style='color:  #e34c26;'>Deprecation:</span> <span style='color: #ffffff;'>The old 'hideCompletedTasks' boolean is deprecated. Use </span>" +
 					"<span style='color: #ffcc00;'>hideCompletedTasksAfter</span><span style='color: #ffffff;'> to specify the number of days after which completed tasks are hidden." +
@@ -149,7 +157,7 @@ Module.register("MMM-CalDAV-Tasks", {
 				calWrapper.appendChild(self.renderList(element['tasks']));
 				wrapper.appendChild(calWrapper);
 			}
-			
+
 			self.error = null;
 		} else {
 			wrapper.innerHTML = "<div>Loading...</div>";
@@ -338,7 +346,7 @@ Module.register("MMM-CalDAV-Tasks", {
 	initLongPressHandlers: function () {
 		console.debug("[MMM-CalDAV-Tasks] ready for long press");
 		const items = document.querySelectorAll(".MMM-CalDAV-Tasks-List-Item");
-		
+
 		items.forEach((item) => {
 			let pressTimer = null;
 			let startTime = 0;
@@ -494,14 +502,10 @@ Module.register("MMM-CalDAV-Tasks", {
 
 	verifyConfig: function (config) {
 		if (
-			typeof config.listUrl === "undefined" ||
-			typeof config.webDavAuth === "undefined" ||
-			typeof config.webDavAuth.username === "undefined" ||
-			typeof config.webDavAuth.password === "undefined" ||
+			typeof config.includeCalendars === "undefined" ||
+			typeof config.updateInterval === "undefined" ||
 			typeof config.sortMethod === "undefined" ||
 			typeof config.colorize === "undefined" ||
-			typeof config.updateInterval === "undefined" ||
-			typeof config.hideCompletedTasks === "undefined" ||
 			typeof config.startsInDays === "undefined" ||
 			typeof config.displayStartDate === "undefined" ||
 			typeof config.dueInDays === "undefined" ||
@@ -517,10 +521,13 @@ Module.register("MMM-CalDAV-Tasks", {
 			typeof config.toggleTime === "undefined" ||
 			typeof config.showCompletionPercent === "undefined" ||
 			typeof config.developerMode === "undefined" ||
-			typeof config.mapEmptyPriorityTo === "undefined",
-			typeof config.pieChartBackgroundColor === "undefined",
-			typeof config.pieChartColor === "undefined",
-			typeof config.pieChartSize === "undefined",
+			typeof config.mapEmptyPriorityTo === "undefined"  ||
+			typeof config.mapEmptySortIndexTo === "undefined" ||
+			typeof config.highlightStartedTasks === "undefined" ||
+			typeof config.highlightOverdueTasks === "undefined" ||
+			typeof config.pieChartBackgroundColor === "undefined" ||
+			typeof config.pieChartColor === "undefined" ||
+			typeof config.pieChartSize === "undefined" ||
 			typeof config.hideDateSectionOnCompletion === "undefined"
 		) {
 			this.error = "Config variable missing";
