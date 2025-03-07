@@ -390,7 +390,9 @@ Module.register("MMM-CalDAV-Tasks", {
 
 			const toggleEffectOnTimerEnd = (item) => {
 				console.debug("[MMM-CalDAV-Tasks] toggleEffectOnTimerEnd called");
-				this.audio.play().catch(error => console.error("Error playing audio:", error));
+				if (this.config.playSound) {
+					this.audio.play().catch(error => console.error("Error playing audio:", error));
+				}
 
 				startTime = Date.now();
 				const effecttoggleTime = 1200;
