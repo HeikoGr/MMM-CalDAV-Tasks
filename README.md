@@ -37,7 +37,7 @@ From `MagicMirror/modules/MMM-CalDAV-Tasks` use `git pull`
 
 ## Using the module
 
-To use this module, add the following configuration block to the modules array in the `config/config.js` file:
+To use this module, add the following most important settings in the configuration block to the modules array in the `config/config.js` file:
 
 ```js
 var config = {
@@ -46,27 +46,14 @@ var config = {
             module: 'MMM-CalDAV-Tasks',
             config: {
                 // See 'Configuration options' for more information.
-                updateInterval: 60000,
-                listUrl: [
-					"<CalDAV_TASKS_PRIVATE_LINK_1>",
-					"<CalDAV_TASKS_PRIVATE_LINK_2>",
-				],
-                hideCompletedTasks: true,
-                sortMethod: "<SORT_METHOD>",
-                colorize: true,
-                startsInDays: 14,
-                displayStartDate: true,
-                dueInDays: 14,
-                displayDueDate: true,
-                showCompletionPercent: true,
-                pieChartColor: "white", 
-                showWithoutStart: true,
-                showWithoutDue: true,
-                dateFormat: "DD.MM.YYYY", 
+                
                 webDavAuth: {
+                    url: "<CalDAV_URL>",
                     username: "<CalDAV_APP_USERNAME>",
                     password: "<CalDAV_APP_PASSWORD>",
                 }
+                includeCalendars: [], //optional - match calendar names
+                updateInterval: 60000
             }
         }
     ]
@@ -78,7 +65,7 @@ var config = {
 | Option               | Description
 |----------------------|-----------
 | `webDavAuth`         | *Required*: WebDav Authentication object consisting of username and password. <br> Example: `{url: "<URL>, username: "<CalDAV_APP_USERNAME>", password: "<CalDAV_APP_PASSWORD>",}`
-| `arrayIncludeCalendars`  | *Optional*: Array of calendar names to include. Default is set to `[]` and includes all calendars.
+| `includeCalendars`  | *Optional*: Array of calendar names to include. Default is set to `[]` and includes all calendars.
 | `updateInterval`     | *Optional*: How often should the data be refreshed (in milliseconds)
 | `sortMethod`         | *Optional*: How to sort tasks. Options: "priority" "priority desc" "created" "created desc" "modified" "modified desc"
 | `colorize`           | *Optional*: Should the icons be colorized based on priority?

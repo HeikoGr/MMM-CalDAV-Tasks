@@ -263,9 +263,9 @@ Module.register("MMM-CalDAV-Tasks", {
 		let listItemHTML = `<div class='${listItemClass} ${element.status === "COMPLETED" ? "MMM-CalDAV-Tasks-Completed" : ""}' data-url-index='${element.urlIndex}' id='${element.uid}' vtodo-filename='${element.filename}'>`;
 
 		if (this.config.colorize) {
-			listItemHTML += `<span class='MMM-CalDAV-Tasks-Priority-${p}'>${icon}</span> <span>${element.summary}</span>`;
+			listItemHTML += `<div class='MMM-CalDAV-Tasks-Priority-Icon MMM-CalDAV-Tasks-Priority-${p}'>${icon}</div><div class='MMM-CalDAV-Tasks-Summary'>${element.summary}</div>`;
 		} else {
-			listItemHTML += `${icon} <span>${element.summary}</span>`;
+			listItemHTML += `${icon} <div class='MMM-CalDAV-Tasks-Priority-Icon"><div class='MMM-CalDAV-Tasks-Summary'>${element.summary}</div>`;
 		}
 
 		if (this.config.showCompletionPercent === true) {
@@ -523,7 +523,7 @@ Module.register("MMM-CalDAV-Tasks", {
 			typeof config.toggleTime === "undefined" ||
 			typeof config.showCompletionPercent === "undefined" ||
 			typeof config.developerMode === "undefined" ||
-			typeof config.mapEmptyPriorityTo === "undefined"  ||
+			typeof config.mapEmptyPriorityTo === "undefined" ||
 			typeof config.mapEmptySortIndexTo === "undefined" ||
 			typeof config.highlightStartedTasks === "undefined" ||
 			typeof config.highlightOverdueTasks === "undefined" ||
