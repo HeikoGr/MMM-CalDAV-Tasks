@@ -128,11 +128,13 @@ If you get a *WebDav: Unknown error!* just wait for the next `updateInterval`. I
 ## Screenshots
 
 Sorting on "priority" \
-![Module Screenshot](/assets/small_screenshot.png?raw=true)
+![module screenshot 1](/assets/small_screenshot.png?raw=true)
 
 Sorting on "modified desc" \
-![Module Screenshot 2](/assets/demo_screenshot_2.png?raw=true)
+![module screenshot 2](/assets/demo_screenshot_2.png?raw=true)
 
 Non-colorized \
-![Module Screenshot 2](/assets/demo_screenshot_3.png?raw=true)
+![module screenshot 3](/assets/demo_screenshot_3.png?raw=true)
 
+example with multiple calendars \
+![multiple calendars](/assets/example.png?raw=true)
