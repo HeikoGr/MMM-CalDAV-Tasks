@@ -16,6 +16,20 @@
     text-align: left;
 }
 
+.MMM-CalDAV-Tasks-Priority-Icon {
+    display: inline-block;
+    text-align: left;
+    width: 30px;
+    vertical-align: top;
+}
+
+.MMM-CalDAV-Tasks-Summary {
+    display: inline-block;
+    text-align: left;
+    width: calc(100% - 50px);
+    vertical-align: top;
+}
+
 .MMM-CalDAV-Tasks-wrapper ul {
     list-style: none;
     padding-left: 10px;
