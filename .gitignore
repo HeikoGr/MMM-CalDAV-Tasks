@@ -4,3 +4,4 @@ demos
 testConfig.js
 testData.js
 testWebDavPush.js
+.vscode/settings.json

@@ -170,7 +170,7 @@ class VTodoCompleter {
         this.addProperty(parsed, 'VTODO', 'COMPLETED', this.formatDate(completedDate), '', 'CREATED');
         this.setProperty(parsed, 'VTODO', 'DTSTAMP', this.formatDate(new Date()));
         this.setProperty(parsed, 'VTODO', 'LAST-MODIFIED', this.formatDate(new Date()));
-        this.setProperty(parsed, 'VTODO', 'STATUS', 'COMPLETED');
+        this.setProperty(parsed, 'VTODO', 'STATUS', '', 'COMPLETED');
         this.setProperty(parsed, 'VTODO', 'PERCENT-COMPLETE', '100', 'STATUS');
         this.setProperty(parsed, 'VTODO', 'UID', uid);
     }
@@ -363,23 +363,29 @@ class VTodoCompleter {
      * @param {string} [params=''] - The parameters (e.g., 'VALUE=DATE').
      * @param {string} [before='END:VTODO'] - The key before which the new property should be added.
      */
-    addProperty(parsed, component, key, value, params = '', before = 'END:VTODO') {
+    addProperty(parsed, component, key, value, params = '', before = 'END') {
         const newItem = {
             original: '',
             key,
             params,
             value,
+            component: 'VTODO',
+            parent: 'VCALENDAR',
             modified: true,
             add: true
         };
 
         // Find the position of the "END:VTODO" element
+        if (before === 'END') {
+            component = 'VCALENDAR';
+        }
         const endIndex = parsed.findIndex(i => i.key === before && i.component === component);
 
         console.log("component:      " + component + " key: " + before + " value: " + value + " params: " + params);
         console.log("add property:   " + key + " value: " + value + " at position: " + endIndex);
 
         if (endIndex !== -1) {
+            console.log("inserting new item at position: " + endIndex);
             // Insert the new item before the "END:VTODO" element
             parsed.splice(endIndex, 0, newItem);
         } else {
@@ -417,7 +423,7 @@ class VTodoCompleter {
      * @param {string} value - The property value.
      * @param {string} [addBefore='END:VTODO'] - The key before which the new property should be added if it doesn't exist.
      */
-    setProperty(parsed, component, key, value, addBefore = 'END:VTODO') {
+    setProperty(parsed, component, key, value, addBefore = 'END') {
         const existing = parsed.find(i => i.key === key && i.component === component);
         const origParams = parsed.find(i => i.key === key && i.component === component)?.params;
 
