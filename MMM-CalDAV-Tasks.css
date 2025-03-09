@@ -47,9 +47,9 @@
 }
 .MMM-CalDAV-Tasks-List-Item {
     margin-top: -0.8em;
-
     display: inline-grid;
-    grid-template-columns: 2em auto auto;
+    grid-template-columns: 2em calc(100% - 3em) 1em;
+    width: 100%;
 }
 
 .MMM-CalDAV-Tasks-Date-Section {
