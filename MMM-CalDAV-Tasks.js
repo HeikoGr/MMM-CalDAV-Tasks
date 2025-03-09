@@ -200,10 +200,6 @@ Module.register("MMM-CalDAV-Tasks", {
 				self.drawCompletionCanvas(li, element);
 			}
 
-			if ((self.config.displayStartDate && element.start) || (self.config.displayDueDate && element.dueFormatted)) {
-				li.appendChild(self.createDateSection(element));
-			}
-
 			if (element.children) {
 				let childList = self.renderList(element.children, false);
 				childList.classList.add("MMM-CalDAV-Tasks-SubList");
@@ -263,13 +259,50 @@ Module.register("MMM-CalDAV-Tasks", {
 		let listItemHTML = `<div class='${listItemClass} ${element.status === "COMPLETED" ? "MMM-CalDAV-Tasks-Completed" : ""}' data-url-index='${element.urlIndex}' id='${element.uid}' vtodo-filename='${element.filename}'>`;
 
 		if (this.config.colorize) {
-			listItemHTML += `<div class='MMM-CalDAV-Tasks-Priority-Icon MMM-CalDAV-Tasks-Priority-${p}'>${icon}</div><div class='MMM-CalDAV-Tasks-Summary'>${element.summary}</div>`;
+			listItemHTML += `<div class="MMM-CalDAV-Tasks-Priority-Icon MMM-CalDAV-Tasks-Priority-${p}">${icon}</div><div class='MMM-CalDAV-Tasks-Summary'>${element.summary}</div>`;
 		} else {
-			listItemHTML += `${icon} <div class='MMM-CalDAV-Tasks-Priority-Icon"><div class='MMM-CalDAV-Tasks-Summary'>${element.summary}</div>`;
+			listItemHTML += `<div class="MMM-CalDAV-Tasks-Priority-Icon">${icon}</div><div class="MMM-CalDAV-Tasks-Summary">${element.summary}</div>`;
 		}
 
+		listItemHTML += "<div class='MMM-CalDAV-Tasks-Percentage'>";
 		if (this.config.showCompletionPercent === true) {
 			listItemHTML += "<canvas class='MMM-CalDAV-Tasks-CompletionCanvas'></canvas>";
+		}
+		listItemHTML += "</div>";
+
+		if (element.rrule) {
+			listItemHTML += "<div class=\"MMM-CalDAV-Tasks-RRule-Icon fa-solid fa-repeat\"></div>";
+		}
+
+		if ((this.config.displayStartDate && element.start) || (this.config.displayDueDate && element.dueFormatted)) {
+
+			const now = new Date();
+			let dateSection = document.createElement("div");
+			dateSection.className = "MMM-CalDAV-Tasks-Date-Section";
+			if (element.status === "COMPLETED") {
+				if (this.config.hideDateSectionOnCompletion) {
+					dateSection.classList.add("MMM-CalDAV-Tasks-Completed");
+					dateSection.style.display = "none";
+				} else {
+					dateSection.classList.add("MMM-CalDAV-Tasks-Completed");
+				}
+			}
+
+			if (this.config.displayStartDate && element.start) {
+				let startDate = new Date(element.start);
+				let spanStart = document.createElement("span");
+				spanStart.textContent = " " + startDate.toLocaleDateString(undefined, this.config.dateFormat);
+				spanStart.className = now > startDate ? "MMM-CalDAV-Tasks-Started" : "MMM-CalDAV-Tasks-StartDate";
+				dateSection.appendChild(spanStart);
+			}
+
+			if (this.config.displayDueDate && element.dueFormatted) {
+				let spanDue = document.createElement("span");
+				spanDue.textContent = " " + element.dueFormatted;
+				spanDue.className = now > new Date(element.dueFormatted) ? "MMM-CalDAV-Tasks-Overdue" : "MMM-CalDAV-Tasks-DueDate";
+				dateSection.appendChild(spanDue);
+			}
+			listItemHTML += dateSection.innerHTML;
 		}
 
 		listItemHTML += "</div>";
@@ -339,7 +372,8 @@ Module.register("MMM-CalDAV-Tasks", {
 			dateSection.appendChild(spanDue);
 		}
 
-		return dateSection;
+
+		return dateSection.innerHTML;
 	},
 
 	// Animate list element when long clicking

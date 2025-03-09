@@ -17,17 +17,20 @@
 }
 
 .MMM-CalDAV-Tasks-Priority-Icon {
-    display: inline-block;
     text-align: left;
     width: 2em;
     vertical-align: top;
 }
 
 .MMM-CalDAV-Tasks-Summary {
-    display: inline-block;
     text-align: left;
-    width: calc(100% - 2em);
     vertical-align: top;
+}
+
+.MMM-CalDAV-Tasks-RRule-Icon {
+    margin-top: 10px;
+    margin-left: 5px;
+    width: 2em;
 }
 
 .MMM-CalDAV-Tasks-wrapper ul {
@@ -44,17 +47,17 @@
 }
 .MMM-CalDAV-Tasks-List-Item {
     margin-top: -0.8em;
+
+    display: inline-grid;
+    grid-template-columns: 2em auto auto;
 }
 
 .MMM-CalDAV-Tasks-Date-Section {
-    margin-top: -1.1em;
-    margin-left: 2.0em;
-    font-size: var(--font-size-xsmall); 
+    font-size: var(--font-size-xsmall);
 }
 
 .MMM-CalDAV-Tasks-StartDate {
     color: rgb(166, 175, 206);
-    
 }
 
 .MMM-CalDAV-Tasks-DueDate {
