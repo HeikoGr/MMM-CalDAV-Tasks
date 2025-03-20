@@ -36,7 +36,7 @@ class VTodoCompleter {
                 return { original: filename, new: newFilename };
             } else {
                 console.log('VTODO is not recurring');
-                const newFilename = await this.updateNonRecurring(config, parsed, filename, completedDate);
+                const newFilename = await this.updateNonRecurring(config, parsed, completedDate);
                 return { original: filename };
             }
     }
@@ -56,7 +56,7 @@ class VTodoCompleter {
      * @param {Date} completedDate - The completion date.
      * @returns {string} - The modified ICS content.
      */
-    async updateNonRecurring(config, parsed, filename, completedDate) {
+    async updateNonRecurring(config, parsed, completedDate) {
 
         console.log(`\r\n\r\nUpdating non-recurring VTODO item`);
 
@@ -66,7 +66,7 @@ class VTodoCompleter {
         this.setProperty(parsed, 'VTODO', 'STATUS', 'COMPLETED');
         this.setProperty(parsed, 'VTODO', 'PERCENT-COMPLETE', '100', 'STATUS');
 
-        await putFileContents(config, filename, this.generateICS(parsed));
+        const filename = await putFileContents(config, filename, this.generateICS(parsed));
         return filename;
     }
 
