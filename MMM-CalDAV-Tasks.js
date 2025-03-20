@@ -255,58 +255,57 @@ Module.register("MMM-CalDAV-Tasks", {
 	},
 
 	createListItemHTML: function (element, listItemClass, icon) {
-		let p = element.priority;
-		let listItemHTML = `<div class='${listItemClass} ${element.status === "COMPLETED" ? "MMM-CalDAV-Tasks-Completed" : ""}' data-url-index='${element.urlIndex}' id='${element.uid}' vtodo-filename='${element.filename}'>`;
+		const { priority, status, urlIndex, uid, filename, summary, rrule, start, dueFormatted } = element;
+		const isCompleted = status === "COMPLETED";
+		const now = new Date();
 
-		if (this.config.colorize) {
-			listItemHTML += `<div class="MMM-CalDAV-Tasks-Priority-Icon MMM-CalDAV-Tasks-Priority-${p}">${icon}</div><div class='MMM-CalDAV-Tasks-Summary'>${element.summary}</div>`;
+		let html = `<div class='${listItemClass}${isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""}' data-url-index='${urlIndex}' id='${uid}' vtodo-filename='${filename}'>`;
+
+		// icon and VTODO text (summary)
+		const priorityIconClass = this.config.colorize
+			? `MMM-CalDAV-Tasks-Priority-Icon MMM-CalDAV-Tasks-Priority-${priority}`
+			: "MMM-CalDAV-Tasks-Priority-Icon";
+
+		html += `<div class="${priorityIconClass}">${icon}</div>`;
+		html += `<div class='MMM-CalDAV-Tasks-Summary'>${summary}</div>`;
+
+		// percentage
+		html += `<div class='MMM-CalDAV-Tasks-Percentage'>`;
+		if (this.config.showCompletionPercent) {
+			html += `<canvas class='MMM-CalDAV-Tasks-CompletionCanvas'></canvas>`;
+		}
+		html += `</div>`;
+
+		// rrule-icon
+		if (rrule) {
+			html += `<div class="MMM-CalDAV-Tasks-RRule-Icon fa-solid fa-repeat"></div>`;
 		} else {
-			listItemHTML += `<div class="MMM-CalDAV-Tasks-Priority-Icon">${icon}</div><div class="MMM-CalDAV-Tasks-Summary">${element.summary}</div>`;
+			html += `<div class="MMM-CalDAV-Tasks-RRule-Icon">&nbsp;</div>`;
 		}
 
-		listItemHTML += "<div class='MMM-CalDAV-Tasks-Percentage'>";
-		if (this.config.showCompletionPercent === true) {
-			listItemHTML += "<canvas class='MMM-CalDAV-Tasks-CompletionCanvas'></canvas>";
-		}
-		listItemHTML += "</div>";
+		// date section
+		if ((this.config.displayStartDate && start) || (this.config.displayDueDate && dueFormatted)) {
+			const dateClass = `MMM-CalDAV-Tasks-Date-Section${isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""}`;
+			const dateStyle = isCompleted && this.config.hideDateSectionOnCompletion ? ' style="display:none;"' : '';
 
-		if (element.rrule) {
-			listItemHTML += "<div class=\"MMM-CalDAV-Tasks-RRule-Icon fa-solid fa-repeat\"></div>";
-		}
+			html += `<div class="${dateClass}"${dateStyle}>`;
 
-		if ((this.config.displayStartDate && element.start) || (this.config.displayDueDate && element.dueFormatted)) {
-
-			const now = new Date();
-			let dateSection = document.createElement("div");
-			dateSection.className = "MMM-CalDAV-Tasks-Date-Section";
-			if (element.status === "COMPLETED") {
-				if (this.config.hideDateSectionOnCompletion) {
-					dateSection.classList.add("MMM-CalDAV-Tasks-Completed");
-					dateSection.style.display = "none";
-				} else {
-					dateSection.classList.add("MMM-CalDAV-Tasks-Completed");
-				}
+			if (this.config.displayStartDate && start) {
+				const startDate = new Date(start);
+				const startClass = now > startDate ? "MMM-CalDAV-Tasks-Started" : "MMM-CalDAV-Tasks-StartDate";
+				html += `<span class="${startClass}"> ${startDate.toLocaleDateString(undefined, this.config.dateFormat)}</span>`;
 			}
 
-			if (this.config.displayStartDate && element.start) {
-				let startDate = new Date(element.start);
-				let spanStart = document.createElement("span");
-				spanStart.textContent = " " + startDate.toLocaleDateString(undefined, this.config.dateFormat);
-				spanStart.className = now > startDate ? "MMM-CalDAV-Tasks-Started" : "MMM-CalDAV-Tasks-StartDate";
-				dateSection.appendChild(spanStart);
+			if (this.config.displayDueDate && dueFormatted) {
+				const dueClass = now > new Date(dueFormatted) ? "MMM-CalDAV-Tasks-Overdue" : "MMM-CalDAV-Tasks-DueDate";
+				html += `<span class="${dueClass}"> ${dueFormatted}</span>`;
 			}
 
-			if (this.config.displayDueDate && element.dueFormatted) {
-				let spanDue = document.createElement("span");
-				spanDue.textContent = " " + element.dueFormatted;
-				spanDue.className = now > new Date(element.dueFormatted) ? "MMM-CalDAV-Tasks-Overdue" : "MMM-CalDAV-Tasks-DueDate";
-				dateSection.appendChild(spanDue);
-			}
-			listItemHTML += dateSection.innerHTML;
+			html += `</div>`;
 		}
 
-		listItemHTML += "</div>";
-		return listItemHTML;
+		html += `</div>`;
+		return html;
 	},
 
 	drawCompletionCanvas: function (li, element) {
@@ -345,36 +344,34 @@ Module.register("MMM-CalDAV-Tasks", {
 	},
 
 	createDateSection: function (element) {
+		const { status, start, dueFormatted } = element;
 		const now = new Date();
-		let dateSection = document.createElement("div");
-		dateSection.className = "MMM-CalDAV-Tasks-Date-Section";
-		if (element.status === "COMPLETED") {
-			if (this.config.hideDateSectionOnCompletion) {
-				dateSection.classList.add("MMM-CalDAV-Tasks-Completed");
-				dateSection.style.display = "none";
-			} else {
-				dateSection.classList.add("MMM-CalDAV-Tasks-Completed");
-			}
+		const isCompleted = status === "COMPLETED";
+
+		const baseClass = `MMM-CalDAV-Tasks-Date-Section${isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""}`;
+		const displayStyle = isCompleted && this.config.hideDateSectionOnCompletion
+			? ' style="display:none;"'
+			: '';
+
+		let html = `<div class="${baseClass}"${displayStyle}>`;
+
+		// add start date
+		if (this.config.displayStartDate && start) {
+			const startDate = new Date(start);
+			const startClass = now > startDate ? "MMM-CalDAV-Tasks-Started" : "MMM-CalDAV-Tasks-StartDate";
+			html += `<span class="${startClass}"> ${startDate.toLocaleDateString(undefined, this.config.dateFormat)}</span>`;
 		}
 
-		if (this.config.displayStartDate && element.start) {
-			let startDate = new Date(element.start);
-			let spanStart = document.createElement("span");
-			spanStart.textContent = " " + startDate.toLocaleDateString(undefined, this.config.dateFormat);
-			spanStart.className = now > startDate ? "MMM-CalDAV-Tasks-Started" : "MMM-CalDAV-Tasks-StartDate";
-			dateSection.appendChild(spanStart);
+		// add due date
+		if (this.config.displayDueDate && dueFormatted) {
+			const dueClass = now > new Date(dueFormatted) ? "MMM-CalDAV-Tasks-Overdue" : "MMM-CalDAV-Tasks-DueDate";
+			html += `<span class="${dueClass}"> ${dueFormatted}</span>`;
 		}
 
-		if (this.config.displayDueDate && element.dueFormatted) {
-			let spanDue = document.createElement("span");
-			spanDue.textContent = " " + element.dueFormatted;
-			spanDue.className = now > new Date(element.dueFormatted) ? "MMM-CalDAV-Tasks-Overdue" : "MMM-CalDAV-Tasks-DueDate";
-			dateSection.appendChild(spanDue);
-		}
-
-
-		return dateSection.innerHTML;
+		html += `</div>`;
+		return html;
 	},
+
 
 	// Animate list element when long clicking
 	initLongPressHandlers: function () {

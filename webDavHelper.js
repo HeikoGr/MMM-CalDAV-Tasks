@@ -50,7 +50,6 @@ async function getFileContents(config, url) {
 }
 
 async function putFileContents(config, url, data) {
-
     client = initDAVClient(config);
     await client.login();
     const result = client.updateCalendarObject({
@@ -64,6 +63,7 @@ async function putFileContents(config, url, data) {
 
 function parseList(icsStrings, dateFormat) {
     let elements = [];
+
     for (const { filename, icsStr } of icsStrings) {
         const icsObj = ical.sync.parseICS(icsStr);
         Object.values(icsObj).forEach(element => {
