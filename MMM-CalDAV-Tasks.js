@@ -280,7 +280,7 @@ Module.register("MMM-CalDAV-Tasks", {
 		if (rrule) {
 			html += `<div class="MMM-CalDAV-Tasks-RRule-Icon fa-solid fa-repeat"></div>`;
 		} else {
-			html += `<div class="MMM-CalDAV-Tasks-RRule-Icon"></div>`;
+			html += `<div class="MMM-CalDAV-Tasks-RRule-Icon">&nbsp;</div>`;
 		}
 
 		// date section
