@@ -149,11 +149,11 @@ Module.register("MMM-CalDAV-Tasks", {
 			for (element of self.toDoList) {
 				let calWrapper = document.createElement("div");
 				calWrapper.className = "MMM-CalDAV-Tasks-Calendar-wrapper";
-				let h1 = document.createElement("h1");
-				h1.textContent = element['summary'];
-				h1.className = "MMM-CalDAV-Tasks-Calendar-Heading";
-				h1.style.color = element['calendarColor'];
-				calWrapper.appendChild(h1);
+				let h2 = document.createElement("h2");
+				h2.textContent = element['summary'];
+				h2.className = "MMM-CalDAV-Tasks-Calendar-Heading";
+				h2.style.color = element['calendarColor'];
+				calWrapper.appendChild(h2);
 				calWrapper.appendChild(self.renderList(element['tasks']));
 				wrapper.appendChild(calWrapper);
 			}
@@ -302,6 +302,9 @@ Module.register("MMM-CalDAV-Tasks", {
 			}
 
 			html += `</div>`;
+		}
+		else{
+			html += `<div class="MMM-CalDAV-Tasks-Date-Section"></div>`;
 		}
 
 		html += `</div>`;
