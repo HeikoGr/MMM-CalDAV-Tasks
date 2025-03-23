@@ -11,7 +11,6 @@ Module.register("MMM-CalDAV-Tasks", {
 	defaults: {
 		// required
 		webDavAuth: {
-			//yx url: "https://die-bergers.servehalflife.com/remote.php/dav/
 			url: "https://<your-nextcloud-server>/remote.php/dav/",
 			username: "<USERNAME>",
 			password: "<PASSWORD>",
