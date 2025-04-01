@@ -22,11 +22,16 @@ function sortModifiedDesc(a, b) {
     return new Date(b.lastmodified).getTime() - new Date(a.lastmodified).getTime();
 }
 
+function sortApple(a, b) {
+    return (parseInt(a['APPLE-SORT-ORDER']) - (parseInt(b['APPLE-SORT-ORDER'])));
+}
+
 module.exports = {
     sortPriority: sortPriority,
     sortPriorityDesc: sortPriorityDesc,
     sortCreated: sortCreated,
     sortCreatedDesc: sortCreatedDesc,
     sortModified: sortModified,
-    sortModifiedDesc: sortModifiedDesc
+    sortModifiedDesc: sortModifiedDesc,
+    sortApple: sortApple
 }
