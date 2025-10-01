@@ -1,9 +1,4 @@
 node_modules
 demos
 *DS_Store
-testConfig.js
-testData.js
-testWebDavPush.js
-.vscode/settings.json
-.vscode/settings.json
-package-lock.json
+.vscode
