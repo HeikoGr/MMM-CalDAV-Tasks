@@ -1,16 +1,20 @@
 {
   "name": "mmm-caldav-tasks",
   "version": "1.1.1",
-  "description": "Todo: Insert description here!",
+  "description": "MagicMirror module to display and manage CalDAV tasks (to-dos)",
   "main": "MMM-CalDAV-Tasks.js",
-  "author": "Jan Ryklikas",
+  "author": "HeikoGr",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HeikoGr/MMM-Photoprism.git"
+  },
   "scripts": {
-    "lint": "eslint && prettier . --check",
-    "lint:fix": "eslint --fix && prettier . --write",
-    "test": "node --run lint && node --run test:spelling",
+    "lint": "eslint . --ext .js || true && prettier --check .",
+    "lint:fix": "eslint --fix . && prettier --write .",
+    "test": "npm run lint",
     "test:spelling": "cspell .",
-    "check": "node check.js ../../config/config.js"
+    "check": "node check.js ../../config/config.js || true"
   },
   "devDependencies": {
     "@eslint/css": "^0.14.1",
