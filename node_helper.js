@@ -9,12 +9,12 @@
 /* eslint-disable n/no-missing-require */
 const NodeHelper = require("node_helper");
 /* eslint-enable n/no-missing-require */
-const {transformData, sortList, appendUrlIndex} = require("./transformer");
-const {parseList, mapEmptyPriorityTo, mapEmptySortIndexTo, fetchCalendarData, initDAVClient} = require("./webDavHelper");
+const { transformData, sortList, appendUrlIndex } = require("./transformer");
+const { parseList, mapEmptyPriorityTo, mapEmptySortIndexTo, fetchCalendarData, initDAVClient } = require("./webDavHelper");
 const VTodoCompleter = require("./vtodo-completer.js");
 
 module.exports = NodeHelper.create({
-  socketNotificationReceived (notification, payload) {
+  socketNotificationReceived(notification, payload) {
     const self = this;
     const moduleId = payload.id;
     console.log(`Module ID: ${moduleId}`);
@@ -34,7 +34,7 @@ module.exports = NodeHelper.create({
   },
 
 
-  async getData (moduleId, config, callback) {
+  async getData(moduleId, config, callback) {
     const self = this;
     let calendarData = [];
 
@@ -71,21 +71,21 @@ module.exports = NodeHelper.create({
   },
 
   // TODO: was this the function meant to toggle the status on the server side?
-  sendData (moduleId, payload) {
+  sendData(moduleId, payload) {
     this.sendSocketNotification(`MMM-CalDAV-Tasks-Helper-TODOS#${moduleId}`, payload);
   },
 
-  async toggleStatusViaWebDav (config, filename) {
+  async toggleStatusViaWebDav(config, filename) {
     const client = initDAVClient(config);
     const completer = new VTodoCompleter(client);
     await completer.completeVTodo(config, filename);
   },
 
-  sendLog (moduleId, payload) {
+  sendLog(moduleId, payload) {
     this.sendSocketNotification(`MMM-CalDAV-Tasks-Helper-LOG#${moduleId}`, payload);
   },
 
-  sendError (moduleId, payload) {
+  sendError(moduleId, payload) {
     this.sendSocketNotification(`MMM-CalDAV-Tasks-Helper-ERROR#${moduleId}`, payload);
   }
 });

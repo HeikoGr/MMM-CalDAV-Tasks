@@ -1,15 +1,15 @@
-const {datetime, RRule} = require("rrule");
-const {getFileContents, putFileContents} = require("./webDavHelper");
+const { datetime, RRule } = require("rrule");
+const { getFileContents, putFileContents } = require("./webDavHelper");
 
 /**
  * Class representing a VTodoCompleter.
  */
 class VTodoCompleter {
-    /**
-     * Create a VTodoCompleter.
-     * @param {Object} webdavClient - The tsdav webdav client.
-     */
-  constructor (webdavClient) {
+  /**
+   * Create a VTodoCompleter.
+   * @param {Object} webdavClient - The tsdav webdav client.
+   */
+  constructor(webdavClient) {
     if (!webdavClient) {
       throw new Error("WebDAV client is required");
     }
@@ -25,7 +25,7 @@ class VTodoCompleter {
    * @param {Date} [completedDate=new Date()] - The completion date.
    * @returns {Object} - An object containing the original filename.
    */
-  async completeVTodo (config, filename, completedDate = new Date()) {
+  async completeVTodo(config, filename, completedDate = new Date()) {
     console.log(`Completing VTODO: ${filename}`);
 
     const icsContent = await getFileContents(config, filename);
@@ -34,11 +34,11 @@ class VTodoCompleter {
     if (this.isRecurring(parsed)) {
       console.log("VTODO is recurring");
       const newFilename = await this.handleRecurrence(config, parsed, filename, completedDate);
-      return {original: filename, new: newFilename};
+      return { original: filename, new: newFilename };
     }
     console.log("VTODO is not recurring");
     await this.updateNonRecurring(config, parsed, filename, completedDate);
-    return {original: filename};
+    return { original: filename };
   }
 
   /**
@@ -46,7 +46,7 @@ class VTodoCompleter {
    * @param {Array} parsed - The parsed ICS data.
    * @returns {boolean} - True if the VTODO item is recurring, false otherwise.
    */
-  isRecurring (parsed) {
+  isRecurring(parsed) {
     return parsed.some((i) => i.key === "RRULE" && i.component === "VTODO");
   }
 
@@ -56,7 +56,7 @@ class VTodoCompleter {
    * @param {Date} completedDate - The completion date.
    * @returns {string} - The modified ICS content.
    */
-  async updateNonRecurring (config, parsed, filename, completedDate) {
+  async updateNonRecurring(config, parsed, filename, completedDate) {
     console.log("\r\n\r\nUpdating non-recurring VTODO item");
 
     this.setProperty(parsed, "VTODO", "COMPLETED", this.formatDate(completedDate), "CREATED");
@@ -76,7 +76,7 @@ class VTodoCompleter {
    * @param {Date} completedDate - The completion date.
    * @returns {string} - The new filename for the next occurrence.
    */
-  async handleRecurrence (config, parsed, filename, completedDate) {
+  async handleRecurrence(config, parsed, filename, completedDate) {
     console.log("\r\n\r\nHandling recurrence for VTODO item");
 
     const originalRRULE = this.getElementLine(parsed, "VTODO", "RRULE");
@@ -146,7 +146,7 @@ class VTodoCompleter {
    * @param {Array} parsed - The parsed ICS data.
    * @param {Date} maxDate - The new due date.
    */
-  updateVTodoItem (parsed, maxDate) {
+  updateVTodoItem(parsed, maxDate) {
     console.log("\r\n\r\nUpdating existing VTODO item:");
     this.setProperty(parsed, "VTODO", "DTSTART", this.formatDate(maxDate));
     this.setProperty(parsed, "VTODO", "DUE", this.formatDate(maxDate));
@@ -175,11 +175,11 @@ class VTodoCompleter {
    * @param {string} icsContent - The ICS content.
    * @returns {Array} - An array containing the parsed lines.
    */
-  parseICS (icsContent) {
+  parseICS(icsContent) {
     const lines = icsContent.split("\n");
     return lines.map((line) => {
       const [keyPart, ...valueParts] = line.split(":");
-      const value = valueParts.join(":" );
+      const value = valueParts.join(":");
       const [key, ...params] = keyPart.split(";");
       this.getCurrentContext(line);
       return {
@@ -201,7 +201,7 @@ class VTodoCompleter {
    * @returns {Date} UTC date object
    * @throws {Error} If date string format is invalid
    */
-  parseIcsDate (dateStr) {
+  parseIcsDate(dateStr) {
     const isDateTime = dateStr.includes("T");
     let day; let hours = 0; let minutes = 0; let month; let seconds = 0; let year;
 
@@ -236,7 +236,7 @@ class VTodoCompleter {
    * @returns {datetime} RRule datetime object for recurrence calculations
    * @throws {Error} If datetime string format is invalid
    */
-  parseIcsDatetime (dateStr) {
+  parseIcsDatetime(dateStr) {
     const isDateTime = dateStr.includes("T");
     let day; let hours = 0; let minutes = 0; let month; let seconds = 0; let year;
 
@@ -280,7 +280,7 @@ class VTodoCompleter {
    * @param {string} line - The ICS line to process
    * @returns {{currentComponent: string, hierarchy: string[]}} Object containing current component and hierarchy stack
    */
-  getCurrentContext (line) {
+  getCurrentContext(line) {
     if (line.startsWith("BEGIN:")) {
       this.componentStack.push(line.split(":")[1]);
       this.currentDepth++;
@@ -299,7 +299,7 @@ class VTodoCompleter {
    * Generate a unique identifier (UID) for ICS entries.
    * @returns {string} RFC4122 version 4 compliant UUID in uppercase
    */
-  generateUID () {
+  generateUID() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
       const r = Math.random() * 16 | 0; const v = c == "x"
         ? r
@@ -315,7 +315,7 @@ class VTodoCompleter {
    * @param {string} key - The property name.
    * @returns {Object|null} - The found element or null if not found.
    */
-  getElementLine (parsed, component, key) {
+  getElementLine(parsed, component, key) {
     return parsed.find((i) => i.key === key && i.component === component)?.original || null;
   }
 
@@ -327,7 +327,7 @@ class VTodoCompleter {
    * @param {boolean} [original] - get original String instead of altered value (optional).
    * @returns {Object|null} - The found element or null if not found.
    */
-  getElementValue (parsed, component, key, original = false) {
+  getElementValue(parsed, component, key, original = false) {
     const element = parsed.find((i) => i.key === key && i.component === component);
     if (!element) {
       return null;
@@ -346,7 +346,7 @@ class VTodoCompleter {
    * @param {string} value - The property value.
    * @param {string} [addBefore='END'] - The key before which the new property should be added if it doesn't exist.
    */
-  setProperty (parsed, component, key, value, addBefore = "END") {
+  setProperty(parsed, component, key, value, addBefore = "END") {
     const existing = parsed.find((i) => i.key === key && i.component === component);
     const origParams = parsed.find((i) => i.key === key && i.component === component)?.params;
 
@@ -370,7 +370,7 @@ class VTodoCompleter {
    * @param {string} [params=''] - The parameters (e.g., 'VALUE=DATE').
    * @param {string} [addBefore='END'] - The key before which the new property should be added.
    */
-  addProperty (parsed, component, key, value, params = "", addBefore = "END") {
+  addProperty(parsed, component, key, value, params = "", addBefore = "END") {
     const newItem = {
       original: "",
       key,
@@ -408,7 +408,7 @@ class VTodoCompleter {
    * @param {string} key - The property name to delete.
    * @returns {boolean} - True if the property was deleted, false otherwise.
    */
-  delProperty (parsed, component, key) {
+  delProperty(parsed, component, key) {
     const existingEntries = parsed.filter((i) => i.key === key && i.component === component);
 
     if (existingEntries.length > 0) {
@@ -427,7 +427,7 @@ class VTodoCompleter {
    * @param {Array} parsed - The parsed ICS data.
    * @returns {string} - The generated ICS content.
    */
-  generateICS (parsed) {
+  generateICS(parsed) {
     const newLines = parsed
       .filter((item) => !item.delete) // Filter out deleted lines
       .map((item) => {
@@ -445,7 +445,7 @@ class VTodoCompleter {
    * @param {Object} item - The item to build the line from.
    * @returns {string} - The built line.
    */
-  buildLine (item) {
+  buildLine(item) {
     const params = item.params
       ? `;${item.params}`
       : "";
@@ -475,7 +475,7 @@ class VTodoCompleter {
    * @param {Date} date - The date to format.
    * @returns {string} - The formatted date.
    */
-  formatDate (date) {
+  formatDate(date) {
     const isoString = date.toISOString();
     return `${isoString.replace(/[-:]/g, "").split(".")[0]}Z`;
   }

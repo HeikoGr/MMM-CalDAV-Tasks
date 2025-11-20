@@ -1,5 +1,5 @@
-const {transformData} = require("./transformer");
-const {fetchList, parseList} = require("./webDavHelper");
+const { transformData } = require("./transformer");
+const { fetchList, parseList } = require("./webDavHelper");
 let config; let icsList;
 try {
   // Optional test config/data; ignore if missing
@@ -12,7 +12,7 @@ try {
   icsList = [];
 }
 
-async function test (command = "local") {
+async function test(command = "local") {
   if (command == "fetch") {
     icsList = await fetchList(config);
   }

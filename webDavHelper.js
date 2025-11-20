@@ -1,12 +1,12 @@
 
-const {DAVClient} = require("tsdav");
+const { DAVClient } = require("tsdav");
 const ical = require("node-ical");
 const moment = require("moment");
 // transformer removed (unused)
 
 let client;
 
-function initDAVClient (config) {
+function initDAVClient(config) {
   client = new DAVClient({
     serverUrl: config.webDavAuth.url,
     credentials: {
@@ -19,7 +19,7 @@ function initDAVClient (config) {
   return client;
 }
 
-async function getFileContents (config, url) {
+async function getFileContents(config, url) {
   client = initDAVClient(config);
   await client.login();
   const calendars = await client.fetchCalendars();
@@ -27,9 +27,9 @@ async function getFileContents (config, url) {
   const filters = [
     {
       "comp-filter": {
-        _attributes: {name: "VCALENDAR"},
+        _attributes: { name: "VCALENDAR" },
         "comp-filter": {
-          _attributes: {name: "VTODO"}
+          _attributes: { name: "VTODO" }
         }
       }
     }
@@ -49,7 +49,7 @@ async function getFileContents (config, url) {
   return objects[0];
 }
 
-async function putFileContents (config, url, data) {
+async function putFileContents(config, url, data) {
   client = initDAVClient(config);
   await client.login();
   const result = client.updateCalendarObject({
@@ -61,10 +61,10 @@ async function putFileContents (config, url, data) {
   return result;
 }
 
-function parseList (icsStrings, dateFormat) {
+function parseList(icsStrings, dateFormat) {
   const elements = [];
 
-  for (const {filename, icsStr} of icsStrings) {
+  for (const { filename, icsStr } of icsStrings) {
     const icsObj = ical.sync.parseICS(icsStr);
     Object.values(icsObj).forEach((element) => {
       if (element.type === "VTODO") {
@@ -80,7 +80,7 @@ function parseList (icsStrings, dateFormat) {
   return elements;
 }
 
-function mapEmptyPriorityTo (parsedList, mapEmptyPriorityTo) {
+function mapEmptyPriorityTo(parsedList, mapEmptyPriorityTo) {
   for (const element of parsedList) {
     if (!Object.prototype.hasOwnProperty.call(element, "priority") || element.priority === null || element.priority === "0") {
       element.priority = mapEmptyPriorityTo.toString();
@@ -89,7 +89,7 @@ function mapEmptyPriorityTo (parsedList, mapEmptyPriorityTo) {
   return parsedList;
 }
 
-function mapEmptySortIndexTo (parsedList, mapEmptySortIndexTo) {
+function mapEmptySortIndexTo(parsedList, mapEmptySortIndexTo) {
   for (const element of parsedList) {
     if (!Object.prototype.hasOwnProperty.call(element, "APPLE-SORT-ORDER") || element["APPLE-SORT-ORDER"] === null || element["APPLE-SORT-ORDER"] === "0") {
       element["APPLE-SORT-ORDER"] = mapEmptySortIndexTo.toString();
@@ -98,11 +98,11 @@ function mapEmptySortIndexTo (parsedList, mapEmptySortIndexTo) {
   return parsedList;
 }
 
-function filterByNameMatches (objArray, matchStrings) {
+function filterByNameMatches(objArray, matchStrings) {
   return objArray.filter((obj) => matchStrings.some((matchString) => obj.displayName.toLowerCase().includes(matchString.toLowerCase())));
 }
 
-async function fetchCalendarData (config) {
+async function fetchCalendarData(config) {
   client = initDAVClient(config);
   await client.login();
 
@@ -122,9 +122,9 @@ async function fetchCalendarData (config) {
   const filters = [
     {
       "comp-filter": {
-        _attributes: {name: "VCALENDAR"},
+        _attributes: { name: "VCALENDAR" },
         "comp-filter": {
-          _attributes: {name: "VTODO"}
+          _attributes: { name: "VTODO" }
         }
       }
     }
@@ -138,7 +138,7 @@ async function fetchCalendarData (config) {
 
     const icsStrings = [];
     for (const object of objects) {
-      icsStrings.push({filename: object.url, icsStr: object.data});
+      icsStrings.push({ filename: object.url, icsStr: object.data });
     }
 
     calendarData.push({

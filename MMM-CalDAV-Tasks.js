@@ -53,7 +53,7 @@ Module.register("MMM-CalDAV-Tasks", {
   error: null,
   audio: null, // define audio to prelaod the sound
 
-  start () {
+  start() {
     const self = this;
 
     // Flag for check if module is loaded
@@ -107,7 +107,7 @@ Module.register("MMM-CalDAV-Tasks", {
     }
   },
 
-  isListUrlSingleValue (listUrl) {
+  isListUrlSingleValue(listUrl) {
     return typeof listUrl === "string";
   },
 
@@ -117,7 +117,7 @@ Module.register("MMM-CalDAV-Tasks", {
    * get a URL request
    *
    */
-  getData () {
+  getData() {
     this.sendSocketNotification(
       "MMM-CalDAV-Tasks-UPDATE",
       {
@@ -127,7 +127,7 @@ Module.register("MMM-CalDAV-Tasks", {
     );
   },
 
-  getDom () {
+  getDom() {
     const self = this;
 
     // Reinitialize usedUrlIndices before updating the DOM so that the headings are displayed correctly
@@ -181,7 +181,7 @@ Module.register("MMM-CalDAV-Tasks", {
 
   // create list of tasks
 
-  renderList (children, isTopLevel = true) {
+  renderList(children, isTopLevel = true) {
     const self = this;
     const checked = "<span class=\"fa fa-fw fa-check-square\"></span>";
     const unchecked = "<span class=\"fa fa-fw fa-square\"></span>";
@@ -222,7 +222,7 @@ Module.register("MMM-CalDAV-Tasks", {
     return ul;
   },
 
-  shouldHideElement (element) {
+  shouldHideElement(element) {
     const now = new Date();
 
     if (element.status === "COMPLETED" && this.config.hideCompletedTasksAfter !== null) {
@@ -256,7 +256,7 @@ Module.register("MMM-CalDAV-Tasks", {
     return false;
   },
 
-  addHeadingIfNeeded (ul, element) {
+  addHeadingIfNeeded(ul, element) {
     if (!this.usedUrlIndices) {
       this.usedUrlIndices = [];
     }
@@ -272,8 +272,8 @@ Module.register("MMM-CalDAV-Tasks", {
     }
   },
 
-  createListItemHTML (element, listItemClass, icon) {
-    const {priority, status, urlIndex, uid, filename, summary, rrule, start, dueFormatted} = element;
+  createListItemHTML(element, listItemClass, icon) {
+    const { priority, status, urlIndex, uid, filename, summary, rrule, start, dueFormatted } = element;
     const isCompleted = status === "COMPLETED";
     const now = new Date();
 
@@ -338,7 +338,7 @@ Module.register("MMM-CalDAV-Tasks", {
     return html;
   },
 
-  drawCompletionCanvas (li, element) {
+  drawCompletionCanvas(li, element) {
     const canvas = li.querySelector("canvas.MMM-CalDAV-Tasks-CompletionCanvas");
     if (canvas) {
       const ctx = canvas.getContext("2d");
@@ -373,8 +373,8 @@ Module.register("MMM-CalDAV-Tasks", {
     }
   },
 
-  createDateSection (element) {
-    const {status, start, dueFormatted} = element;
+  createDateSection(element) {
+    const { status, start, dueFormatted } = element;
     const now = new Date();
     const isCompleted = status === "COMPLETED";
 
@@ -410,7 +410,7 @@ Module.register("MMM-CalDAV-Tasks", {
 
 
   // Animate list element when long clicking
-  initLongPressHandlers () {
+  initLongPressHandlers() {
     console.debug("[MMM-CalDAV-Tasks] ready for long press");
     const items = document.querySelectorAll(".MMM-CalDAV-Tasks-List-Item");
 
@@ -543,7 +543,7 @@ Module.register("MMM-CalDAV-Tasks", {
       };
 
       item.addEventListener("mousedown", startHandler);
-      item.addEventListener("touchstart", startHandler, {passive: true});
+      item.addEventListener("touchstart", startHandler, { passive: true });
       item.addEventListener("mouseup", resetEffects);
       item.addEventListener("mouseleave", resetEffects);
       item.addEventListener("touchend", resetEffects);
@@ -551,14 +551,14 @@ Module.register("MMM-CalDAV-Tasks", {
     });
   },
 
-  getStyles () {
+  getStyles() {
     return [
       "MMM-CalDAV-Tasks.css",
       "font-awesome.css"
     ];
   },
 
-  socketNotificationReceived (notification, payload) {
+  socketNotificationReceived(notification, payload) {
     if (notification === `MMM-CalDAV-Tasks-Helper-TODOS#${this.identifier}`) {
       this.toDoList = payload;
 
@@ -575,7 +575,7 @@ Module.register("MMM-CalDAV-Tasks", {
     }
   },
 
-  verifyConfig (config) {
+  verifyConfig(config) {
     if (
       typeof config.includeCalendars === "undefined" ||
       typeof config.updateInterval === "undefined" ||
@@ -586,24 +586,24 @@ Module.register("MMM-CalDAV-Tasks", {
       typeof config.dueInDays === "undefined" ||
       typeof config.displayDueDate === "undefined" ||
       typeof config.showWithoutStart === "undefined" ||
-			typeof config.showWithoutDue === "undefined" ||
-			typeof config.hideCompletedTasksAfter === "undefined" ||
-			typeof config.dateFormat === "undefined" ||
-			typeof config.headings === "undefined" ||
-			typeof config.playSound === "undefined" ||
-			typeof config.offsetTop === "undefined" ||
-			typeof config.offsetLeft === "undefined" ||
-			typeof config.toggleTime === "undefined" ||
-			typeof config.showCompletionPercent === "undefined" ||
-			typeof config.developerMode === "undefined" ||
-			typeof config.mapEmptyPriorityTo === "undefined" ||
-			typeof config.mapEmptySortIndexTo === "undefined" ||
-			typeof config.highlightStartedTasks === "undefined" ||
-			typeof config.highlightOverdueTasks === "undefined" ||
-			typeof config.pieChartBackgroundColor === "undefined" ||
-			typeof config.pieChartColor === "undefined" ||
-			typeof config.pieChartSize === "undefined" ||
-			typeof config.hideDateSectionOnCompletion === "undefined"
+      typeof config.showWithoutDue === "undefined" ||
+      typeof config.hideCompletedTasksAfter === "undefined" ||
+      typeof config.dateFormat === "undefined" ||
+      typeof config.headings === "undefined" ||
+      typeof config.playSound === "undefined" ||
+      typeof config.offsetTop === "undefined" ||
+      typeof config.offsetLeft === "undefined" ||
+      typeof config.toggleTime === "undefined" ||
+      typeof config.showCompletionPercent === "undefined" ||
+      typeof config.developerMode === "undefined" ||
+      typeof config.mapEmptyPriorityTo === "undefined" ||
+      typeof config.mapEmptySortIndexTo === "undefined" ||
+      typeof config.highlightStartedTasks === "undefined" ||
+      typeof config.highlightOverdueTasks === "undefined" ||
+      typeof config.pieChartBackgroundColor === "undefined" ||
+      typeof config.pieChartColor === "undefined" ||
+      typeof config.pieChartSize === "undefined" ||
+      typeof config.hideDateSectionOnCompletion === "undefined"
     ) {
       this.error = "Config variable missing";
       Log.error("Config variable missing");
