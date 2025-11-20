@@ -1,3 +1,4 @@
+/* eslint-disable no-redeclare, no-console */
 /* global Module, Log */
 
 /*
@@ -149,7 +150,7 @@ Module.register("MMM-CalDAV-Tasks", {
     wrapper.className = "MMM-CalDAV-Tasks-wrapper";
 
     if (self.toDoList) {
-      for (element of self.toDoList) {
+      for (const element of self.toDoList) {
         const calWrapper = document.createElement("div");
         calWrapper.className = "MMM-CalDAV-Tasks-Calendar-wrapper";
         const h2 = document.createElement("h2");
@@ -426,14 +427,14 @@ Module.register("MMM-CalDAV-Tasks", {
       };
 
       const startEffects = () => {
-        toggleTime = this.config.toggleTime;
+        const toggleTime = this.config.toggleTime;
         startTime = Date.now();
         const effectSpeed = toggleTime / 50;
         blurInterval = setInterval(() => {
           const elapsed = Date.now() - startTime;
           if (elapsed >= toggleTime) {
             clearInterval(blurInterval);
-            newState = toggleCheck(item);
+            const newState = toggleCheck(item);
             toggleEffectOnTimerEnd(item);
             console.debug(`[MMM-CalDAV-Tasks] new state: ${newState}`);
             console.debug(`[MMM-CalDAV-Tasks] item id: ${item.id}`);

@@ -1,3 +1,4 @@
+/* eslint-disable n/no-missing-require */
 module.exports = function (grunt) {
   require("time-grunt")(grunt);
   grunt.initConfig({

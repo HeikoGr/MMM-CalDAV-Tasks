@@ -2,7 +2,7 @@
 const {DAVClient} = require("tsdav");
 const ical = require("node-ical");
 const moment = require("moment");
-const transformer = require("./transformer");
+// transformer removed (unused)
 
 let client;
 
@@ -82,8 +82,7 @@ function parseList (icsStrings, dateFormat) {
 
 function mapEmptyPriorityTo (parsedList, mapEmptyPriorityTo) {
   for (const element of parsedList) {
-    if (!element.hasOwnProperty("priority") || element.priority === null || element.priority === "0") { // VTODO uses strings!
-      // console.log(`[MMM-CalDAV-Tasks] setting prio for element ${element.filename} to ${mapEmptyPriorityTo}`);
+    if (!Object.prototype.hasOwnProperty.call(element, "priority") || element.priority === null || element.priority === "0") {
       element.priority = mapEmptyPriorityTo.toString();
     }
   }
@@ -92,8 +91,7 @@ function mapEmptyPriorityTo (parsedList, mapEmptyPriorityTo) {
 
 function mapEmptySortIndexTo (parsedList, mapEmptySortIndexTo) {
   for (const element of parsedList) {
-    if (!element.hasOwnProperty("APPLE-SORT-ORDER") || element["APPLE-SORT-ORDER"] === null || element["APPLE-SORT-ORDER"] === "0") { // VTODO uses strings!
-      // console.log(`[MMM-CalDAV-Tasks] setting prio for element ${element.filename} to ${mapEmptyPriorityTo}`);
+    if (!Object.prototype.hasOwnProperty.call(element, "APPLE-SORT-ORDER") || element["APPLE-SORT-ORDER"] === null || element["APPLE-SORT-ORDER"] === "0") {
       element["APPLE-SORT-ORDER"] = mapEmptySortIndexTo.toString();
     }
   }

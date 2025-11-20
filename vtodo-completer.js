@@ -37,7 +37,7 @@ class VTodoCompleter {
       return {original: filename, new: newFilename};
     }
     console.log("VTODO is not recurring");
-    const newFilename = await this.updateNonRecurring(config, parsed, filename, completedDate);
+    await this.updateNonRecurring(config, parsed, filename, completedDate);
     return {original: filename};
   }
 
@@ -158,8 +158,7 @@ class VTodoCompleter {
     if (trigger) {
       const oldAlarmDate = this.parseIcsDate(trigger);
       console.log("old Alarm date:", oldAlarmDate);
-      let newAlarmDate = new Date();
-      newAlarmDate = new Date(newAlarmDate.setDate(oldAlarmDate.getDate() + 1));
+      // removed unused newAlarmDate variable
 
       console.log("new Alarm date:", this.formatDate(maxDate));
       const uid = this.generateUID();
@@ -180,9 +179,9 @@ class VTodoCompleter {
     const lines = icsContent.split("\n");
     return lines.map((line) => {
       const [keyPart, ...valueParts] = line.split(":");
-      const value = valueParts.join(":");
+      const value = valueParts.join(":" );
       const [key, ...params] = keyPart.split(";");
-      const context = this.getCurrentContext(line);
+      this.getCurrentContext(line);
       return {
         original: line,
         key,
@@ -269,26 +268,12 @@ class VTodoCompleter {
     }
 
     return new datetime(year, month, day);
-
-
-    return {
-      currentComponent: this.componentStack[this.componentStack.length - 1],
-      hierarchy: [...this.componentStack]
-    };
   }
 
   /**
    * Generate a unique identifier (UID) for ICS entries.
    * @returns {string} RFC4122 version 4 compliant UUID in uppercase
    */
-  generateUID () {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-      const r = Math.random() * 16 | 0; const v = c == "x"
-        ? r
-        : r & 0x3 | 0x8;
-      return v.toString(16).toUpperCase();
-    });
-  }
 
   /**
    * Get the current context from a line in ICS file.
@@ -480,9 +465,7 @@ class VTodoCompleter {
     if (item.params === "VALUE=DATE") {
       item.value = item.value.split("T")[0];
     }
-    if (item.params === "VALUE=TIME") {
-      item.value = item.value;
-    }
+    // removed self-assignment for VALUE=TIME
 
     return `${item.key}${params}:${item.value}`;
   }

@@ -6,11 +6,12 @@
  * MIT Licensed.
  */
 
+/* eslint-disable n/no-missing-require */
 const NodeHelper = require("node_helper");
+/* eslint-enable n/no-missing-require */
 const {transformData, sortList, appendUrlIndex} = require("./transformer");
 const {parseList, mapEmptyPriorityTo, mapEmptySortIndexTo, fetchCalendarData, initDAVClient} = require("./webDavHelper");
 const VTodoCompleter = require("./vtodo-completer.js");
-const Log = require("logger");
 
 module.exports = NodeHelper.create({
   socketNotificationReceived (notification, payload) {
@@ -43,7 +44,7 @@ module.exports = NodeHelper.create({
 
       // iterate over all Arrays
       for (let i = 0; i < calendarData.length; i++) {
-        icsList = calendarData[i].icsStrings;
+        const icsList = calendarData[i].icsStrings;
         const rawList = parseList(icsList, config.dateFormat);
         const priorityList = mapEmptyPriorityTo(rawList, config.mapEmptyPriorityTo);
         const sortIndexList = mapEmptySortIndexTo(priorityList, config.mapEmptySortIndexTo);

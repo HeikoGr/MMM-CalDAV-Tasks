@@ -1,4 +1,4 @@
-/* eslint-disable curly */
+ 
 
 const {sortPriority, sortPriorityDesc, sortCreated, sortCreatedDesc, sortModified, sortModifiedDesc, sortApple} = require("./sort_helper");
 
