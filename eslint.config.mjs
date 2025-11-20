@@ -1,49 +1,70 @@
-import css from "@eslint/css";
-import {defineConfig} from "eslint/config";
-import globals from "globals";
-import {flatConfigs as importX} from "eslint-plugin-import-x";
+import { defineConfig } from "eslint/config";
 import js from "@eslint/js";
-import markdown from "@eslint/markdown";
-import stylistic from "@stylistic/eslint-plugin";
+import globals from "globals";
+import pluginN from "eslint-plugin-n";
 
 export default defineConfig([
   {
-    files: ["**/*.css"],
-    plugins: {css},
-    language: "css/css",
-    extends: ["css/recommended"],
+    ignores: ["**/node_modules/**", "assets/**", "sounds/**"]
+  },
+  js.configs.recommended,
+  {
+    files: ["**/*.js"],
+    ignores: ["MMM-CalDAV-Tasks.js"],
+    languageOptions: {
+      ecmaVersion: 2021,
+      sourceType: "commonjs",
+      globals: {
+        ...globals.node
+      }
+    },
+    plugins: {
+      n: pluginN
+    },
     rules: {
-      "css/no-invalid-properties": "off"
+      ...pluginN.configs.recommended.rules
     }
   },
   {
-    files: ["**/*.js", "**/*.mjs"],
+    files: ["MMM-CalDAV-Tasks.js"],
     languageOptions: {
-      ecmaVersion: "latest",
+      ecmaVersion: 2021,
+      sourceType: "script",
       globals: {
         ...globals.browser,
-        ...globals.node,
         Log: "readonly",
-        Module: "readonly"
+        Module: "readonly",
+        config: "readonly"
       }
     },
-    plugins: {js, stylistic},
-    extends: [importX.recommended, "js/all", "stylistic/all"],
     rules: {
-      "@stylistic/array-element-newline": ["error", "consistent"],
-      "@stylistic/dot-location": ["error", "property"],
-      "@stylistic/function-call-argument-newline": ["error", "consistent"],
-      "@stylistic/indent": ["error", 2],
-      "@stylistic/object-property-newline": ["error", {allowAllPropertiesOnSameLine: true}],
-      "@stylistic/padded-blocks": ["error", "never"],
-      "@stylistic/quote-props": ["error", "as-needed"],
-      "capitalized-comments": "off",
-      "max-statements": ["error", 50],
-      "no-inline-comments": "off",
-      "no-magic-numbers": "off",
-      "one-var": ["error", "never"],
-      "sort-keys": "off"
+      "no-console": [
+        "warn",
+        {
+          allow: ["warn", "error"]
+        }
+      ]
     }
   },
-  {files: ["**/*.md"], plugins: {markdown}, language: "markdown/gfm", extends: ["markdown/recommended"]}
+  {
+    files: ["**/*.mjs"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...globals.node
+      }
+    }
+  },
+  {
+    files: ["tests/**/*.js"],
+    languageOptions: {
+      ecmaVersion: 2021,
+      sourceType: "commonjs",
+      globals: {
+        ...globals.node,
+        ...globals.mocha
+      }
+    }
+  }
 ]);
