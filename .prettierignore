@@ -1,0 +1,8 @@
+# Ignore Markdown files so Prettier doesn't check/format code blocks inside them
+**/*.md
+*.md
+
+# You can add other files or folders to ignore below
+# e.g. logs, build artifacts, etc.
+node_modules
+dist

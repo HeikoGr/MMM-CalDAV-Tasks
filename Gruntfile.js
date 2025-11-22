@@ -63,5 +63,11 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks("grunt-jsonlint");
   grunt.loadNpmTasks("grunt-yamllint");
   grunt.loadNpmTasks("grunt-markdownlint");
-  grunt.registerTask("default", ["eslint", "stylelint", "jsonlint", "markdownlint", "yamllint"]);
+  grunt.registerTask("default", [
+    "eslint",
+    "stylelint",
+    "jsonlint",
+    "markdownlint",
+    "yamllint"
+  ]);
 };

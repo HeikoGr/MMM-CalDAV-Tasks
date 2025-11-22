@@ -1,4 +1,3 @@
-
 const { DAVClient } = require("tsdav");
 const ical = require("node-ical");
 const moment = require("moment");
@@ -54,7 +53,9 @@ async function putFileContents(config, url, data) {
   try {
     // try to find the calendar that owns this object URL
     const calendars = await client.fetchCalendars();
-    const calendar = calendars.find((c) => url.startsWith(c.url) || c.url.startsWith(url));
+    const calendar = calendars.find(
+      (c) => url.startsWith(c.url) || c.url.startsWith(url)
+    );
 
     if (!calendar) {
       // fallback: call update without calendar (let library try)
@@ -102,7 +103,11 @@ function parseList(icsStrings, dateFormat) {
 
 function mapEmptyPriorityTo(parsedList, mapEmptyPriorityTo) {
   for (const element of parsedList) {
-    if (!Object.prototype.hasOwnProperty.call(element, "priority") || element.priority === null || element.priority === "0") {
+    if (
+      !Object.prototype.hasOwnProperty.call(element, "priority") ||
+      element.priority === null ||
+      element.priority === "0"
+    ) {
       element.priority = mapEmptyPriorityTo.toString();
     }
   }
@@ -111,7 +116,11 @@ function mapEmptyPriorityTo(parsedList, mapEmptyPriorityTo) {
 
 function mapEmptySortIndexTo(parsedList, mapEmptySortIndexTo) {
   for (const element of parsedList) {
-    if (!Object.prototype.hasOwnProperty.call(element, "APPLE-SORT-ORDER") || element["APPLE-SORT-ORDER"] === null || element["APPLE-SORT-ORDER"] === "0") {
+    if (
+      !Object.prototype.hasOwnProperty.call(element, "APPLE-SORT-ORDER") ||
+      element["APPLE-SORT-ORDER"] === null ||
+      element["APPLE-SORT-ORDER"] === "0"
+    ) {
       element["APPLE-SORT-ORDER"] = mapEmptySortIndexTo.toString();
     }
   }
@@ -119,7 +128,11 @@ function mapEmptySortIndexTo(parsedList, mapEmptySortIndexTo) {
 }
 
 function filterByNameMatches(objArray, matchStrings) {
-  return objArray.filter((obj) => matchStrings.some((matchString) => obj.displayName.toLowerCase().includes(matchString.toLowerCase())));
+  return objArray.filter((obj) =>
+    matchStrings.some((matchString) =>
+      obj.displayName.toLowerCase().includes(matchString.toLowerCase())
+    )
+  );
 }
 
 async function fetchCalendarData(config) {
@@ -127,10 +140,14 @@ async function fetchCalendarData(config) {
   await client.login();
 
   let calendars = await client.fetchCalendars();
-  calendars = calendars.filter((calendar) => calendar.components.includes("VTODO"));
+  calendars = calendars.filter((calendar) =>
+    calendar.components.includes("VTODO")
+  );
 
   // filter NextCloud Decks, as they are read-only
-  calendars = calendars.filter((calendar) => !calendar.url.includes("app-generated--deck"));
+  calendars = calendars.filter(
+    (calendar) => !calendar.url.includes("app-generated--deck")
+  );
 
   // filter by calendars from user config
   if (config.includeCalendars.length > 0) {

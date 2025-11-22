@@ -60,7 +60,9 @@ Module.register("MMM-CalDAV-Tasks", {
     self.loaded = false;
 
     // Preload the sound
-    this.audio = new Audio("/modules/MMM-CalDAV-Tasks/sounds/task_finished.wav");
+    this.audio = new Audio(
+      "/modules/MMM-CalDAV-Tasks/sounds/task_finished.wav"
+    );
     this.audio.load();
 
     /*
@@ -69,7 +71,8 @@ Module.register("MMM-CalDAV-Tasks", {
      */
     if (self.verifyConfig(self.config)) {
       if (self.isListUrlSingleValue(self.config.listUrl)) {
-        self.error = "A little config Error in MMM-CalDAV-Task: 'listUrl' should be an array now as the module now supports multiple urls. Example:<br>" +
+        self.error =
+          "A little config Error in MMM-CalDAV-Task: 'listUrl' should be an array now as the module now supports multiple urls. Example:<br>" +
           "<div class='MMM-CalDAV-Tasks-New-Config-Note'>" +
           "<span style='color: #e34c26;'>Old:</span><br> <span style='font-family: Courier; color: lightblue;'>listUrl</span>: <span style='font-family: Courier; color: brown;'>\"https://my-nextcloud.com/remote.php/dav/calendars/cornelius/private-tasks/\"</span><span style='font-family: Courier; color: white;'>,</span><br>" +
           "<span style='color: #4caf50;'>New:</span><br> <span style='font-family: Courier; color: lightblue;'>listUrl</span>: [<span style='font-family: Courier; color: brown;'>\"https://my-nextcloud.com/remote.php/dav/calendars/cornelius/private-tasks/\"</span><span style='font-family: Courier; color: white;'>,</span>]" +
@@ -118,13 +121,10 @@ Module.register("MMM-CalDAV-Tasks", {
    *
    */
   getData() {
-    this.sendSocketNotification(
-      "MMM-CalDAV-Tasks-UPDATE",
-      {
-        id: this.identifier,
-        config: this.config
-      }
-    );
+    this.sendSocketNotification("MMM-CalDAV-Tasks-UPDATE", {
+      id: this.identifier,
+      config: this.config
+    });
   },
 
   getDom() {
@@ -140,7 +140,8 @@ Module.register("MMM-CalDAV-Tasks", {
     if (this.config.developerMode) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css";
+      link.href =
+        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css";
       document.head.appendChild(link);
       document.documentElement.style.cursor = "default";
     }
@@ -183,8 +184,8 @@ Module.register("MMM-CalDAV-Tasks", {
 
   renderList(children, isTopLevel = true) {
     const self = this;
-    const checked = "<span class=\"fa fa-fw fa-check-square\"></span>";
-    const unchecked = "<span class=\"fa fa-fw fa-square\"></span>";
+    const checked = '<span class="fa fa-fw fa-check-square"></span>';
+    const unchecked = '<span class="fa fa-fw fa-square"></span>';
 
     const ul = document.createElement("ul");
 
@@ -201,9 +202,7 @@ Module.register("MMM-CalDAV-Tasks", {
       self.addHeadingIfNeeded(ul, element);
 
       const listItemClass = "MMM-CalDAV-Tasks-List-Item";
-      const icon = element.status === "COMPLETED"
-        ? checked
-        : unchecked;
+      const icon = element.status === "COMPLETED" ? checked : unchecked;
       li.innerHTML = self.createListItemHTML(element, listItemClass, icon);
 
       if (self.config.showCompletionPercent === true) {
@@ -225,7 +224,10 @@ Module.register("MMM-CalDAV-Tasks", {
   shouldHideElement(element) {
     const now = new Date();
 
-    if (element.status === "COMPLETED" && this.config.hideCompletedTasksAfter !== null) {
+    if (
+      element.status === "COMPLETED" &&
+      this.config.hideCompletedTasksAfter !== null
+    ) {
       const completedDate = new Date(element.completed);
       const daysSinceCompleted = (now - completedDate) / (1000 * 60 * 60 * 24);
       if (daysSinceCompleted > this.config.hideCompletedTasksAfter) {
@@ -263,7 +265,11 @@ Module.register("MMM-CalDAV-Tasks", {
     if (!this.usedUrlIndices.includes(element.urlIndex)) {
       this.usedUrlIndices.push(element.urlIndex);
       const headingText = this.config.headings[element.urlIndex];
-      if (headingText !== null && headingText !== "null" && headingText !== undefined) {
+      if (
+        headingText !== null &&
+        headingText !== "null" &&
+        headingText !== undefined
+      ) {
         const h2 = document.createElement("h2");
         h2.className = `MMM-CalDAV-Tasks-Heading-${element.urlIndex}`;
         h2.textContent = headingText;
@@ -273,13 +279,23 @@ Module.register("MMM-CalDAV-Tasks", {
   },
 
   createListItemHTML(element, listItemClass, icon) {
-    const { priority, status, urlIndex, uid, filename, summary, rrule, start, dueFormatted } = element;
+    const {
+      priority,
+      status,
+      urlIndex,
+      uid,
+      filename,
+      summary,
+      rrule,
+      start,
+      dueFormatted
+    } = element;
     const isCompleted = status === "COMPLETED";
     const now = new Date();
 
-    let html = `<div class='${listItemClass}${isCompleted
-      ? " MMM-CalDAV-Tasks-Completed"
-      : ""}' data-url-index='${urlIndex}' id='${uid}' vtodo-filename='${filename}'>`;
+    let html = `<div class='${listItemClass}${
+      isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
+    }' data-url-index='${urlIndex}' id='${uid}' vtodo-filename='${filename}'>`;
 
     // icon and VTODO text (summary)
     const priorityIconClass = this.config.colorize
@@ -298,40 +314,47 @@ Module.register("MMM-CalDAV-Tasks", {
 
     // rrule-icon
     if (rrule) {
-      html += "<div class=\"MMM-CalDAV-Tasks-RRule-Icon fa-solid fa-repeat\"></div>";
+      html +=
+        '<div class="MMM-CalDAV-Tasks-RRule-Icon fa-solid fa-repeat"></div>';
     } else {
-      html += "<div class=\"MMM-CalDAV-Tasks-RRule-Icon\">&nbsp;</div>";
+      html += '<div class="MMM-CalDAV-Tasks-RRule-Icon">&nbsp;</div>';
     }
 
     // date section
-    if (this.config.displayStartDate && start || this.config.displayDueDate && dueFormatted) {
-      const dateClass = `MMM-CalDAV-Tasks-Date-Section${isCompleted
-        ? " MMM-CalDAV-Tasks-Completed"
-        : ""}`;
-      const dateStyle = isCompleted && this.config.hideDateSectionOnCompletion
-        ? " style=\"display:none;\""
-        : "";
+    if (
+      (this.config.displayStartDate && start) ||
+      (this.config.displayDueDate && dueFormatted)
+    ) {
+      const dateClass = `MMM-CalDAV-Tasks-Date-Section${
+        isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
+      }`;
+      const dateStyle =
+        isCompleted && this.config.hideDateSectionOnCompletion
+          ? ' style="display:none;"'
+          : "";
 
       html += `<div class="${dateClass}"${dateStyle}>`;
 
       if (this.config.displayStartDate && start) {
         const startDate = new Date(start);
-        const startClass = now > startDate
-          ? "MMM-CalDAV-Tasks-Started"
-          : "MMM-CalDAV-Tasks-StartDate";
+        const startClass =
+          now > startDate
+            ? "MMM-CalDAV-Tasks-Started"
+            : "MMM-CalDAV-Tasks-StartDate";
         html += `<span class="${startClass}"> ${startDate.toLocaleDateString(undefined, this.config.dateFormat)}</span>`;
       }
 
       if (this.config.displayDueDate && dueFormatted) {
-        const dueClass = now > new Date(dueFormatted)
-          ? "MMM-CalDAV-Tasks-Overdue"
-          : "MMM-CalDAV-Tasks-DueDate";
+        const dueClass =
+          now > new Date(dueFormatted)
+            ? "MMM-CalDAV-Tasks-Overdue"
+            : "MMM-CalDAV-Tasks-DueDate";
         html += `<span class="${dueClass}"> ${dueFormatted}</span>`;
       }
 
       html += "</div>";
     } else {
-      html += "<div class=\"MMM-CalDAV-Tasks-Date-Section\"></div>";
+      html += '<div class="MMM-CalDAV-Tasks-Date-Section"></div>';
     }
 
     html += "</div>";
@@ -349,9 +372,9 @@ Module.register("MMM-CalDAV-Tasks", {
       const centerX = size / 2;
       const centerY = size / 2;
       const outerRadius = size / 2;
-      const innerRadius = outerRadius - outerRadius * 0.9 / 2; // 90% of outer radius
+      const innerRadius = outerRadius - (outerRadius * 0.9) / 2; // 90% of outer radius
       const startAngle = -Math.PI / 2; // start at 12 o'clock
-      const endAngle = startAngle + completion / 100 * 2 * Math.PI;
+      const endAngle = startAngle + (completion / 100) * 2 * Math.PI;
 
       // Draw background arc
       ctx.fillStyle = this.config.pieChartBackgroundColor;
@@ -378,36 +401,38 @@ Module.register("MMM-CalDAV-Tasks", {
     const now = new Date();
     const isCompleted = status === "COMPLETED";
 
-    const baseClass = `MMM-CalDAV-Tasks-Date-Section${isCompleted
-      ? " MMM-CalDAV-Tasks-Completed"
-      : ""}`;
-    const displayStyle = isCompleted && this.config.hideDateSectionOnCompletion
-      ? " style=\"display:none;\""
-      : "";
+    const baseClass = `MMM-CalDAV-Tasks-Date-Section${
+      isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
+    }`;
+    const displayStyle =
+      isCompleted && this.config.hideDateSectionOnCompletion
+        ? ' style="display:none;"'
+        : "";
 
     let html = `<div class="${baseClass}"${displayStyle}>`;
 
     // add start date
     if (this.config.displayStartDate && start) {
       const startDate = new Date(start);
-      const startClass = now > startDate
-        ? "MMM-CalDAV-Tasks-Started"
-        : "MMM-CalDAV-Tasks-StartDate";
+      const startClass =
+        now > startDate
+          ? "MMM-CalDAV-Tasks-Started"
+          : "MMM-CalDAV-Tasks-StartDate";
       html += `<span class="${startClass}"> ${startDate.toLocaleDateString(undefined, this.config.dateFormat)}</span>`;
     }
 
     // add due date
     if (this.config.displayDueDate && dueFormatted) {
-      const dueClass = now > new Date(dueFormatted)
-        ? "MMM-CalDAV-Tasks-Overdue"
-        : "MMM-CalDAV-Tasks-DueDate";
+      const dueClass =
+        now > new Date(dueFormatted)
+          ? "MMM-CalDAV-Tasks-Overdue"
+          : "MMM-CalDAV-Tasks-DueDate";
       html += `<span class="${dueClass}"> ${dueFormatted}</span>`;
     }
 
     html += "</div>";
     return html;
   },
-
 
   // Animate list element when long clicking
   initLongPressHandlers() {
@@ -458,7 +483,9 @@ Module.register("MMM-CalDAV-Tasks", {
       const toggleEffectOnTimerEnd = (item) => {
         console.debug("[MMM-CalDAV-Tasks] toggleEffectOnTimerEnd called");
         if (this.config.playSound) {
-          this.audio.play().catch((error) => console.error("Error playing audio:", error));
+          this.audio
+            .play()
+            .catch((error) => console.error("Error playing audio:", error));
         }
 
         startTime = Date.now();
@@ -509,12 +536,13 @@ Module.register("MMM-CalDAV-Tasks", {
         item.classList.toggle("MMM-CalDAV-Tasks-Completed");
         const li = item.closest("li");
         if (li) {
-          const dateSection = li.querySelector(".MMM-CalDAV-Tasks-Date-Section");
+          const dateSection = li.querySelector(
+            ".MMM-CalDAV-Tasks-Date-Section"
+          );
           if (dateSection) {
             if (this.config.hideDateSectionOnCompletion) {
-              dateSection.style.display = dateSection.style.display === "none"
-                ? "block"
-                : "none";
+              dateSection.style.display =
+                dateSection.style.display === "none" ? "block" : "none";
             } else {
               dateSection.classList.toggle("MMM-CalDAV-Tasks-Completed");
             }
@@ -530,15 +558,13 @@ Module.register("MMM-CalDAV-Tasks", {
         const isChecked = iconSpan.classList.contains("fa-check-square");
         iconSpan.classList.toggle("fa-check-square", !isChecked);
         iconSpan.classList.toggle("fa-square", isChecked);
-        return isChecked
-          ? "unchecked"
-          : "checked";
+        return isChecked ? "unchecked" : "checked";
       };
 
       const startHandler = () => {
         Log.info(`touch/mouse start on item: ${item.id}`);
         resetEffects();
-        pressTimer = setTimeout(() => { }, this.config.toggleTime);
+        pressTimer = setTimeout(() => {}, this.config.toggleTime);
         startEffects(item);
       };
 
@@ -552,10 +578,7 @@ Module.register("MMM-CalDAV-Tasks", {
   },
 
   getStyles() {
-    return [
-      "MMM-CalDAV-Tasks.css",
-      "font-awesome.css"
-    ];
+    return ["MMM-CalDAV-Tasks.css", "font-awesome.css"];
   },
 
   socketNotificationReceived(notification, payload) {

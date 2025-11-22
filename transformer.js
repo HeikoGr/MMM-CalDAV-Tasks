@@ -1,8 +1,14 @@
- 
+const {
+  sortPriority,
+  sortPriorityDesc,
+  sortCreated,
+  sortCreatedDesc,
+  sortModified,
+  sortModifiedDesc,
+  sortApple
+} = require("./sort_helper");
 
-const {sortPriority, sortPriorityDesc, sortCreated, sortCreatedDesc, sortModified, sortModifiedDesc, sortApple} = require("./sort_helper");
-
-function findParent (parents, uid) {
+function findParent(parents, uid) {
   // Search parents for parent
   for (const parent of parents) {
     // console.log(parent.summary, (parent.uid === uid), (typeof parent.children !== "undefined"));
@@ -21,30 +27,30 @@ function findParent (parents, uid) {
   return false;
 }
 
-function transformData (children, parents = []) {
+function transformData(children, parents = []) {
   const orphans = [];
 
   for (const child of children) {
     if (typeof child["related-to"] === "undefined") {
-
       /*
        * has no relation
        * add to parents
        */
       parents.push(child);
     } else {
-
       /*
        * has relation
        * find parent
        */
-      const parent = findParent(parents, typeof child["related-to"].val === "undefined"
-        ? child["related-to"]
-        : child["related-to"].val);
+      const parent = findParent(
+        parents,
+        typeof child["related-to"].val === "undefined"
+          ? child["related-to"]
+          : child["related-to"].val
+      );
       if (parent) {
         // has parent in parents?
         if (typeof parent.children === "undefined") {
-
           /*
            * parent has no children yet
            * create children attribute
@@ -54,7 +60,6 @@ function transformData (children, parents = []) {
         // add child to parent
         parent.children.push(child);
       } else {
-
         /*
          * has no parent in parents?
          * add to orphans
@@ -73,7 +78,7 @@ function transformData (children, parents = []) {
   return parents;
 }
 
-function sortList (rawList, method) {
+function sortList(rawList, method) {
   switch (method) {
     case "priority":
       rawList.sort(sortPriority);
@@ -107,7 +112,7 @@ function sortList (rawList, method) {
   return rawList;
 }
 
-function appendUrlIndex (rawList, i) {
+function appendUrlIndex(rawList, i) {
   return rawList.map((element) => {
     element.urlIndex = i;
     return element;

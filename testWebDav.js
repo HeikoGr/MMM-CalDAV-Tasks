@@ -1,6 +1,7 @@
 const { transformData } = require("./transformer");
 const { fetchList, parseList } = require("./webDavHelper");
-let config; let icsList;
+let config;
+let icsList;
 try {
   // Optional test config/data; ignore if missing
   // eslint-disable-next-line n/no-missing-require

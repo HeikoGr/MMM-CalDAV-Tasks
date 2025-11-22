@@ -10,137 +10,136 @@
  */
 
 .MMM-CalDAV-Tasks-wrapper {
-    color: var(--color-text-bright);
-    font-size: 20px;
-    line-height: 1.5em;
-    text-align: left;
+  color: var(--color-text-bright);
+  font-size: 20px;
+  line-height: 1.5em;
+  text-align: left;
 }
 
 .MMM-CalDAV-Tasks-Priority-Icon {
-    text-align: center;
-    width: 2em;
+  text-align: center;
+  width: 2em;
 }
 
 .MMM-CalDAV-Tasks-Summary {
-    text-align: left;
-    vertical-align: top;
+  text-align: left;
+  vertical-align: top;
 }
 
 .MMM-CalDAV-Tasks-RRule-Icon::before {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    font-size: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-size: 15px;
 }
 
-
 .MMM-CalDAV-Tasks-wrapper ul {
-    list-style: none;
-    padding-left: 10px;
-    vertical-align: middle;
+  list-style: none;
+  padding-left: 10px;
+  vertical-align: middle;
 }
 
 .MMM-CalDAV-Tasks-wrapper > ul {
-    padding: 0;
+  padding: 0;
 }
 
 .MMM-CalDAV-Tasks-Toplevel {
-    margin-top: 0.5em;
+  margin-top: 0.5em;
 }
 
 .MMM-CalDAV-Tasks-List-Item {
-    margin-top: -0.8em;
-    display: inline-grid;
-    grid-template-columns: 2em calc(100% - 3em) 1em;
-    width: 100%;
+  margin-top: -0.8em;
+  display: inline-grid;
+  grid-template-columns: 2em calc(100% - 3em) 1em;
+  width: 100%;
 }
 
 .MMM-CalDAV-Tasks-Date-Section {
-    font-size: var(--font-size-xsmall);
+  font-size: var(--font-size-xsmall);
 }
 
 .MMM-CalDAV-Tasks-StartDate {
-    color: rgb(166, 175, 206);
+  color: rgb(166, 175, 206);
 }
 
 .MMM-CalDAV-Tasks-DueDate {
-    color: rgb(204, 150, 150); 
+  color: rgb(204, 150, 150);
 }
 
 .MMM-CalDAV-Tasks-Started {
-    color: rgb(0, 0, 255);
+  color: rgb(0, 0, 255);
 }
 
 .MMM-CalDAV-Tasks-Overdue {
-    color: rgb(255, 0, 0);
+  color: rgb(255, 0, 0);
 }
 
 .MMM-CalDAV-Tasks-New-Config-Note {
-    font-size: var(--font-size-xsmall);
+  font-size: var(--font-size-xsmall);
 }
 
 .MMM-CalDAV-Tasks-List-Item > div {
-    pointer-events: auto;
+  pointer-events: auto;
 }
 
 .MMM-CalDAV-Tasks-Heading-0,
 .MMM-CalDAV-Tasks-Heading-1,
 .MMM-CalDAV-Tasks-Heading-2 {
-    margin-top: 1em;
-    margin-bottom: 0.5em;
-    font-size: 1.2em;
-    font-weight: bold;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  font-size: 1.2em;
+  font-weight: bold;
 }
 
 .MMM-CalDAV-Tasks-SubList {
-    margin-left: 0.4em;
-    color: var(--color-text-dimmed);
+  margin-left: 0.4em;
+  color: var(--color-text-dimmed);
 }
 
 .MMM-CalDAV-Tasks-Priority-1 {
-    color: #ff0000; /* Bright Red */
+  color: #ff0000; /* Bright Red */
 }
 
 .MMM-CalDAV-Tasks-Priority-2 {
-    color: #ff6228; /* Orange Red */
+  color: #ff6228; /* Orange Red */
 }
 
 .MMM-CalDAV-Tasks-Priority-3 {
-    color: #ffba67; /* Dark Orange */
+  color: #ffba67; /* Dark Orange */
 }
 
 .MMM-CalDAV-Tasks-Priority-4 {
-    color: #ffeb7c; /* Gold */
+  color: #ffeb7c; /* Gold */
 }
 
 .MMM-CalDAV-Tasks-Priority-5 {
-    color: #abcc6a; /* Yellow Green */
+  color: #abcc6a; /* Yellow Green */
 }
 
 .MMM-CalDAV-Tasks-Priority-6 {
-    color: #60aa60; /* Lime Green */
+  color: #60aa60; /* Lime Green */
 }
 
 .MMM-CalDAV-Tasks-Priority-7 {
-    color: #228b22; /* Forest Green */
+  color: #228b22; /* Forest Green */
 }
 
 .MMM-CalDAV-Tasks-Priority-8 {
-    color: #67966a; /* Grey */
+  color: #67966a; /* Grey */
 }
 
 .MMM-CalDAV-Tasks-Priority-9 {
-    color: #a9a9a9; /* Dark Grey */
+  color: #a9a9a9; /* Dark Grey */
 }
 
 .MMM-CalDAV-Tasks-Completed {
-    opacity: 0.2!important;
-    text-decoration: line-through;
+  opacity: 0.2 !important;
+  text-decoration: line-through;
 }
 
 .MMM-CalDAV-Tasks-CompletionCanvas {
-    padding-left: 3px;
-    position: relative;
-    top: 3px;
+  padding-left: 3px;
+  position: relative;
+  top: 3px;
 }

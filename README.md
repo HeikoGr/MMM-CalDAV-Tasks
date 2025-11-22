@@ -39,14 +39,14 @@ From `MagicMirror/modules/MMM-CalDAV-Tasks` use `git pull`
 
 To use this module, add the following most important settings in the configuration block to the modules array in the `config/config.js` file:
 
-```js
+```javascript
 var config = {
     modules: [
         {
             module: 'MMM-CalDAV-Tasks',
             config: {
                 // See 'Configuration options' for more information.
-                
+
                 webDavAuth: {
                     url: "<CalDAV_URL>",
                     username: "<CalDAV_APP_USERNAME>",
@@ -76,8 +76,8 @@ var config = {
 | `showWithoutStart`   | *Optional*: Should tasks without a start date be shown? Default `true`
 | `showWithoutDue`     | *Optional*: Should tasks without a due date be shown? Default `true`
 | `hideCompletedTasksAfter ` | *Optional*: How many days after completion should tasks be hidden? Default `1`
-| `dateFormat`         | *Optional*: Format for displaying dates. Default `DD.MM.YYYY` Uses [moment.js formats](https://momentjs.com/docs/#/displaying/format/)  
-| `headings`         | *Optional*: Array of headings for the tasks. 
+| `dateFormat`         | *Optional*: Format for displaying dates. Default `DD.MM.YYYY` Uses [moment.js formats](https://momentjs.com/docs/#/displaying/format/)
+| `headings`         | *Optional*: Array of headings for the tasks.
 | `playsound`         | *Optional*: Should a sound be played when a task is toggled? Default `true`
 | `offsetTop`             | *Optional*: Offset of the module in pixels. Default `0`
 | `offsetLeft`             | *Optional*: Offset of the module in pixels. Default `0`

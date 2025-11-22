@@ -32,7 +32,12 @@ class VTodoCompleter {
 
     if (this.isRecurring(parsed)) {
       console.log("VTODO is recurring");
-      const newFilename = await this.handleRecurrence(config, parsed, filename, completedDate);
+      const newFilename = await this.handleRecurrence(
+        config,
+        parsed,
+        filename,
+        completedDate
+      );
       return { original: filename, new: newFilename };
     }
     console.log("VTODO is not recurring");
@@ -58,9 +63,20 @@ class VTodoCompleter {
   async updateNonRecurring(config, parsed, filename, completedDate) {
     console.log("\r\n\r\nUpdating non-recurring VTODO item");
 
-    this.setProperty(parsed, "VTODO", "COMPLETED", this.formatDate(completedDate), "CREATED");
+    this.setProperty(
+      parsed,
+      "VTODO",
+      "COMPLETED",
+      this.formatDate(completedDate),
+      "CREATED"
+    );
     this.setProperty(parsed, "VTODO", "DTSTAMP", this.formatDate(new Date()));
-    this.setProperty(parsed, "VTODO", "LAST-MODIFIED", this.formatDate(new Date()));
+    this.setProperty(
+      parsed,
+      "VTODO",
+      "LAST-MODIFIED",
+      this.formatDate(new Date())
+    );
     this.setProperty(parsed, "VTODO", "STATUS", "COMPLETED");
     this.setProperty(parsed, "VTODO", "PERCENT-COMPLETE", "100", "STATUS");
 
@@ -79,7 +95,12 @@ class VTodoCompleter {
     console.log("\r\n\r\nHandling recurrence for VTODO item");
 
     const originalRRULE = this.getElementLine(parsed, "VTODO", "RRULE");
-    const originalDTSTART = this.getElementValue(parsed, "VTODO", "DTSTART", true);
+    const originalDTSTART = this.getElementValue(
+      parsed,
+      "VTODO",
+      "DTSTART",
+      true
+    );
     const startDate = this.parseIcsDate(originalDTSTART);
     const rfcString = `DTSTART:${this.formatDate(startDate)}\r\n${originalRRULE}`;
     const originalDue = this.getElementValue(parsed, "VTODO", "DUE", true);
@@ -87,7 +108,10 @@ class VTodoCompleter {
 
     const rule = RRule.fromString(rfcString);
     const occurenceAfterDue = rule.after(this.parseIcsDatetime(originalDue));
-    const occurenceAfterToday = rule.after(new Date(new Date().setHours(0, 0, 0, 0)), false);
+    const occurenceAfterToday = rule.after(
+      new Date(new Date().setHours(0, 0, 0, 0)),
+      false
+    );
 
     const futureDate = new Date(occurenceAfterToday);
     futureDate.setDate(futureDate.getDate() + 1);
@@ -97,18 +121,30 @@ class VTodoCompleter {
     let maxDate = new Date(Math.max(occurenceAfterDue, occurenceAfterToday));
 
     // compare next occurence with occurence after today+1
-    if (this.parseIcsDatetime(originalDue).toISOString() === maxDate.toISOString()) {
+    if (
+      this.parseIcsDatetime(originalDue).toISOString() === maxDate.toISOString()
+    ) {
       maxDate = occurenceAfterFuture;
     }
 
     if (!maxDate) {
       console.log("No more occurrences in RRULE");
-      const newFilename = await this.updateNonRecurring(config, parsed, completedDate);
+      const newFilename = await this.updateNonRecurring(
+        config,
+        parsed,
+        completedDate
+      );
       return newFilename;
     }
 
-    console.log("RRULE:                  ", rfcString.replace(/\r\n/g, "[newLine]"));
-    console.log("actual due date:        ", this.parseIcsDatetime(originalDue).toISOString());
+    console.log(
+      "RRULE:                  ",
+      rfcString.replace(/\r\n/g, "[newLine]")
+    );
+    console.log(
+      "actual due date:        ",
+      this.parseIcsDatetime(originalDue).toISOString()
+    );
     console.log("occurrence after today: ", occurenceAfterToday);
     console.log("occurence after today+1:", futureDate.toISOString());
     console.log("occurrence after due:   ", occurenceAfterDue);
@@ -125,9 +161,20 @@ class VTodoCompleter {
     const uid = this.generateUID();
 
     console.log("\r\n\r\nCreating new VTODO item for next occurrence");
-    this.setProperty(parsed, "VTODO", "COMPLETED", this.formatDate(completedDate), "CREATED");
+    this.setProperty(
+      parsed,
+      "VTODO",
+      "COMPLETED",
+      this.formatDate(completedDate),
+      "CREATED"
+    );
     this.setProperty(parsed, "VTODO", "DTSTAMP", this.formatDate(new Date()));
-    this.setProperty(parsed, "VTODO", "LAST-MODIFIED", this.formatDate(new Date()));
+    this.setProperty(
+      parsed,
+      "VTODO",
+      "LAST-MODIFIED",
+      this.formatDate(new Date())
+    );
     this.setProperty(parsed, "VTODO", "STATUS", "", "COMPLETED");
     this.setProperty(parsed, "VTODO", "PERCENT-COMPLETE", "100", "STATUS");
     this.setProperty(parsed, "VTODO", "UID", uid);
@@ -150,7 +197,12 @@ class VTodoCompleter {
     this.setProperty(parsed, "VTODO", "DTSTART", this.formatDate(maxDate));
     this.setProperty(parsed, "VTODO", "DUE", this.formatDate(maxDate));
     this.setProperty(parsed, "VTODO", "DTSTAMP", this.formatDate(new Date()));
-    this.setProperty(parsed, "VTODO", "LAST-MODIFIED", this.formatDate(new Date()));
+    this.setProperty(
+      parsed,
+      "VTODO",
+      "LAST-MODIFIED",
+      this.formatDate(new Date())
+    );
 
     const trigger = this.getElementValue(parsed, "VALARM", "TRIGGER", false);
 
@@ -167,7 +219,6 @@ class VTodoCompleter {
       this.setProperty(parsed, "VALARM", "X-WR-ALARMUID", uid);
     }
   }
-
 
   /**
    * Parse ICS content.
@@ -202,7 +253,12 @@ class VTodoCompleter {
    */
   parseIcsDate(dateStr) {
     const isDateTime = dateStr.includes("T");
-    let day; let hours = 0; let minutes = 0; let month; let seconds = 0; let year;
+    let day;
+    let hours = 0;
+    let minutes = 0;
+    let month;
+    let seconds = 0;
+    let year;
 
     if (isDateTime) {
       // DATE-TIME: YYYYMMDDTHHMMSSZ
@@ -237,7 +293,12 @@ class VTodoCompleter {
    */
   parseIcsDatetime(dateStr) {
     const isDateTime = dateStr.includes("T");
-    let day; let hours = 0; let minutes = 0; let month; let seconds = 0; let year;
+    let day;
+    let hours = 0;
+    let minutes = 0;
+    let month;
+    let seconds = 0;
+    let year;
 
     if (isDateTime) {
       const [datePart, timePart] = dateStr.split("T");
@@ -251,7 +312,14 @@ class VTodoCompleter {
       minutes = parseInt(time.substring(2, 4));
       seconds = parseInt(time.substring(4, 6));
 
-      if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+      if (
+        isNaN(year) ||
+        isNaN(month) ||
+        isNaN(day) ||
+        isNaN(hours) ||
+        isNaN(minutes) ||
+        isNaN(seconds)
+      ) {
         throw new Error("Invalid datetime string format");
       }
 
@@ -300,9 +368,8 @@ class VTodoCompleter {
    */
   generateUID() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-      const r = Math.random() * 16 | 0; const v = c == "x"
-        ? r
-        : r & 0x3 | 0x8;
+      const r = (Math.random() * 16) | 0;
+      const v = c == "x" ? r : (r & 0x3) | 0x8;
       return v.toString(16).toUpperCase();
     });
   }
@@ -315,7 +382,10 @@ class VTodoCompleter {
    * @returns {Object|null} - The found element or null if not found.
    */
   getElementLine(parsed, component, key) {
-    return parsed.find((i) => i.key === key && i.component === component)?.original || null;
+    return (
+      parsed.find((i) => i.key === key && i.component === component)
+        ?.original || null
+    );
   }
 
   /**
@@ -327,7 +397,9 @@ class VTodoCompleter {
    * @returns {Object|null} - The found element or null if not found.
    */
   getElementValue(parsed, component, key, original = false) {
-    const element = parsed.find((i) => i.key === key && i.component === component);
+    const element = parsed.find(
+      (i) => i.key === key && i.component === component
+    );
     if (!element) {
       return null;
     }
@@ -346,8 +418,12 @@ class VTodoCompleter {
    * @param {string} [addBefore='END'] - The key before which the new property should be added if it doesn't exist.
    */
   setProperty(parsed, component, key, value, addBefore = "END") {
-    const existing = parsed.find((i) => i.key === key && i.component === component);
-    const origParams = parsed.find((i) => i.key === key && i.component === component)?.params;
+    const existing = parsed.find(
+      (i) => i.key === key && i.component === component
+    );
+    const origParams = parsed.find(
+      (i) => i.key === key && i.component === component
+    )?.params;
 
     if (existing) {
       existing.value = value;
@@ -355,7 +431,9 @@ class VTodoCompleter {
       existing.params = origParams;
       console.log(`set property:   ${key} to ${value}`);
     } else {
-      console.log(`cannot modify non-existing property, try to add: ${key} in front of ${addBefore}`);
+      console.log(
+        `cannot modify non-existing property, try to add: ${key} in front of ${addBefore}`
+      );
       this.addProperty(parsed, component, key, value, origParams, addBefore);
     }
   }
@@ -385,10 +463,16 @@ class VTodoCompleter {
     if (addBefore === "END") {
       component = "VCALENDAR";
     }
-    const endIndex = parsed.findIndex((i) => i.key === addBefore && i.component === component);
+    const endIndex = parsed.findIndex(
+      (i) => i.key === addBefore && i.component === component
+    );
 
-    console.log(`component:      ${component} key: ${addBefore} value: ${value} params: ${params}`);
-    console.log(`add property:   ${key} value: ${value} at position: ${endIndex}`);
+    console.log(
+      `component:      ${component} key: ${addBefore} value: ${value} params: ${params}`
+    );
+    console.log(
+      `add property:   ${key} value: ${value} at position: ${endIndex}`
+    );
 
     if (endIndex !== -1) {
       console.log(`inserting new item at position: ${endIndex}`);
@@ -408,7 +492,9 @@ class VTodoCompleter {
    * @returns {boolean} - True if the property was deleted, false otherwise.
    */
   delProperty(parsed, component, key) {
-    const existingEntries = parsed.filter((i) => i.key === key && i.component === component);
+    const existingEntries = parsed.filter(
+      (i) => i.key === key && i.component === component
+    );
 
     if (existingEntries.length > 0) {
       existingEntries.forEach((entry) => {
@@ -445,18 +531,20 @@ class VTodoCompleter {
    * @returns {string} - The built line.
    */
   buildLine(item) {
-    const params = item.params
-      ? `;${item.params}`
-      : "";
-    const dateTimeFields = ["DTSTART", "DUE", "DTEND", "CREATED", "LAST-MODIFIED"];
+    const params = item.params ? `;${item.params}` : "";
+    const dateTimeFields = [
+      "DTSTART",
+      "DUE",
+      "DTEND",
+      "CREATED",
+      "LAST-MODIFIED"
+    ];
 
     if (dateTimeFields.includes(item.key)) {
       let v = item.value;
       const o = item.original.split(":")[1];
       if (o) {
-        v = v.length > o.length
-          ? v.slice(0, o.length)
-          : v;
+        v = v.length > o.length ? v.slice(0, o.length) : v;
         item.value = v;
       }
     }

@@ -10,7 +10,13 @@
 const NodeHelper = require("node_helper");
 /* eslint-enable n/no-missing-require */
 const { transformData, sortList, appendUrlIndex } = require("./transformer");
-const { parseList, mapEmptyPriorityTo, mapEmptySortIndexTo, fetchCalendarData, initDAVClient } = require("./webDavHelper");
+const {
+  parseList,
+  mapEmptyPriorityTo,
+  mapEmptySortIndexTo,
+  fetchCalendarData,
+  initDAVClient
+} = require("./webDavHelper");
 const VTodoCompleter = require("./vtodo-completer.js");
 
 module.exports = NodeHelper.create({
@@ -33,7 +39,6 @@ module.exports = NodeHelper.create({
     }
   },
 
-
   async getData(moduleId, config, callback) {
     const self = this;
     let calendarData = [];
@@ -46,8 +51,14 @@ module.exports = NodeHelper.create({
       for (let i = 0; i < calendarData.length; i++) {
         const icsList = calendarData[i].icsStrings;
         const rawList = parseList(icsList, config.dateFormat);
-        const priorityList = mapEmptyPriorityTo(rawList, config.mapEmptyPriorityTo);
-        const sortIndexList = mapEmptySortIndexTo(priorityList, config.mapEmptySortIndexTo);
+        const priorityList = mapEmptyPriorityTo(
+          rawList,
+          config.mapEmptyPriorityTo
+        );
+        const sortIndexList = mapEmptySortIndexTo(
+          priorityList,
+          config.mapEmptySortIndexTo
+        );
         const indexedList = appendUrlIndex(sortIndexList, i);
         const sortedList = sortList(indexedList, config.sortMethod);
         const sortedAppleList = sortList(sortedList, "apple");
@@ -65,14 +76,20 @@ module.exports = NodeHelper.create({
         self.sendError(moduleId, "[MMM-CalDAV-Tasks] WebDav: URL Not Found!");
       } else {
         self.sendError(moduleId, "[MMM-CalDAV-Tasks] WebDav: Unknown error!");
-        self.sendLog(moduleId, ["[MMM-CalDAV-Tasks] WebDav: Unknown error: ", error]);
+        self.sendLog(moduleId, [
+          "[MMM-CalDAV-Tasks] WebDav: Unknown error: ",
+          error
+        ]);
       }
     }
   },
 
   // TODO: was this the function meant to toggle the status on the server side?
   sendData(moduleId, payload) {
-    this.sendSocketNotification(`MMM-CalDAV-Tasks-Helper-TODOS#${moduleId}`, payload);
+    this.sendSocketNotification(
+      `MMM-CalDAV-Tasks-Helper-TODOS#${moduleId}`,
+      payload
+    );
   },
 
   async toggleStatusViaWebDav(config, filename) {
@@ -82,10 +99,16 @@ module.exports = NodeHelper.create({
   },
 
   sendLog(moduleId, payload) {
-    this.sendSocketNotification(`MMM-CalDAV-Tasks-Helper-LOG#${moduleId}`, payload);
+    this.sendSocketNotification(
+      `MMM-CalDAV-Tasks-Helper-LOG#${moduleId}`,
+      payload
+    );
   },
 
   sendError(moduleId, payload) {
-    this.sendSocketNotification(`MMM-CalDAV-Tasks-Helper-ERROR#${moduleId}`, payload);
+    this.sendSocketNotification(
+      `MMM-CalDAV-Tasks-Helper-ERROR#${moduleId}`,
+      payload
+    );
   }
 });
