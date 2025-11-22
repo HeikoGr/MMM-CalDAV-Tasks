@@ -18,7 +18,6 @@ class VTodoCompleter {
     this.currentDepth = 0;
   }
 
-
   /**
    * Complete a VTODO item.
    * @param {string} filename - The filename of the VTODO item.

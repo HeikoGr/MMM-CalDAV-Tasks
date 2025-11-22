@@ -2,7 +2,6 @@
 const { DAVClient } = require("tsdav");
 const ical = require("node-ical");
 const moment = require("moment");
-// transformer removed (unused)
 
 let client;
 
@@ -52,13 +51,34 @@ async function getFileContents(config, url) {
 async function putFileContents(config, url, data) {
   client = initDAVClient(config);
   await client.login();
-  const result = client.updateCalendarObject({
-    calendarObject: {
-      url,
-      data
+  try {
+    // try to find the calendar that owns this object URL
+    const calendars = await client.fetchCalendars();
+    const calendar = calendars.find((c) => url.startsWith(c.url) || c.url.startsWith(url));
+
+    if (!calendar) {
+      // fallback: call update without calendar (let library try)
+      const resultFallback = await client.updateCalendarObject({
+        calendarObject: {
+          url,
+          data
+        }
+      });
+      return resultFallback;
     }
-  });
-  return result;
+
+    const result = await client.updateCalendarObject({
+      calendar,
+      calendarObject: {
+        url,
+        data
+      }
+    });
+    return result;
+  } catch (err) {
+    console.error("putFileContents error:", err);
+    throw err;
+  }
 }
 
 function parseList(icsStrings, dateFormat) {
