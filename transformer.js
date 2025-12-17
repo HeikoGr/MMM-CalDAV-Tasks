@@ -5,7 +5,7 @@ const {
   sortCreatedDesc,
   sortModified,
   sortModifiedDesc,
-  sortApple,
+  sortApple
 } = require("./sort_helper");
 
 function findParent(parents, uid) {
@@ -46,7 +46,7 @@ function transformData(children, parents = []) {
         parents,
         typeof child["related-to"].val === "undefined"
           ? child["related-to"]
-          : child["related-to"].val,
+          : child["related-to"].val
       );
       if (parent) {
         // has parent in parents?
@@ -122,5 +122,5 @@ function appendUrlIndex(rawList, i) {
 module.exports = {
   transformData,
   sortList,
-  appendUrlIndex,
+  appendUrlIndex
 };

@@ -17,10 +17,10 @@ let config = {
       config: {
         clientId: "YOUR_CLIENT_ID",
         showDeviceIcon: true,
-        updateFrequency: 60 * 60 * 1000, // 1 hour
-      },
-    },
-  ],
+        updateFrequency: 60 * 60 * 1000 // 1 hour
+      }
+    }
+  ]
 };
 
 if (typeof module !== "undefined") {

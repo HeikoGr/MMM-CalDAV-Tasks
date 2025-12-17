@@ -9,10 +9,10 @@ function initDAVClient(config) {
     serverUrl: config.webDavAuth.url,
     credentials: {
       username: config.webDavAuth.username,
-      password: config.webDavAuth.password,
+      password: config.webDavAuth.password
     },
     authMethod: "Basic",
-    defaultAccountType: "caldav",
+    defaultAccountType: "caldav"
   });
   return client;
 }
@@ -27,10 +27,10 @@ async function getFileContents(config, url) {
       "comp-filter": {
         _attributes: { name: "VCALENDAR" },
         "comp-filter": {
-          _attributes: { name: "VTODO" },
-        },
-      },
-    },
+          _attributes: { name: "VTODO" }
+        }
+      }
+    }
   ];
 
   let objects = null;
@@ -41,7 +41,7 @@ async function getFileContents(config, url) {
     objects = await client.fetchCalendarObjects({
       calendar,
       objectUrls: urlO,
-      filters,
+      filters
     });
   }
   return objects[0];
@@ -54,7 +54,7 @@ async function putFileContents(config, url, data) {
     // try to find the calendar that owns this object URL
     const calendars = await client.fetchCalendars();
     const calendar = calendars.find(
-      (c) => url.startsWith(c.url) || c.url.startsWith(url),
+      (c) => url.startsWith(c.url) || c.url.startsWith(url)
     );
 
     if (!calendar) {
@@ -62,8 +62,8 @@ async function putFileContents(config, url, data) {
       const resultFallback = await client.updateCalendarObject({
         calendarObject: {
           url,
-          data,
-        },
+          data
+        }
       });
       return resultFallback;
     }
@@ -72,8 +72,8 @@ async function putFileContents(config, url, data) {
       calendar,
       calendarObject: {
         url,
-        data,
-      },
+        data
+      }
     });
     return result;
   } catch (err) {
@@ -130,8 +130,8 @@ function mapEmptySortIndexTo(parsedList, mapEmptySortIndexTo) {
 function filterByNameMatches(objArray, matchStrings) {
   return objArray.filter((obj) =>
     matchStrings.some((matchString) =>
-      obj.displayName.toLowerCase().includes(matchString.toLowerCase()),
-    ),
+      obj.displayName.toLowerCase().includes(matchString.toLowerCase())
+    )
   );
 }
 
@@ -141,12 +141,12 @@ async function fetchCalendarData(config) {
 
   let calendars = await client.fetchCalendars();
   calendars = calendars.filter((calendar) =>
-    calendar.components.includes("VTODO"),
+    calendar.components.includes("VTODO")
   );
 
   // filter NextCloud Decks, as they are read-only
   calendars = calendars.filter(
-    (calendar) => !calendar.url.includes("app-generated--deck"),
+    (calendar) => !calendar.url.includes("app-generated--deck")
   );
 
   // filter by calendars from user config
@@ -161,16 +161,16 @@ async function fetchCalendarData(config) {
       "comp-filter": {
         _attributes: { name: "VCALENDAR" },
         "comp-filter": {
-          _attributes: { name: "VTODO" },
-        },
-      },
-    },
+          _attributes: { name: "VTODO" }
+        }
+      }
+    }
   ];
 
   for (const calendar of calendars) {
     const objects = await client.fetchCalendarObjects({
       calendar,
-      filters,
+      filters
     });
 
     const icsStrings = [];
@@ -183,7 +183,7 @@ async function fetchCalendarData(config) {
       calendarColor: calendar.calendarColor,
       summary: calendar.displayName,
       description: calendar.description,
-      icsStrings,
+      icsStrings
     });
   }
 
@@ -197,5 +197,5 @@ module.exports = {
   mapEmptySortIndexTo,
   initDAVClient,
   getFileContents,
-  putFileContents,
+  putFileContents
 };
