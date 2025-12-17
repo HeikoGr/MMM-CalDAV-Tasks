@@ -1,0 +1,81 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "pm2: restart all",
+      "type": "shell",
+      "command": "pm2 restart all",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "options": {
+        "statusbar": {
+          "label": "$(sync) Restart",
+          "color": "#FF9800",
+          "detail": "Restart all PM2 processes"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "node --run lint",
+      "type": "shell",
+      "command": "node --run lint",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "isBackground": false,
+      "options": {
+        "statusbar": {
+          "label": "$(notebook-template) Lint",
+          "color": "#2196F3",
+          "detail": "Run linter"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "pm2: logs (follow)",
+      "type": "shell",
+      "command": "pm2 logs --lines 200",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true
+      },
+      "isBackground": false,
+      "options": {
+        "statusbar": {
+          "label": "$(eye) Logs",
+          "color": "#4CAF50",
+          "detail": "Follow PM2 logs"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: install",
+      "type": "shell",
+      "command": "npm install",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "isBackground": false,
+      "options": {
+        "statusbar": {
+          "label": "$(eye) npm i",
+          "color": "#ffe600",
+          "detail": "npm install"
+        }
+      },
+      "problemMatcher": []
+    }
+  ]
+}

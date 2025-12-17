@@ -1,4 +1,4 @@
-node_modules
-demos
-*DS_Store
-.vscode
+node_modules/
+config/custom.css
+config/config.js
+config/.env
