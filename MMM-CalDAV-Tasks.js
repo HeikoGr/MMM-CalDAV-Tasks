@@ -15,7 +15,7 @@ Module.register("MMM-CalDAV-Tasks", {
     webDavAuth: {
       url: "https://<your-nextcloud-server>/remote.php/dav/",
       username: "<USERNAME>",
-      password: "<PASSWORD>"
+      password: "<PASSWORD>",
     },
     // optional
     includeCalendars: [],
@@ -44,7 +44,7 @@ Module.register("MMM-CalDAV-Tasks", {
     pieChartColor: "rgb(255, 255, 255)",
     pieChartSize: 16,
     hideDateSectionOnCompletion: true,
-    developerMode: false
+    developerMode: false,
   },
 
   requiresVersion: "2.1.0", // Required version of MagicMirror
@@ -61,7 +61,7 @@ Module.register("MMM-CalDAV-Tasks", {
 
     // Preload the sound
     this.audio = new Audio(
-      "/modules/MMM-CalDAV-Tasks/sounds/task_finished.wav"
+      "/modules/MMM-CalDAV-Tasks/sounds/task_finished.wav",
     );
     this.audio.load();
 
@@ -123,7 +123,7 @@ Module.register("MMM-CalDAV-Tasks", {
   getData() {
     this.sendSocketNotification("MMM-CalDAV-Tasks-UPDATE", {
       id: this.identifier,
-      config: this.config
+      config: this.config,
     });
   },
 
@@ -288,7 +288,7 @@ Module.register("MMM-CalDAV-Tasks", {
       summary,
       rrule,
       start,
-      dueFormatted
+      dueFormatted,
     } = element;
     const isCompleted = status === "COMPLETED";
     const now = new Date();
@@ -469,7 +469,7 @@ Module.register("MMM-CalDAV-Tasks", {
               status: newState,
               config: this.config,
               urlIndex: item.getAttribute("data-url-index"),
-              filename: item.getAttribute("vtodo-filename")
+              filename: item.getAttribute("vtodo-filename"),
             });
             resetEffects();
           } else {
@@ -537,7 +537,7 @@ Module.register("MMM-CalDAV-Tasks", {
         const li = item.closest("li");
         if (li) {
           const dateSection = li.querySelector(
-            ".MMM-CalDAV-Tasks-Date-Section"
+            ".MMM-CalDAV-Tasks-Date-Section",
           );
           if (dateSection) {
             if (this.config.hideDateSectionOnCompletion) {
@@ -633,5 +633,5 @@ Module.register("MMM-CalDAV-Tasks", {
       return false;
     }
     return true;
-  }
+  },
 });

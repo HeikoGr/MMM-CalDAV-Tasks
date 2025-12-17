@@ -15,7 +15,7 @@ const {
   mapEmptyPriorityTo,
   mapEmptySortIndexTo,
   fetchCalendarData,
-  initDAVClient
+  initDAVClient,
 } = require("./webDavHelper");
 const VTodoCompleter = require("./vtodo-completer.js");
 
@@ -53,11 +53,11 @@ module.exports = NodeHelper.create({
         const rawList = parseList(icsList, config.dateFormat);
         const priorityList = mapEmptyPriorityTo(
           rawList,
-          config.mapEmptyPriorityTo
+          config.mapEmptyPriorityTo,
         );
         const sortIndexList = mapEmptySortIndexTo(
           priorityList,
-          config.mapEmptySortIndexTo
+          config.mapEmptySortIndexTo,
         );
         const indexedList = appendUrlIndex(sortIndexList, i);
         const sortedList = sortList(indexedList, config.sortMethod);
@@ -78,7 +78,7 @@ module.exports = NodeHelper.create({
         self.sendError(moduleId, "[MMM-CalDAV-Tasks] WebDav: Unknown error!");
         self.sendLog(moduleId, [
           "[MMM-CalDAV-Tasks] WebDav: Unknown error: ",
-          error
+          error,
         ]);
       }
     }
@@ -88,7 +88,7 @@ module.exports = NodeHelper.create({
   sendData(moduleId, payload) {
     this.sendSocketNotification(
       `MMM-CalDAV-Tasks-Helper-TODOS#${moduleId}`,
-      payload
+      payload,
     );
   },
 
@@ -101,14 +101,14 @@ module.exports = NodeHelper.create({
   sendLog(moduleId, payload) {
     this.sendSocketNotification(
       `MMM-CalDAV-Tasks-Helper-LOG#${moduleId}`,
-      payload
+      payload,
     );
   },
 
   sendError(moduleId, payload) {
     this.sendSocketNotification(
       `MMM-CalDAV-Tasks-Helper-ERROR#${moduleId}`,
-      payload
+      payload,
     );
-  }
+  },
 });

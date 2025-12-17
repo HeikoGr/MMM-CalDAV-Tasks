@@ -5,25 +5,25 @@ module.exports = function (grunt) {
     pkg: grunt.file.readJSON("package.json"),
     eslint: {
       options: {
-        configFile: ".eslintrc.json"
+        configFile: ".eslintrc.json",
       },
-      target: ["*.js"]
+      target: ["*.js"],
     },
     stylelint: {
       simple: {
         options: {
-          configFile: ".stylelintrc"
+          configFile: ".stylelintrc",
         },
-        src: ["*.css"]
-      }
+        src: ["*.css"],
+      },
     },
     jsonlint: {
       main: {
         src: ["package.json", "translations/*.json"],
         options: {
-          reporter: "jshint"
-        }
-      }
+          reporter: "jshint",
+        },
+      },
     },
     markdownlint: {
       all: {
@@ -48,15 +48,15 @@ module.exports = function (grunt) {
             MD018: false,
             MD012: false,
             MD026: false,
-            MD038: false
-          }
+            MD038: false,
+          },
         },
-        src: ["README.md", "CHANGELOG.md", "LICENSE.txt"]
-      }
+        src: ["README.md", "CHANGELOG.md", "LICENSE.txt"],
+      },
     },
     yamllint: {
-      all: [".travis.yml"]
-    }
+      all: [".travis.yml"],
+    },
   });
   grunt.loadNpmTasks("grunt-eslint");
   grunt.loadNpmTasks("grunt-stylelint");
@@ -68,6 +68,6 @@ module.exports = function (grunt) {
     "stylelint",
     "jsonlint",
     "markdownlint",
-    "yamllint"
+    "yamllint",
   ]);
 };
