@@ -18,6 +18,8 @@ const {
   initDAVClient
 } = require("./webDavHelper");
 const VTodoCompleter = require("./vtodo-completer.js");
+const { handleError } = require("./error-handler");
+const { validateConfig } = require("./config-validator");
 
 module.exports = NodeHelper.create({
   socketNotificationReceived(notification, payload) {
@@ -44,23 +46,46 @@ module.exports = NodeHelper.create({
     let calendarData = [];
 
     try {
+      // Validate and normalize configuration
+      const {
+        valid,
+        config: normalizedConfig,
+        errors
+      } = validateConfig(config);
+
+      if (!valid) {
+        const criticalErrors = errors.filter((e) => e.type !== "deprecation");
+        if (criticalErrors.length > 0) {
+          const errorMsg = criticalErrors.map((e) => e.message).join("; ");
+          throw new Error(`Configuration error: ${errorMsg}`);
+        }
+
+        // Log deprecation warnings
+        errors
+          .filter((e) => e.type === "deprecation")
+          .forEach((e) => console.warn(`[MMM-CalDAV-Tasks] ${e.message}`));
+      }
+
+      // Use normalized config with defaults
+      const effectiveConfig = { ...config, ...normalizedConfig };
+
       let allTasks = [];
-      calendarData = await fetchCalendarData(config);
+      calendarData = await fetchCalendarData(effectiveConfig);
 
       // iterate over all Arrays
       for (let i = 0; i < calendarData.length; i++) {
         const icsList = calendarData[i].icsStrings;
-        const rawList = parseList(icsList, config.dateFormat);
+        const rawList = parseList(icsList, effectiveConfig.dateFormat);
         const priorityList = mapEmptyPriorityTo(
           rawList,
-          config.mapEmptyPriorityTo
+          effectiveConfig.mapEmptyPriorityTo
         );
         const sortIndexList = mapEmptySortIndexTo(
           priorityList,
-          config.mapEmptySortIndexTo
+          effectiveConfig.mapEmptySortIndexTo
         );
         const indexedList = appendUrlIndex(sortIndexList, i);
-        const sortedList = sortList(indexedList, config.sortMethod);
+        const sortedList = sortList(indexedList, effectiveConfig.sortMethod);
         const sortedAppleList = sortList(sortedList, "apple");
         const nestedList = transformData(sortedAppleList);
         allTasks = allTasks.concat(nestedList);
@@ -69,18 +94,7 @@ module.exports = NodeHelper.create({
 
       callback(calendarData);
     } catch (error) {
-      console.error("WebDav", error);
-      if (error.status === 401) {
-        self.sendError(moduleId, "[MMM-CalDAV-Tasks] WebDav: Unauthorized!");
-      } else if (error.status === 404) {
-        self.sendError(moduleId, "[MMM-CalDAV-Tasks] WebDav: URL Not Found!");
-      } else {
-        self.sendError(moduleId, "[MMM-CalDAV-Tasks] WebDav: Unknown error!");
-        self.sendLog(moduleId, [
-          "[MMM-CalDAV-Tasks] WebDav: Unknown error: ",
-          error
-        ]);
-      }
+      handleError(error, moduleId, self.sendError.bind(self));
     }
   },
 
@@ -93,9 +107,13 @@ module.exports = NodeHelper.create({
   },
 
   async toggleStatusViaWebDav(config, filename) {
-    const client = initDAVClient(config);
-    const completer = new VTodoCompleter(client);
-    await completer.completeVTodo(config, filename);
+    try {
+      const client = initDAVClient(config);
+      const completer = new VTodoCompleter(client);
+      await completer.completeVTodo(config, filename);
+    } catch (error) {
+      console.error("[MMM-CalDAV-Tasks] Toggle error:", error);
+    }
   },
 
   sendLog(moduleId, payload) {

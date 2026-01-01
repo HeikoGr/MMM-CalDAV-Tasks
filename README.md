@@ -9,6 +9,18 @@ You can toggle the status of the task via longpress / long touch and it will be 
 Current development status: **released** \
 ![Small Screenshot](/assets/small_screenshot.png?raw=true)
 
+## ⚡ Recent Updates (January 2026)
+
+**Version 1.2.0 - Refactored & Enhanced**
+
+- ✅ **Improved Error Handling:** Better error messages with specific guidance (e.g., "Use app password!")
+- ✅ **Enhanced Config Validation:** Automatic type checking, range validation, and helpful error messages
+- ✅ **Modularized Code:** Extracted reusable utilities (date-utils, config-validator, error-handler)
+- ✅ **Better Defaults:** Missing config options are automatically filled with sensible defaults
+- ✅ **Code Quality:** 29/29 unit tests passing, ESLint compliant, fully documented
+
+For developers: See [UTILITIES.md](UTILITIES.md) for utility module documentation and [REFACTORING_REPORT.md](REFACTORING_REPORT.md) for technical details.
+
 ## Dependencies
 
 - Working CalDAV Server (e.g. NextCloud with installed Tasks app)
@@ -102,6 +114,32 @@ If you do not see the effect at all this is likely due to another module. For in
 
 ### 🐞General bug handling:
 See my example some lines above how fast a bug comes from another module. Go to your Magic Mirror folder and `npm run start:dev` to chase the bugs!
+
+### 🛠️ CLI Debug Tool
+
+For testing and debugging the module from the command line, use the built-in CLI tool:
+
+```sh
+# Validate configuration
+node --run debug:config
+
+# Fetch tasks from CalDAV server
+node --run debug:fetch
+
+# Toggle task status
+node cli-debug.js toggle <task-uid>
+
+# Show help
+node --run debug:help
+```
+
+The CLI tool lets you test the module functionality without running MagicMirror². Perfect for:
+- Debugging connection issues
+- Validating configuration
+- Testing CalDAV server access
+- Managing tasks from the command line
+
+📖 See [CLI-DEBUG.md](CLI-DEBUG.md) for detailed documentation.
 
 ### Note:
 If both conditions `startsInDays`and `dueInDays`are set both are checked after each other. So when one or both conditions are true the task will be shown.

@@ -1,5 +1,5 @@
 /* eslint-disable no-redeclare, no-console */
-/* global Module, Log */
+/* global Module, Log, TaskRenderer */
 
 /*
  * Magic Mirror
@@ -52,6 +52,7 @@ Module.register("MMM-CalDAV-Tasks", {
   toDoList: null,
   error: null,
   audio: null, // define audio to prelaod the sound
+  renderer: null, // TaskRenderer instance
 
   start() {
     const self = this;
@@ -64,6 +65,9 @@ Module.register("MMM-CalDAV-Tasks", {
       "/modules/MMM-CalDAV-Tasks/sounds/task_finished.wav"
     );
     this.audio.load();
+
+    // Initialize TaskRenderer (will be loaded via getScripts())
+    // Note: TaskRenderer is loaded asynchronously, so we initialize it in getDom()
 
     /*
      * A little fallback if the config is still of the old type
@@ -184,13 +188,11 @@ Module.register("MMM-CalDAV-Tasks", {
 
   renderList(children, isTopLevel = true) {
     const self = this;
-    const checked = '<span class="fa fa-fw fa-check-square"></span>';
-    const unchecked = '<span class="fa fa-fw fa-square"></span>';
-
     const ul = document.createElement("ul");
 
     children.forEach((element) => {
-      if (self.shouldHideElement(element)) {
+      // Use TaskRenderer to check visibility
+      if (TaskRenderer.shouldHideElement(element, self.config)) {
         return;
       }
 
@@ -202,7 +204,8 @@ Module.register("MMM-CalDAV-Tasks", {
       self.addHeadingIfNeeded(ul, element);
 
       const listItemClass = "MMM-CalDAV-Tasks-List-Item";
-      const icon = element.status === "COMPLETED" ? checked : unchecked;
+      const icon = TaskRenderer.getIconHTML(element.status);
+
       li.innerHTML = self.createListItemHTML(element, listItemClass, icon);
 
       if (self.config.showCompletionPercent === true) {
@@ -293,14 +296,14 @@ Module.register("MMM-CalDAV-Tasks", {
     const isCompleted = status === "COMPLETED";
     const now = new Date();
 
-    let html = `<div class='${listItemClass}${
-      isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
-    }' data-url-index='${urlIndex}' id='${uid}' vtodo-filename='${filename}'>`;
+    let html = `<div class='${listItemClass}${isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
+      }' data-url-index='${urlIndex}' id='${uid}' vtodo-filename='${filename}'>`;
 
     // icon and VTODO text (summary)
-    const priorityIconClass = this.config.colorize
-      ? `MMM-CalDAV-Tasks-Priority-Icon MMM-CalDAV-Tasks-Priority-${priority}`
-      : "MMM-CalDAV-Tasks-Priority-Icon";
+    const priorityIconClass = TaskRenderer.getPriorityIconClass(
+      priority,
+      this.config.colorize
+    );
 
     html += `<div class="${priorityIconClass}">${icon}</div>`;
     html += `<div class='MMM-CalDAV-Tasks-Summary'>${summary}</div>`;
@@ -325,9 +328,8 @@ Module.register("MMM-CalDAV-Tasks", {
       (this.config.displayStartDate && start) ||
       (this.config.displayDueDate && dueFormatted)
     ) {
-      const dateClass = `MMM-CalDAV-Tasks-Date-Section${
-        isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
-      }`;
+      const dateClass = `MMM-CalDAV-Tasks-Date-Section${isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
+        }`;
       const dateStyle =
         isCompleted && this.config.hideDateSectionOnCompletion
           ? ' style="display:none;"'
@@ -364,35 +366,7 @@ Module.register("MMM-CalDAV-Tasks", {
   drawCompletionCanvas(li, element) {
     const canvas = li.querySelector("canvas.MMM-CalDAV-Tasks-CompletionCanvas");
     if (canvas) {
-      const ctx = canvas.getContext("2d");
-      const size = this.config.pieChartSize;
-      canvas.width = size;
-      canvas.height = size;
-      const completion = Number(element.completion) || 0;
-      const centerX = size / 2;
-      const centerY = size / 2;
-      const outerRadius = size / 2;
-      const innerRadius = outerRadius - (outerRadius * 0.9) / 2; // 90% of outer radius
-      const startAngle = -Math.PI / 2; // start at 12 o'clock
-      const endAngle = startAngle + (completion / 100) * 2 * Math.PI;
-
-      // Draw background arc
-      ctx.fillStyle = this.config.pieChartBackgroundColor;
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI, false);
-      ctx.arc(centerX, centerY, innerRadius, 2 * Math.PI, 0, true);
-      ctx.closePath();
-      ctx.fill();
-
-      // Draw completion arc
-      if (completion > 0) {
-        ctx.fillStyle = this.config.pieChartColor;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle, false);
-        ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
-        ctx.closePath();
-        ctx.fill();
-      }
+      TaskRenderer.drawCompletionChart(canvas, element.completion, this.config);
     }
   },
 
@@ -401,9 +375,8 @@ Module.register("MMM-CalDAV-Tasks", {
     const now = new Date();
     const isCompleted = status === "COMPLETED";
 
-    const baseClass = `MMM-CalDAV-Tasks-Date-Section${
-      isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
-    }`;
+    const baseClass = `MMM-CalDAV-Tasks-Date-Section${isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
+      }`;
     const displayStyle =
       isCompleted && this.config.hideDateSectionOnCompletion
         ? ' style="display:none;"'
@@ -564,7 +537,7 @@ Module.register("MMM-CalDAV-Tasks", {
       const startHandler = () => {
         Log.info(`touch/mouse start on item: ${item.id}`);
         resetEffects();
-        pressTimer = setTimeout(() => {}, this.config.toggleTime);
+        pressTimer = setTimeout(() => { }, this.config.toggleTime);
         startEffects(item);
       };
 
@@ -575,6 +548,10 @@ Module.register("MMM-CalDAV-Tasks", {
       item.addEventListener("touchend", resetEffects);
       item.addEventListener("touchcancel", resetEffects);
     });
+  },
+
+  getScripts() {
+    return ["task-renderer.js"];
   },
 
   getStyles() {
@@ -599,39 +576,35 @@ Module.register("MMM-CalDAV-Tasks", {
   },
 
   verifyConfig(config) {
-    if (
-      typeof config.includeCalendars === "undefined" ||
-      typeof config.updateInterval === "undefined" ||
-      typeof config.sortMethod === "undefined" ||
-      typeof config.colorize === "undefined" ||
-      typeof config.startsInDays === "undefined" ||
-      typeof config.displayStartDate === "undefined" ||
-      typeof config.dueInDays === "undefined" ||
-      typeof config.displayDueDate === "undefined" ||
-      typeof config.showWithoutStart === "undefined" ||
-      typeof config.showWithoutDue === "undefined" ||
-      typeof config.hideCompletedTasksAfter === "undefined" ||
-      typeof config.dateFormat === "undefined" ||
-      typeof config.headings === "undefined" ||
-      typeof config.playSound === "undefined" ||
-      typeof config.offsetTop === "undefined" ||
-      typeof config.offsetLeft === "undefined" ||
-      typeof config.toggleTime === "undefined" ||
-      typeof config.showCompletionPercent === "undefined" ||
-      typeof config.developerMode === "undefined" ||
-      typeof config.mapEmptyPriorityTo === "undefined" ||
-      typeof config.mapEmptySortIndexTo === "undefined" ||
-      typeof config.highlightStartedTasks === "undefined" ||
-      typeof config.highlightOverdueTasks === "undefined" ||
-      typeof config.pieChartBackgroundColor === "undefined" ||
-      typeof config.pieChartColor === "undefined" ||
-      typeof config.pieChartSize === "undefined" ||
-      typeof config.hideDateSectionOnCompletion === "undefined"
-    ) {
-      this.error = "Config variable missing";
-      Log.error("Config variable missing");
+    // Basic client-side validation - detailed validation happens in node_helper
+    if (!config.webDavAuth || !config.webDavAuth.url) {
+      this.error =
+        "<strong>Configuration Error:</strong><ul>" +
+        '<li>Required config "webDavAuth.url" is missing.</li>' +
+        "<li>Please configure your CalDAV server URL, username and password.</li>" +
+        "</ul>";
+      Log.error("[MMM-CalDAV-Tasks] Missing required webDavAuth configuration");
       return false;
     }
+
+    if (!config.webDavAuth.username || !config.webDavAuth.password) {
+      this.error =
+        "<strong>Configuration Error:</strong><ul>" +
+        "<li>Required credentials missing in webDavAuth.</li>" +
+        "<li>Please provide username and password (use an app password!).</li>" +
+        "</ul>";
+      Log.error("[MMM-CalDAV-Tasks] Missing webDavAuth credentials");
+      return false;
+    }
+
+    // Apply defaults for any missing optional config
+    const defaults = this.defaults;
+    for (const key in defaults) {
+      if (typeof config[key] === "undefined") {
+        config[key] = defaults[key];
+      }
+    }
+
     return true;
   }
 });

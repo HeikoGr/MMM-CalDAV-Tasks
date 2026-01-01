@@ -16,7 +16,11 @@
     "lint": "eslint --ext .js && prettier --check .",
     "lint:fix": "eslint --fix && prettier --write .",
     "test:spelling": "cspell .",
-    "check": "node check.js ../../config/config.js || true"
+    "check": "node check.js ../../config/config.js || true",
+    "debug": "node cli-debug.js",
+    "debug:help": "node cli-debug.js help",
+    "debug:config": "node cli-debug.js test-config",
+    "debug:fetch": "node cli-debug.js fetch"
   },
   "devDependencies": {
     "cspell": "^9.4.0",

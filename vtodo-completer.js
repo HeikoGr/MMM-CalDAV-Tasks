@@ -1,5 +1,6 @@
-const { datetime, RRule } = require("rrule");
+const { RRule } = require("rrule");
 const { getFileContents, putFileContents } = require("./webDavHelper");
+const { parseIcsDate, formatIcsDate } = require("./date-utils");
 
 /**
  * Class representing a VTodoCompleter.
@@ -67,15 +68,15 @@ class VTodoCompleter {
       parsed,
       "VTODO",
       "COMPLETED",
-      this.formatDate(completedDate),
+      formatIcsDate(completedDate),
       "CREATED"
     );
-    this.setProperty(parsed, "VTODO", "DTSTAMP", this.formatDate(new Date()));
+    this.setProperty(parsed, "VTODO", "DTSTAMP", formatIcsDate(new Date()));
     this.setProperty(
       parsed,
       "VTODO",
       "LAST-MODIFIED",
-      this.formatDate(new Date())
+      formatIcsDate(new Date())
     );
     this.setProperty(parsed, "VTODO", "STATUS", "COMPLETED");
     this.setProperty(parsed, "VTODO", "PERCENT-COMPLETE", "100", "STATUS");
@@ -101,13 +102,15 @@ class VTodoCompleter {
       "DTSTART",
       true
     );
-    const startDate = this.parseIcsDate(originalDTSTART);
-    const rfcString = `DTSTART:${this.formatDate(startDate)}\r\n${originalRRULE}`;
+    const startDate = parseIcsDate(originalDTSTART, "jsDate");
+    const rfcString = `DTSTART:${formatIcsDate(startDate)}\r\n${originalRRULE}`;
     const originalDue = this.getElementValue(parsed, "VTODO", "DUE", true);
     const originalUID = this.getElementValue(parsed, "VTODO", "UID", true);
 
     const rule = RRule.fromString(rfcString);
-    const occurenceAfterDue = rule.after(this.parseIcsDatetime(originalDue));
+    const occurenceAfterDue = rule.after(
+      parseIcsDate(originalDue, "rruleDatetime")
+    );
     const occurenceAfterToday = rule.after(
       new Date(new Date().setHours(0, 0, 0, 0)),
       false
@@ -122,7 +125,8 @@ class VTodoCompleter {
 
     // compare next occurence with occurence after today+1
     if (
-      this.parseIcsDatetime(originalDue).toISOString() === maxDate.toISOString()
+      parseIcsDate(originalDue, "rruleDatetime").toISOString() ===
+      maxDate.toISOString()
     ) {
       maxDate = occurenceAfterFuture;
     }
@@ -143,7 +147,7 @@ class VTodoCompleter {
     );
     console.log(
       "actual due date:        ",
-      this.parseIcsDatetime(originalDue).toISOString()
+      parseIcsDate(originalDue, "rruleDatetime").toISOString()
     );
     console.log("occurrence after today: ", occurenceAfterToday);
     console.log("occurence after today+1:", futureDate.toISOString());
@@ -165,15 +169,15 @@ class VTodoCompleter {
       parsed,
       "VTODO",
       "COMPLETED",
-      this.formatDate(completedDate),
+      formatIcsDate(completedDate),
       "CREATED"
     );
-    this.setProperty(parsed, "VTODO", "DTSTAMP", this.formatDate(new Date()));
+    this.setProperty(parsed, "VTODO", "DTSTAMP", formatIcsDate(new Date()));
     this.setProperty(
       parsed,
       "VTODO",
       "LAST-MODIFIED",
-      this.formatDate(new Date())
+      formatIcsDate(new Date())
     );
     this.setProperty(parsed, "VTODO", "STATUS", "", "COMPLETED");
     this.setProperty(parsed, "VTODO", "PERCENT-COMPLETE", "100", "STATUS");
@@ -194,27 +198,27 @@ class VTodoCompleter {
    */
   updateVTodoItem(parsed, maxDate) {
     console.log("\r\n\r\nUpdating existing VTODO item:");
-    this.setProperty(parsed, "VTODO", "DTSTART", this.formatDate(maxDate));
-    this.setProperty(parsed, "VTODO", "DUE", this.formatDate(maxDate));
-    this.setProperty(parsed, "VTODO", "DTSTAMP", this.formatDate(new Date()));
+    this.setProperty(parsed, "VTODO", "DTSTART", formatIcsDate(maxDate));
+    this.setProperty(parsed, "VTODO", "DUE", formatIcsDate(maxDate));
+    this.setProperty(parsed, "VTODO", "DTSTAMP", formatIcsDate(new Date()));
     this.setProperty(
       parsed,
       "VTODO",
       "LAST-MODIFIED",
-      this.formatDate(new Date())
+      formatIcsDate(new Date())
     );
 
     const trigger = this.getElementValue(parsed, "VALARM", "TRIGGER", false);
 
     if (trigger) {
-      const oldAlarmDate = this.parseIcsDate(trigger);
+      const oldAlarmDate = parseIcsDate(trigger, "jsDate");
       console.log("old Alarm date:", oldAlarmDate);
       // removed unused newAlarmDate variable
 
-      console.log("new Alarm date:", this.formatDate(maxDate));
+      console.log("new Alarm date:", formatIcsDate(maxDate));
       const uid = this.generateUID();
 
-      this.setProperty(parsed, "VALARM", "TRIGGER", this.formatDate(maxDate));
+      this.setProperty(parsed, "VALARM", "TRIGGER", formatIcsDate(maxDate));
       this.setProperty(parsed, "VALARM", "UID", uid);
       this.setProperty(parsed, "VALARM", "X-WR-ALARMUID", uid);
     }
@@ -244,103 +248,6 @@ class VTodoCompleter {
       };
     });
   }
-
-  /**
-   * Parse a date string from ICS format.
-   * @param {string} dateStr - The date string in YYYYMMDD or YYYYMMDDTHHMMSSz format
-   * @returns {Date} UTC date object
-   * @throws {Error} If date string format is invalid
-   */
-  parseIcsDate(dateStr) {
-    const isDateTime = dateStr.includes("T");
-    let day;
-    let hours = 0;
-    let minutes = 0;
-    let month;
-    let seconds = 0;
-    let year;
-
-    if (isDateTime) {
-      // DATE-TIME: YYYYMMDDTHHMMSSZ
-      const [datePart, timePart] = dateStr.split("T");
-      year = parseInt(datePart.substring(0, 4));
-      month = parseInt(datePart.substring(4, 6)) - 1; // date is 0-based
-      day = parseInt(datePart.substring(6, 8));
-
-      const time = timePart.replace("Z", "");
-      hours = parseInt(time.substring(0, 2));
-      minutes = parseInt(time.substring(2, 4));
-      seconds = parseInt(time.substring(4, 6));
-    } else {
-      // DATE: YYYYMMDD
-      year = parseInt(dateStr.substring(0, 4));
-      month = parseInt(dateStr.substring(4, 6)) - 1;
-      day = parseInt(dateStr.substring(6, 8));
-    }
-
-    if (isNaN(year) || isNaN(month) || isNaN(day)) {
-      throw new Error("Invalid date string format");
-    }
-
-    return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
-  }
-
-  /**
-   * Format a date object to ICS format.
-   * @param {string} dateStr - The datetime string in YYYYMMDD or YYYYMMDDTHHMMSSz format
-   * @returns {datetime} RRule datetime object for recurrence calculations
-   * @throws {Error} If datetime string format is invalid
-   */
-  parseIcsDatetime(dateStr) {
-    const isDateTime = dateStr.includes("T");
-    let day;
-    let hours = 0;
-    let minutes = 0;
-    let month;
-    let seconds = 0;
-    let year;
-
-    if (isDateTime) {
-      const [datePart, timePart] = dateStr.split("T");
-      year = parseInt(datePart.substring(0, 4));
-
-      month = parseInt(datePart.substring(4, 6));
-      day = parseInt(datePart.substring(6, 8));
-
-      const time = timePart.replace("Z", "");
-      hours = parseInt(time.substring(0, 2));
-      minutes = parseInt(time.substring(2, 4));
-      seconds = parseInt(time.substring(4, 6));
-
-      if (
-        isNaN(year) ||
-        isNaN(month) ||
-        isNaN(day) ||
-        isNaN(hours) ||
-        isNaN(minutes) ||
-        isNaN(seconds)
-      ) {
-        throw new Error("Invalid datetime string format");
-      }
-
-      return new datetime(year, month, day, hours, minutes, seconds);
-    }
-    year = parseInt(dateStr.substring(0, 4));
-
-    month = parseInt(dateStr.substring(4, 6));
-    day = parseInt(dateStr.substring(6, 8));
-
-    if (isNaN(year) || isNaN(month) || isNaN(day)) {
-      throw new Error("Invalid date string format");
-    }
-
-    return new datetime(year, month, day);
-  }
-
-  /**
-   * Generate a unique identifier (UID) for ICS entries.
-   * @returns {string} RFC4122 version 4 compliant UUID in uppercase
-   */
 
   /**
    * Get the current context from a line in ICS file.
@@ -555,16 +462,6 @@ class VTodoCompleter {
     // removed self-assignment for VALUE=TIME
 
     return `${item.key}${params}:${item.value}`;
-  }
-
-  /**
-   * Format a date according to the specified value type.
-   * @param {Date} date - The date to format.
-   * @returns {string} - The formatted date.
-   */
-  formatDate(date) {
-    const isoString = date.toISOString();
-    return `${isoString.replace(/[-:]/g, "").split(".")[0]}Z`;
   }
 }
 
