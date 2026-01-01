@@ -1,345 +1,539 @@
-# CLI Debug Tool für MMM-CalDAV-Tasks
+# CLI Debug Tool - Documentation
 
-Ein Kommandozeilen-Werkzeug zum Testen und Debuggen des MMM-CalDAV-Tasks Moduls außerhalb von MagicMirror².
+The CLI Debug Tool allows testing the MMM-CalDAV-Tasks module from the command line without running MagicMirror².
 
-## Überblick
+## Features
 
-Das CLI Debug Tool ermöglicht es, die wichtigsten Funktionen des Moduls direkt von der Kommandozeile aus zu testen:
+- ✅ Validate configuration
+- ✅ Fetch tasks from CalDAV server
+- ✅ Toggle task completion status
+- ✅ Beautiful, filtered output
+- ✅ Hide completed tasks by default
+- ✅ Display RRule (recurring task) information
+- ✅ Optional display of UIDs and filenames
+- ✅ Verbose mode for additional details
 
-- ✅ **Konfigurationsvalidierung** - Überprüfen der config.js auf Fehler
-- 📥 **Task-Abruf** - Tasks vom CalDAV-Server abrufen und anzeigen
-- 🔄 **Status-Toggle** - Task-Status (erledigt/offen) direkt ändern
-
-Das Tool kommuniziert direkt mit dem `node_helper` Backend und simuliert die Socket-Kommunikation, die normalerweise zwischen dem Frontend (MMM-CalDAV-Tasks.js) und dem Backend (node_helper.js) stattfindet.
+---
 
 ## Installation
 
-Das Tool ist bereits im Modul enthalten. Keine zusätzliche Installation erforderlich.
+The tool is already included in the module. No additional installation required.
 
-## Konfiguration
+---
 
-Das Tool liest standardmäßig die Konfiguration aus `config/config.js`. Diese Datei kann entweder:
+## Usage
 
-1. **Eine vollständige MagicMirror-Konfiguration sein** (wie in der Hauptinstallation)
-2. **Eine Standalone-Konfiguration sein** (nur das MMM-CalDAV-Tasks config-Objekt)
+### Basic Commands
 
-### Vollständige MagicMirror-Konfiguration
+```bash
+# Navigate to module directory
+cd /opt/magic_mirror/modules/MMM-CalDAV-Tasks
 
-```javascript
-let config = {
-  modules: [
-    {
-      module: 'MMM-CalDAV-Tasks',
-      config: {
-        webDavAuth: {
-          url: 'https://nextcloud.example.com/',
-          username: 'username',
-          password: 'password'
-        },
-        updateInterval: 60000,
-        // ... weitere Optionen
-      }
-    }
-  ]
-};
+# Show help
+node cli-debug.js help
+
+# Validate configuration
+node cli-debug.js test-config
+
+# Fetch tasks
+node cli-debug.js fetch
+
+# Toggle task status
+node cli-debug.js toggle <uid>
 ```
 
-### Standalone-Konfiguration
+### NPM Scripts
 
-```javascript
-{
-  webDavAuth: {
-    url: 'https://nextcloud.example.com/',
-    username: 'username',
-    password: 'password'
-  },
-  updateInterval: 60000,
-  // ... weitere Optionen
-}
+For convenience, npm scripts are available:
+
+```bash
+npm run debug:help        # Show help
+npm run debug:config      # Test configuration
+npm run debug:fetch       # Fetch tasks
 ```
 
-## Verwendung
+---
 
-### Hilfe anzeigen
+## Commands
+
+### `help`
+
+Displays help and usage information.
 
 ```bash
 node cli-debug.js help
-# oder mit npm script:
-node --run debug:help
 ```
 
-### Konfiguration testen
+**Output:**
+```
+📘 MMM-CalDAV-Tasks CLI Debug Tool
+
+Usage: node cli-debug.js <command> [options]
+
+Commands:
+  help              Show this help message
+  test-config       Validate configuration file
+  fetch             Fetch and display all tasks
+  toggle <uid>      Toggle task completion status by UID
+
+Options:
+  --config <path>      Path to config file (default: ./config/config.js)
+  --show-completed     Show completed tasks (default: hidden)
+  --show-file          Show task filenames
+  --show-uid           Show task UIDs
+  --verbose, -v        Show additional details (start dates, descriptions)
+```
+
+---
+
+### `test-config`
+
+Validates the configuration file using the config-validator module.
 
 ```bash
 node cli-debug.js test-config
-# oder:
-node --run debug:config
 ```
 
-**Ausgabe:**
-- ✅ Konfiguration ist gültig
-- 📋 Normalisierte Konfiguration mit allen Standardwerten
-- ❌ Fehlermeldungen bei ungültiger Konfiguration
+**Example output:**
+```
+🚀 MMM-CalDAV-Tasks CLI Debug Tool
 
-### Tasks vom Server abrufen
+✅ Configuration loaded successfully
+   Server: https://nc.example.com/
+   User: johndoe
+
+🔍 Testing Configuration...
+
+✅ Configuration is valid!
+
+📋 Normalized Config:
+{
+  "webDavAuth": {
+    "url": "https://nc.example.com/remote.php/dav/",
+    "username": "johndoe",
+    "password": "***"
+  },
+  "updateInterval": 60000,
+  "sortMethod": "priority",
+  "colorize": false,
+  ...
+}
+```
+
+**Error output:**
+```
+❌ Configuration has errors:
+
+  1. [error] webDavAuth.url is required
+  2. [error] updateInterval must be >= 1000 (got 500)
+  3. [warning] sortMethod "date" is deprecated, use "priority-date"
+```
+
+---
+
+### `fetch`
+
+Fetches tasks from the CalDAV server and displays them.
 
 ```bash
-node cli-debug.js fetch
-# oder:
-node --run debug:fetch
+node cli-debug.js fetch [options]
 ```
 
-**Ausgabe:**
-- Anzahl der geladenen Tasks und Kalender
-- Liste aller Kalender mit:
-  - Name, URL, Farbe
-  - Alle Tasks mit Status (✓/○), Priorität, Titel
-  - UID und Dateiname (für toggle-Kommando)
-  - Fälligkeitsdatum
+**Options:**
+- `--show-completed` - Show completed tasks (hidden by default)
+- `--show-uid` - Display task UIDs
+- `--show-file` - Display task filenames
+- `--verbose` / `-v` - Show additional details
 
-**Beispiel:**
+**Example output (default):**
 ```
-✅ Successfully fetched 37 tasks from 8 calendar(s)
+🚀 MMM-CalDAV-Tasks CLI Debug Tool
 
-📅 Calendar 1: ToDo Merle
-   URL: https://nc.example.com/remote.php/dav/calendars/user/calendar/
-   Color: #63DA38
-   Tasks: 36
+✅ Configuration loaded successfully
+   Server: https://nc.example.com/
+   User: johndoe
 
-   📝 Tasks:
-      ✓ [P1] Vokabeln lernen
-         UID: 9941C9D7-2175-4EAE-830B-58B19B948B09
-         File: https://nc.example.com/.../9941C9D7-2175-4EAE-830B-58B19B948B09.ics
-         Due: 09.03.2025 17:00
-      ○ [P5] Einkaufen
-         UID: ABC123-DEF456-GHI789
-         File: https://nc.example.com/.../ABC123-DEF456-GHI789.ics
+📥 Fetching tasks from CalDAV server...
+
+✅ Successfully fetched 37 tasks from 3 calendar(s)
+   Active: 5 | Completed: 32 (hidden)
+
+📅 Calendar 1: Work
+   URL: https://nc.example.com/remote.php/dav/calendars/johndoe/work/
+   Color: #4CAF50
+   Tasks: 3
+
+   📝 Tasks (3):
+
+      1. ⬜ Review pull request [P1]
+          📅 Due: 05.01.2026 ⚠️ OVERDUE
+
+      2. ⬜ Team meeting [P3]
+          📅 Due: 08.01.2026
+
+      3. ⬜ Update documentation [P5]
+          🔁 Repeats: Every weekly
+
+📅 Calendar 2: Personal
+   URL: https://nc.example.com/remote.php/dav/calendars/johndoe/personal/
+   Color: #2196F3
+   Tasks: 2
+
+   📝 Tasks (2):
+
+      1. ⬜ Pay bills [P1]
+          📅 Due: 10.01.2026
+
+      2. ⬜ Doctor appointment [P2]
+          📅 Due: 15.01.2026
+          🏁 Started: 01.01.2026
 ```
 
-### Task-Status umschalten
+**Example output (verbose with completed):**
+```bash
+node cli-debug.js fetch --show-completed --verbose
+```
+
+```
+📅 Calendar 1: Work
+   Tasks: 10
+
+   📝 Tasks (10):
+
+      1. ⬜ Review pull request [P1]
+          📅 Due: 05.01.2026 ⚠️ OVERDUE
+          🏁 Started: 01.01.2026
+          💬 Review the new authentication feature...
+
+      2. ✅ Complete project setup [P1]
+          📅 Due: 28.12.2025
+          💬 Setup development environment
+
+      ...
+```
+
+**Example output (with UIDs and files):**
+```bash
+node cli-debug.js fetch --show-uid --show-file
+```
+
+```
+   📝 Tasks (1):
+
+      1. ⬜ Pay bills [P1]
+          📅 Due: 10.01.2026
+          🔑 UID: A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6
+          📄 File: https://nc.example.com/remote.php/dav/calendars/johndoe/personal/A1B2C3D4.ics
+```
+
+---
+
+### `toggle <uid>`
+
+Toggles the completion status of a task.
 
 ```bash
-node cli-debug.js toggle <UID>
+node cli-debug.js toggle <uid>
 ```
 
-**UID ermitteln:** Verwende `fetch` um die UID eines Tasks zu finden
+**Parameters:**
+- `<uid>` - The UID of the task to toggle
 
-**Beispiel:**
+**Example:**
 ```bash
-# Task als erledigt markieren (oder wieder öffnen)
-node cli-debug.js toggle 9941C9D7-2175-4EAE-830B-58B19B948B09
+node cli-debug.js toggle A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6
 ```
 
-**Ausgabe:**
+**Output:**
 ```
-🔄 Toggling task: 9941C9D7-2175-4EAE-830B-58B19B948B09...
+🚀 MMM-CalDAV-Tasks CLI Debug Tool
 
-📝 Found task: Vokabeln lernen
-   Status: COMPLETED
-   Filename: https://nc.example.com/.../9941C9D7-2175-4EAE-830B-58B19B948B09.ics
+✅ Configuration loaded successfully
+   Server: https://nc.example.com/
+   User: johndoe
+
+🔄 Toggling task: A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6...
+
+📝 Found task: Pay bills
+   Status: IN-PROGRESS
+   Filename: https://nc.example.com/remote.php/dav/.../A1B2C3D4.ics
 
 ✅ Task toggled successfully!
-   New status: IN-PROGRESS
+   New status: COMPLETED
 
 🔄 Fetching updated tasks...
+
+✅ Successfully fetched 37 tasks from 3 calendar(s)
+   Active: 4 | Completed: 33 (hidden)
 ```
 
-### Alternative Konfigurationsdatei verwenden
+**Error handling:**
+```bash
+node cli-debug.js toggle invalid-uid
+```
+
+```
+❌ Task with UID invalid-uid not found
+
+💡 Tip: Run "node cli-debug.js fetch --show-uid" to see all available UIDs
+```
+
+---
+
+## Configuration
+
+### Config File
+
+By default, the tool reads configuration from `config/config.js`.
+
+**Supported formats:**
+
+1. **MagicMirror config.js:**
+   ```javascript
+   let config = {
+     modules: [
+       {
+         module: "MMM-CalDAV-Tasks",
+         config: {
+           webDavAuth: {
+             url: "https://nc.example.com/remote.php/dav/",
+             username: "johndoe",
+             password: "app-password"
+           },
+           updateInterval: 60000
+         }
+       }
+     ]
+   };
+   ```
+
+2. **Standalone config file:**
+   ```javascript
+   {
+     webDavAuth: {
+       url: "https://nc.example.com/remote.php/dav/",
+       username: "johndoe",
+       password: "app-password"
+     },
+     updateInterval: 60000
+   }
+   ```
+
+### Custom Config Path
+
+Use the `--config` option to specify a custom config file:
 
 ```bash
 node cli-debug.js fetch --config /path/to/custom-config.js
 ```
 
-## NPM Scripts
+---
 
-Das Modul stellt folgende npm-Scripts bereit:
+## Output Formatting
 
-| Script | Befehl | Beschreibung |
-|--------|--------|--------------|
-| `debug` | `node --run debug` | Zeigt Hilfe an |
-| `debug:help` | `node --run debug:help` | Zeigt Hilfe an |
-| `debug:config` | `node --run debug:config` | Validiert Konfiguration |
-| `debug:fetch` | `node --run debug:fetch` | Ruft Tasks vom Server ab |
+### Task Display
 
-## Debug-Modus
+**Active task:**
+```
+⬜ Task summary [P1]
+    📅 Due: 10.01.2026
+    🔁 Repeats: Every weekly
+```
 
-Für detaillierte Fehlerinformationen mit Stack Traces:
+**Completed task (with --show-completed):**
+```
+✅ Task summary [P1]
+    📅 Due: 28.12.2025
+```
 
+**Overdue task:**
+```
+⬜ Task summary [P1]
+    📅 Due: 28.12.2025 ⚠️ OVERDUE
+```
+
+### Icons
+
+- ⬜ - Incomplete task
+- ✅ - Completed task
+- 📅 - Due date
+- 🏁 - Start date
+- 🔁 - Recurring task
+- 💬 - Description
+- 🔑 - UID
+- 📄 - Filename
+- ⚠️ - Overdue indicator
+
+---
+
+## Examples
+
+### Daily Workflow
+
+**Morning: Check tasks**
 ```bash
-DEBUG=1 node cli-debug.js fetch
+npm run debug:fetch
 ```
 
-## Architektur
-
-### Komponenten
-
-Das CLI-Tool besteht aus folgenden Komponenten:
-
-```
-cli-debug.js
-├── MockNodeHelper         - Simuliert MagicMirror NodeHelper
-├── loadConfig()           - Lädt und parst Konfigurationsdatei
-├── testConfig()           - Validiert Konfiguration (config-validator.js)
-├── fetchTasks()           - Ruft Tasks ab (implementiert getData aus node_helper)
-└── toggleTask()           - Ändert Task-Status (implementiert toggleStatusViaWebDav)
-```
-
-### Verwendete Module
-
-Das Tool verwendet die gleichen Backend-Module wie `node_helper.js`:
-
-- `transformer.js` - Sortierung und Transformation
-- `webDavHelper.js` - CalDAV-Kommunikation
-- `vtodo-completer.js` - Task-Completion (inkl. wiederkehrende Tasks)
-- `config-validator.js` - Konfigurationsvalidierung
-- `error-handler.js` - Fehlerbehandlung
-- `date-utils.js` - Datumsformatierung (indirekt via vtodo-completer)
-
-### Workflow
-
-1. **Konfiguration laden**
-   - Liest `config/config.js`
-   - Erkennt MagicMirror- vs. Standalone-Format
-   - Extrahiert MMM-CalDAV-Tasks config
-
-2. **fetch: Tasks abrufen**
-   - Validiert Konfiguration
-   - Ruft `fetchCalendarData()` auf
-   - Parst ICS-Daten mit `parseList()`
-   - Transformiert und sortiert Tasks
-   - Zeigt formatierte Ausgabe
-
-3. **toggle: Status ändern**
-   - Ruft erst `fetchTasks()` auf
-   - Findet Task anhand UID
-   - Initialisiert DAV-Client
-   - Ruft `VTodoCompleter.completeVTodo()` auf
-   - Zeigt aktualisierte Task-Liste
-
-## Fehlerbehandlung
-
-Das Tool behandelt folgende Fehler:
-
-| Fehler | Meldung | Lösung |
-|--------|---------|--------|
-| Config nicht gefunden | ❌ Config file not found | config/config.js erstellen |
-| Modul nicht konfiguriert | ❌ MMM-CalDAV-Tasks module not found | Modul in config.js hinzufügen |
-| Ungültige Config | ❌ Configuration has errors | Fehler in Ausgabe beheben |
-| Server nicht erreichbar | ❌ Error fetching tasks | URL, Credentials prüfen |
-| Task nicht gefunden | ❌ Task with UID ... not found | UID mit `fetch` prüfen |
-
-## Anwendungsfälle
-
-### 1. Entwicklung und Testing
-
+**Complete a task**
 ```bash
-# Nach Code-Änderungen testen
-node --run debug:fetch
+# 1. Fetch with UIDs
+node cli-debug.js fetch --show-uid
 
-# Konfiguration nach Änderungen validieren
-node --run debug:config
+# 2. Copy UID of completed task
+
+# 3. Toggle status
+node cli-debug.js toggle A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6
 ```
 
-### 2. Debugging von Problemen
-
+**Review all tasks including completed**
 ```bash
-# Detaillierte Fehlerausgabe
-DEBUG=1 node cli-debug.js fetch
-
-# Überprüfen ob Server erreichbar
-node --run debug:fetch
+node cli-debug.js fetch --show-completed --verbose
 ```
 
-### 3. Task-Management
+---
 
+### Debugging
+
+**Check configuration after changes**
 ```bash
-# Alle offenen Tasks anzeigen
-node --run debug:fetch | grep "○"
-
-# Task als erledigt markieren
-node cli-debug.js toggle ABC123-DEF456
+node cli-debug.js test-config
 ```
 
-### 4. CI/CD Integration
-
+**Verify CalDAV connection**
 ```bash
-# In automatisierten Tests
-npm run debug:config && npm run debug:fetch
+node cli-debug.js fetch --verbose
 ```
 
-## Limitierungen
-
-- **Keine Browser-Features**: DOM-Rendering, CSS nicht testbar
-- **Kein Socket.IO**: Simuliert Socket-Kommunikation, kein echtes WebSocket
-- **Konfigurationsdatei erforderlich**: Kein interaktiver Modus
-
-## Sicherheitshinweise
-
-⚠️ **Wichtig**: Das Tool verwendet `eval()` und `Function()` zum Parsen der Konfigurationsdatei.
-
-- Nur vertrauenswürdige Konfigurationsdateien verwenden
-- Nicht in Produktionsumgebungen mit unbekannten Configs nutzen
-- Passwörter nicht in öffentliche Repositories committen
-
-**Best Practice**: Verwende `.env`-Dateien oder Umgebungsvariablen für Credentials:
-
-```javascript
-// In config.js
-{
-  webDavAuth: {
-    url: process.env.CALDAV_URL,
-    username: process.env.CALDAV_USER,
-    password: process.env.CALDAV_PASS
-  }
-}
+**Find specific task**
+```bash
+node cli-debug.js fetch --show-uid | grep "Task name"
 ```
+
+---
 
 ## Troubleshooting
 
-### "Cannot find module 'xxx'"
+### Common Errors
 
-```bash
-# Dependencies installieren
-npm install
+**1. Config file not found**
+```
+❌ Config file not found: ./config/config.js
+
+💡 Tip: Create config/config.js from config/config.template.js
 ```
 
-### "Configuration error: ..."
-
+**Solution:**
 ```bash
-# Konfiguration validieren
-node --run debug:config
-
-# Template kopieren
 cp config/config.template.js config/config.js
+# Edit config.js with your settings
 ```
 
-### "Error fetching tasks"
+---
 
-1. Server-URL prüfen (mit `/` am Ende)
-2. Credentials überprüfen
-3. Netzwerk-Verbindung testen:
-   ```bash
-   curl -u username:password https://nextcloud.example.com/remote.php/dav/calendars/
-   ```
+**2. Module not found in config**
+```
+❌ MMM-CalDAV-Tasks module not found in config file
 
-### "Task with UID ... not found"
+💡 Tip: Make sure the module is configured in config.js
+```
 
-- UID komplett kopieren (ohne Zeichen weglassen)
-- Mit `fetch` aktuelle UIDs abrufen
-- Prüfen ob Task wirklich existiert
+**Solution:** Add the module to your MagicMirror config.js
 
-## Weiterführende Dokumentation
+---
 
-- [UTILITIES.md](UTILITIES.md) - Dokumentation der Utility-Module
-- [README.md](README.md) - Haupt-Dokumentation des Moduls
-- [REFACTORING_REPORT.md](REFACTORING_REPORT.md) - Technischer Refactoring-Bericht
+**3. Authentication failed**
+```
+❌ Error fetching tasks: Authentication failed
+```
 
-## Lizenz
+**Solution:**
+- Check username and password in config
+- Use app password instead of account password
+- Verify CalDAV URL is correct
 
-MIT License - siehe [LICENSE.txt](LICENSE.txt)
+---
 
-## Support
+**4. Network error**
+```
+❌ Error fetching tasks: Network error
+```
 
-Bei Problemen oder Fragen:
-- GitHub Issues: https://github.com/Coernel82/MMM-CalDAV-Tasks/issues
-- MagicMirror² Forum: https://forum.magicmirror.builders/
+**Solution:**
+- Check internet connection
+- Verify CalDAV server URL
+- Check firewall settings
+
+---
+
+## Advanced Usage
+
+### Environment Variables
+
+Enable debug mode for detailed error messages:
+
+```bash
+DEBUG=1 node cli-debug.js fetch
+```
+
+### Filtering Output
+
+**Show only overdue tasks:**
+```bash
+node cli-debug.js fetch | grep "OVERDUE"
+```
+
+**Count active tasks:**
+```bash
+node cli-debug.js fetch | grep "Active:" | awk '{print $2}'
+```
+
+**Export task list:**
+```bash
+node cli-debug.js fetch --show-completed > tasks.txt
+```
+
+---
+
+## Technical Details
+
+### Dependencies
+
+The CLI tool uses the following modules:
+- `config-validator.js` - Configuration validation
+- `error-handler.js` - Error handling
+- `webDavHelper.js` - CalDAV communication
+- `transformer.js` - Data transformation
+- `vtodo-completer.js` - Task completion logic
+- `date-utils.js` - Date formatting (indirectly via vtodo-completer)
+
+### Architecture
+
+```
+cli-debug.js
+    ├── loadConfig()           - Loads and parses config file
+    ├── testConfig()           - Validates config using config-validator
+    ├── fetchTasks()           - Fetches tasks via webDavHelper
+    │   ├── validateConfig()   - Normalizes config
+    │   ├── fetchCalendarData() - Gets raw CalDAV data
+    │   ├── transformData()    - Transforms to task format
+    │   └── Display output     - Formatted console output
+    └── toggleTask(uid)        - Toggles task status
+        ├── fetchTasks()       - Find task by UID
+        ├── VTodoCompleter     - Complete task via CalDAV
+        └── fetchTasks()       - Show updated list
+```
+
+---
+
+## See Also
+
+- [UTILITIES.md](UTILITIES.md) - Utility modules documentation
+- [REFACTORING_REPORT.md](REFACTORING_REPORT.md) - Refactoring details
+- [README.md](README.md) - Main module documentation
+
+---
+
+## License
+
+MIT License - Same as MMM-CalDAV-Tasks module
