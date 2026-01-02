@@ -1,6 +1,6 @@
 # Translation Summary
 
-**Date:** 2026-01-01  
+**Date:** 2026-01-01
 **Task:** Translate all German comments and documentation to English
 
 ---

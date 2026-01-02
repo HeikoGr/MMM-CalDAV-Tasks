@@ -39,7 +39,7 @@ For developers: See [UTILITIES.md](UTILITIES.md) for utility module documentatio
 
 ```sh
 cd ~/MagicMirror/modules
-git clone https://github.com/Coernel82/MMM-CalDAV-Tasks
+git clone https://github.com/HeikoGr/MMM-CalDAV-Tasks
 cd MMM-CalDAV-Tasks
 npm install
 ```
