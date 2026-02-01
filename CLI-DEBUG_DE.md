@@ -264,7 +264,7 @@ node cli-debug.js toggle ABC123-DEF456
 
 ```bash
 # In automatisierten Tests
-npm run debug:config && npm run debug:fetch
+node --run debug:config && node --run debug:fetch
 ```
 
 ## Limitierungen

@@ -1,6 +1,6 @@
 # MMM-CalDAV-Tasks
 
-This is a module for the [MagicMirror²](https://github.com/MichMich/MagicMirror/). Originally developed by [SoulofN00b](https://github.com/SoulOfNoob/MMM-CalDAV-Tasks/), further developed by [Starlingfire](https://github.com/starlingfire/MMM-CalDAV-Tasks). I have forked it and added new features.
+This is a module for the [MagicMirror²](https://github.com/MagicMirrorOrg/MagicMirror/). Originally developed by [SoulofN00b](https://github.com/SoulOfNoob/MMM-CalDAV-Tasks/), further developed by [Starlingfire](https://github.com/starlingfire/MMM-CalDAV-Tasks). I have forked it and added new features.
 
 This module loads a ToDo list via CalDAV (e.g. from the NextCloud Tasks app using the "private link" and [Nextcloud Managed Devices](https://docs.nextcloud.com/server/latest/user_manual/en/session_management.html#managing-devices) )
 
@@ -37,39 +37,42 @@ For developers: See [UTILITIES.md](UTILITIES.md) for utility module documentatio
 
 ## Installing the module
 
-```sh
+```bash
 cd ~/MagicMirror/modules
 git clone https://github.com/HeikoGr/MMM-CalDAV-Tasks
 cd MMM-CalDAV-Tasks
 npm install
 ```
 
-## Updating the module
-From `MagicMirror/modules/MMM-CalDAV-Tasks` use `git pull`
+## Update
+
+From `MagicMirror/modules/MMM-CalDAV-Tasks` run
+
+```bash
+cd ~/MagicMirror/modules/MMM-CalDAV-Tasks
+git pull
+npm install
+```
 
 ## Using the module
 
 To use this module, add the following most important settings in the configuration block to the modules array in the `config/config.js` file:
 
 ```javascript
-var config = {
-    modules: [
-        {
-            module: 'MMM-CalDAV-Tasks',
-            config: {
-                // See 'Configuration options' for more information.
+{
+    module: 'MMM-CalDAV-Tasks',
+    config: {
+        // See 'Configuration options' for more information.
 
-                webDavAuth: {
-                    url: "<CalDAV_URL>",
-                    username: "<CalDAV_APP_USERNAME>",
-                    password: "<CalDAV_APP_PASSWORD>",
-                }
-                includeCalendars: [], //optional - match calendar names
-                updateInterval: 60000
-            }
-        }
-    ]
-}
+        webDavAuth: {
+            url: "<CalDAV_URL>",
+            username: "<CalDAV_APP_USERNAME>",
+            password: "<CalDAV_APP_PASSWORD>",
+        },
+        includeCalendars: [], //optional - match calendar names
+        updateInterval: 60000,
+    },
+},
 ```
 
 ## Configuration options
@@ -113,7 +116,7 @@ When you toggle a task there is a glow effect which strangely was offset on wind
 If you do not see the effect at all this is likely due to another module. For instance I wanted my calendar module to download a public holidays calendar from the internet resulting in hundreds of errors per minute. Removing that calendar solved it.
 
 ### 🐞General bug handling:
-See my example some lines above how fast a bug comes from another module. Go to your Magic Mirror folder and `npm run start:dev` to chase the bugs!
+See my example some lines above how fast a bug comes from another module. Go to your MagicMirror² folder and `node --run start:dev` to chase the bugs!
 
 ### 🛠️ CLI Debug Tool
 

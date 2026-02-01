@@ -47,9 +47,9 @@ node cli-debug.js toggle <uid>
 For convenience, npm scripts are available:
 
 ```bash
-npm run debug:help        # Show help
-npm run debug:config      # Test configuration
-npm run debug:fetch       # Fetch tasks
+node --run debug:help        # Show help
+node --run debug:config      # Test configuration
+node --run debug:fetch       # Fetch tasks
 ```
 
 ---
@@ -372,7 +372,7 @@ node cli-debug.js fetch --config /path/to/custom-config.js
 
 **Morning: Check tasks**
 ```bash
-npm run debug:fetch
+node --run debug:fetch
 ```
 
 **Complete a task**

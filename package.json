@@ -1,5 +1,6 @@
 {
   "name": "mmm-caldav-tasks",
+  "type": "module",
   "version": "1.1.2",
   "description": "MagicMirror module to display and manage CalDAV tasks (to-dos)",
   "main": "MMM-CalDAV-Tasks.js",
@@ -10,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HeikoGr/MMM-Photoprism.git"
+    "url": "git+https://github.com/HeikoGr/MMM-CalDAV-Tasks.git"
   },
   "scripts": {
     "lint": "eslint --ext .js && prettier --check .",
@@ -20,21 +21,23 @@
     "debug": "node cli-debug.js",
     "debug:help": "node cli-debug.js help",
     "debug:config": "node cli-debug.js test-config",
-    "debug:fetch": "node cli-debug.js fetch"
+    "debug:fetch": "node cli-debug.js fetch",
+    "mmcheck": "node scripts/magicmirror-check.mjs --current"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "cspell": "^9.6.2",
     "eslint": "^9.39.2",
-    "globals": "^17.2.0",
+    "eslint-plugin-n": "^17.23.2",
+    "globals": "^17.3.0",
     "prettier": "^3.8.1",
-    "prettier-plugin-jinja-template": "^2.1.0",
-    "eslint-plugin-n": "^17.23.2"
+    "prettier-plugin-jinja-template": "^2.1.0"
   },
   "dependencies": {
     "moment": "^2.30.1",
-    "node-ical": "^0.24.1",
-    "webdav": "^5.8.0",
+    "node-ical": "^0.24.2",
+    "rrule": "^2.8.1",
     "tsdav": "^2.1.6",
-    "rrule": "^2.8.1"
+    "webdav": "^5.8.0"
   }
 }

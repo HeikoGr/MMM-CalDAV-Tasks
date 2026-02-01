@@ -2,7 +2,7 @@
 /* global Module, Log, TaskRenderer */
 
 /*
- * Magic Mirror
+ * MagicMirror²
  * Module: MMM-CalDAV-Tasks
  *
  * By Jan Ryklikas
@@ -138,15 +138,10 @@ Module.register("MMM-CalDAV-Tasks", {
     this.usedUrlIndices = [];
 
     /*
-     * on my computer the Fontawesome Icons do not work without this when working under windows
-     * on the raspberry pi it works without this
+     * developerMode: show default cursor for easier development
+     * FontAwesome is already provided by MagicMirror²
      */
     if (this.config.developerMode) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href =
-        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css";
-      document.head.appendChild(link);
       document.documentElement.style.cursor = "default";
     }
 

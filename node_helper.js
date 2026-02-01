@@ -1,5 +1,5 @@
 /*
- * Magic Mirror
+ * MagicMirror²
  * Node Helper: MMM-CalDAV-Tasks
  *
  * By Jan Ryklikas
