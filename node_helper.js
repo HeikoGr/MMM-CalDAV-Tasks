@@ -22,6 +22,9 @@ const { handleError } = require("./error-handler");
 const { validateConfig } = require("./config-validator");
 
 module.exports = NodeHelper.create({
+  // Track ongoing requests to prevent parallel updates
+  pendingRequests: new Map(),
+
   socketNotificationReceived(notification, payload) {
     const self = this;
     const moduleId = payload.id;
@@ -43,7 +46,16 @@ module.exports = NodeHelper.create({
 
   async getData(moduleId, config, callback) {
     const self = this;
-    let calendarData = [];
+
+    // Prevent parallel requests for same module
+    if (self.pendingRequests.has(moduleId)) {
+      console.log(`[MMM-CalDAV-Tasks] Skipping update for ${moduleId} - request already in progress`);
+      return;
+    }
+
+    self.pendingRequests.set(moduleId, true);
+    const startTime = Date.now();
+    console.log(`[MMM-CalDAV-Tasks] Starting data fetch for module ${moduleId}`);
 
     try {
       // Validate and normalize configuration
@@ -69,8 +81,8 @@ module.exports = NodeHelper.create({
       // Use normalized config with defaults
       const effectiveConfig = { ...config, ...normalizedConfig };
 
-      let allTasks = [];
-      calendarData = await fetchCalendarData(effectiveConfig);
+      const allTasks = [];
+      const calendarData = await fetchCalendarData(effectiveConfig);
 
       // iterate over all Arrays
       for (let i = 0; i < calendarData.length; i++) {
@@ -88,13 +100,21 @@ module.exports = NodeHelper.create({
         const sortedList = sortList(indexedList, effectiveConfig.sortMethod);
         const sortedAppleList = sortList(sortedList, "apple");
         const nestedList = transformData(sortedAppleList);
-        allTasks = allTasks.concat(nestedList);
+        allTasks.push(...nestedList);
         calendarData[i].tasks = nestedList;
       }
 
+      const duration = Date.now() - startTime;
+      console.log(`[MMM-CalDAV-Tasks] Data fetch completed for module ${moduleId} in ${duration}ms - ${calendarData.length} calendar(s), ${allTasks.length} task(s)`);
+
       callback(calendarData);
     } catch (error) {
+      const duration = Date.now() - startTime;
+      console.error(`[MMM-CalDAV-Tasks] Data fetch failed for module ${moduleId} after ${duration}ms:`, error.message);
       handleError(error, moduleId, self.sendError.bind(self));
+    } finally {
+      // Always clean up pending request
+      self.pendingRequests.delete(moduleId);
     }
   },
 
@@ -107,12 +127,25 @@ module.exports = NodeHelper.create({
   },
 
   async toggleStatusViaWebDav(config, filename) {
+    const timeout = config.requestTimeout || 30000;
+    console.log(`[MMM-CalDAV-Tasks] Toggling task status for: ${filename}`);
+
     try {
       const client = initDAVClient(config);
       const completer = new VTodoCompleter(client);
-      await completer.completeVTodo(config, filename);
+
+      // Toggle with timeout
+      await Promise.race([
+        completer.completeVTodo(config, filename),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(`Toggle task status timed out after ${timeout}ms`)), timeout)
+        )
+      ]);
+
+      console.log(`[MMM-CalDAV-Tasks] Successfully toggled task: ${filename}`);
     } catch (error) {
-      console.error("[MMM-CalDAV-Tasks] Toggle error:", error);
+      console.error("[MMM-CalDAV-Tasks] Toggle error:", error.message);
+      // Don't throw - toggle errors shouldn't break the module
     }
   },
 

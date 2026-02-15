@@ -18,9 +18,24 @@ function initDAVClient(config) {
 }
 
 async function getFileContents(config, url) {
+  const timeout = config.requestTimeout || 30000;
   client = initDAVClient(config);
-  await client.login();
-  const calendars = await client.fetchCalendars();
+
+  // Login with timeout
+  await Promise.race([
+    client.login(),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`CalDAV login timed out after ${timeout}ms`)), timeout)
+    )
+  ]);
+
+  // Fetch calendars with timeout
+  const calendars = await Promise.race([
+    client.fetchCalendars(),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`Fetch calendars timed out after ${timeout}ms`)), timeout)
+    )
+  ]);
 
   const filters = [
     {
@@ -38,18 +53,31 @@ async function getFileContents(config, url) {
   urlO[0] = url;
 
   for (const calendar of calendars) {
-    objects = await client.fetchCalendarObjects({
-      calendar,
-      objectUrls: urlO,
-      filters
-    });
+    objects = await Promise.race([
+      client.fetchCalendarObjects({
+        calendar,
+        objectUrls: urlO,
+        filters
+      }),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`Fetch calendar objects timed out after ${timeout}ms`)), timeout)
+      )
+    ]);
   }
   return objects[0];
 }
 
 async function putFileContents(config, url, data) {
+  const timeout = config.requestTimeout || 30000;
   client = initDAVClient(config);
-  await client.login();
+
+  // Login with timeout
+  await Promise.race([
+    client.login(),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`CalDAV login timed out after ${timeout}ms`)), timeout)
+    )
+  ]);
   try {
     // try to find the calendar that owns this object URL
     const calendars = await client.fetchCalendars();
@@ -136,10 +164,24 @@ function filterByNameMatches(objArray, matchStrings) {
 }
 
 async function fetchCalendarData(config) {
+  const timeout = config.requestTimeout || 30000;
   client = initDAVClient(config);
-  await client.login();
 
-  let calendars = await client.fetchCalendars();
+  // Login with timeout
+  await Promise.race([
+    client.login(),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`CalDAV login timed out after ${timeout}ms`)), timeout)
+    )
+  ]);
+
+  // Fetch calendars with timeout
+  let calendars = await Promise.race([
+    client.fetchCalendars(),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`Fetch calendars timed out after ${timeout}ms`)), timeout)
+    )
+  ]);
   calendars = calendars.filter((calendar) =>
     calendar.components.includes("VTODO")
   );
@@ -168,10 +210,15 @@ async function fetchCalendarData(config) {
   ];
 
   for (const calendar of calendars) {
-    const objects = await client.fetchCalendarObjects({
-      calendar,
-      filters
-    });
+    const objects = await Promise.race([
+      client.fetchCalendarObjects({
+        calendar,
+        filters
+      }),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`Fetch objects from ${calendar.displayName || 'calendar'} timed out after ${timeout}ms`)), timeout)
+      )
+    ]);
 
     const icsStrings = [];
     for (const object of objects) {

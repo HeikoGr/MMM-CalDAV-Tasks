@@ -44,7 +44,9 @@ Module.register("MMM-CalDAV-Tasks", {
     pieChartColor: "rgb(255, 255, 255)",
     pieChartSize: 16,
     hideDateSectionOnCompletion: true,
-    developerMode: false
+    developerMode: false,
+    requestTimeout: 30000, // 30 seconds timeout for CalDAV requests
+    frontendTimeout: 60000 // 60 seconds before showing timeout error in frontend
   },
 
   requiresVersion: "2.1.0", // Required version of MagicMirror
@@ -53,6 +55,9 @@ Module.register("MMM-CalDAV-Tasks", {
   error: null,
   audio: null, // define audio to prelaod the sound
   renderer: null, // TaskRenderer instance
+  lastSuccessfulData: null, // Keep last successful data for graceful fallback
+  loadingTimeoutTimer: null, // Timer for frontend timeout detection
+  lastUpdateRequest: null, // Timestamp of last update request
 
   start() {
     const self = this;
@@ -125,6 +130,33 @@ Module.register("MMM-CalDAV-Tasks", {
    *
    */
   getData() {
+    const self = this;
+
+    // Clear any existing timeout
+    if (self.loadingTimeoutTimer) {
+      clearTimeout(self.loadingTimeoutTimer);
+    }
+
+    // Track when we sent the request
+    self.lastUpdateRequest = Date.now();
+
+    // Set frontend timeout
+    self.loadingTimeoutTimer = setTimeout(() => {
+      if (!self.toDoList && !self.lastSuccessfulData) {
+        // First load failed
+        self.error = "<strong>Request Timeout:</strong><br>" +
+          "No response from CalDAV server.<br>" +
+          "Check your network connection and server settings.<br>" +
+          `<span style='font-size: 0.8em; color: #888;'>Timeout after ${self.config.frontendTimeout / 1000}s</span>`;
+        self.updateDom();
+        Log.error(`[MMM-CalDAV-Tasks] Frontend timeout - no response after ${self.config.frontendTimeout}ms`);
+      } else if (self.lastUpdateRequest && (Date.now() - self.lastUpdateRequest) >= self.config.frontendTimeout) {
+        // Update failed, but we have old data
+        Log.warn(`[MMM-CalDAV-Tasks] Update timeout - keeping previous data`);
+        // Keep showing old data, don't set error
+      }
+    }, self.config.frontendTimeout);
+
     this.sendSocketNotification("MMM-CalDAV-Tasks-UPDATE", {
       id: this.identifier,
       config: this.config
@@ -149,6 +181,14 @@ Module.register("MMM-CalDAV-Tasks", {
     const wrapper = document.createElement("div");
     wrapper.className = "MMM-CalDAV-Tasks-wrapper";
 
+    // Show error message if present (even with old data)
+    if (self.error) {
+      const errorDiv = document.createElement("div");
+      errorDiv.className = "MMM-CalDAV-Tasks-error";
+      errorDiv.innerHTML = self.error;
+      wrapper.appendChild(errorDiv);
+    }
+
     if (self.toDoList) {
       for (const element of self.toDoList) {
         const calWrapper = document.createElement("div");
@@ -161,14 +201,9 @@ Module.register("MMM-CalDAV-Tasks", {
         calWrapper.appendChild(self.renderList(element.tasks));
         wrapper.appendChild(calWrapper);
       }
-
-      self.error = null;
-    } else {
+    } else if (!self.error) {
+      // Only show loading if we don't have an error message
       wrapper.innerHTML = "<div>Loading...</div>";
-    }
-
-    if (self.error) {
-      wrapper.innerHTML = `<div>${self.error}</div>`;
     }
 
     // Initialize long press handlers after the DOM is updated
@@ -554,8 +589,20 @@ Module.register("MMM-CalDAV-Tasks", {
   },
 
   socketNotificationReceived(notification, payload) {
+    const self = this;
+
     if (notification === `MMM-CalDAV-Tasks-Helper-TODOS#${this.identifier}`) {
-      this.toDoList = payload;
+      // Clear timeout timer on successful response
+      if (self.loadingTimeoutTimer) {
+        clearTimeout(self.loadingTimeoutTimer);
+        self.loadingTimeoutTimer = null;
+      }
+
+      // Store successful data for graceful fallback
+      self.lastSuccessfulData = payload;
+      self.toDoList = payload;
+      self.error = null; // Clear any previous errors
+      self.lastUpdateRequest = null;
 
       Log.log("[MMM-CalDAV-Tasks] received payload: ", payload);
       this.updateDom();
@@ -564,8 +611,26 @@ Module.register("MMM-CalDAV-Tasks", {
       Log.log("LOG: ", payload);
     }
     if (notification === `MMM-CalDAV-Tasks-Helper-ERROR#${this.identifier}`) {
+      // Clear timeout timer on error response
+      if (self.loadingTimeoutTimer) {
+        clearTimeout(self.loadingTimeoutTimer);
+        self.loadingTimeoutTimer = null;
+      }
+
       Log.error("ERROR: ", payload);
-      this.error = `${payload}<br>`;
+
+      // Graceful fallback: keep showing old data if we have it
+      if (self.lastSuccessfulData) {
+        Log.warn("[MMM-CalDAV-Tasks] Error occurred, keeping previous data");
+        self.toDoList = self.lastSuccessfulData;
+        // Show error briefly but keep old data visible
+        self.error = `${payload}<br><span style='font-size: 0.8em; color: #888;'>Showing previous data</span>`;
+      } else {
+        // No fallback data available
+        self.error = `${payload}<br>`;
+      }
+
+      self.lastUpdateRequest = null;
       this.updateDom();
     }
   },
