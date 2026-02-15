@@ -157,6 +157,18 @@
   text-decoration: line-through;
 }
 
+/* Visual feedback for long press */
+.MMM-CalDAV-Tasks-Pressing {
+  opacity: 0.6;
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Flash effect when toggling */
+.MMM-CalDAV-Tasks-Toggle-Flash {
+  background-color: rgba(76, 175, 80, 0.3);
+  transition: background-color 0.3s ease-out;
+}
+
 .MMM-CalDAV-Tasks-CompletionCanvas {
   padding-left: 3px;
   position: relative;

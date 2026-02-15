@@ -9,17 +9,37 @@ let config = {
   units: "metric",
   modules: [
     { module: "alert" },
+
+    {
+      module: "MMM-Cursor",
+      config: {
+        timeout: 1500
+      }
+    },
+
     { module: "clock", position: "top_left" },
     {
-      module: "MMM-HomeConnect2",
-      header: "Home Connect Appliances",
-      position: "top_right",
+      module: 'MMM-CalDAV-Tasks',
+      disabled: false,
+      position: "top_bar",
       config: {
-        clientId: "YOUR_CLIENT_ID",
-        showDeviceIcon: true,
-        updateFrequency: 60 * 60 * 1000 // 1 hour
+        webDavAuth: {
+          url: 'https://nc.<your-nextcloud-server>/remote.php/dav/',
+          username: "<username>",
+          password: "<password>>",
+        },
+        // includeCalendars: ['Alex', 'Heiko', 'Merle'],
+        updateInterval: 60000,
+        hideCompletedTasksAfter: 0,
+        sortMethod: "created",
+        colorize: true,
+        displayStartDate: false,
+        showCompletionPercent: true,
+        startsInDays: 30,
+        dateFormat: "DD.MM.YYYY HH:mm",
       }
-    }
+    },
+
   ]
 };
 

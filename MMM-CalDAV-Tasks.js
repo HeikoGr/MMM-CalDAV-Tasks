@@ -31,10 +31,7 @@ Module.register("MMM-CalDAV-Tasks", {
     hideCompletedTasksAfter: 1, // 1 day
     dateFormat: "DD.MM.YYYY",
     headings: [null],
-    playSound: true,
-    offsetTop: 0,
-    offsetLeft: 0,
-    toggleTime: 100, // mseconds
+    toggleTime: 1000, // mseconds - long press duration
     showCompletionPercent: false,
     mapEmptyPriorityTo: 5,
     mapEmptySortIndexTo: 999999,
@@ -53,7 +50,6 @@ Module.register("MMM-CalDAV-Tasks", {
 
   toDoList: null,
   error: null,
-  audio: null, // define audio to prelaod the sound
   renderer: null, // TaskRenderer instance
   lastSuccessfulData: null, // Keep last successful data for graceful fallback
   loadingTimeoutTimer: null, // Timer for frontend timeout detection
@@ -64,12 +60,6 @@ Module.register("MMM-CalDAV-Tasks", {
 
     // Flag for check if module is loaded
     self.loaded = false;
-
-    // Preload the sound
-    this.audio = new Audio(
-      "/modules/MMM-CalDAV-Tasks/sounds/task_finished.wav"
-    );
-    this.audio.load();
 
     // Initialize TaskRenderer (will be loaded via getScripts())
     // Note: TaskRenderer is loaded asynchronously, so we initialize it in getDom()
@@ -437,121 +427,13 @@ Module.register("MMM-CalDAV-Tasks", {
     return html;
   },
 
-  // Animate list element when long clicking
+  // Handle long press for toggling tasks
   initLongPressHandlers() {
     console.debug("[MMM-CalDAV-Tasks] ready for long press");
     const items = document.querySelectorAll(".MMM-CalDAV-Tasks-List-Item");
 
     items.forEach((item) => {
       let pressTimer = null;
-      let startTime = 0;
-      let blurInterval = null;
-
-      const resetEffects = () => {
-        clearTimeout(pressTimer);
-        clearInterval(blurInterval);
-        item.style.filter = "none";
-        item.style.opacity = "1";
-      };
-
-      const startEffects = () => {
-        const toggleTime = this.config.toggleTime;
-        startTime = Date.now();
-        const effectSpeed = toggleTime / 50;
-        blurInterval = setInterval(() => {
-          const elapsed = Date.now() - startTime;
-          if (elapsed >= toggleTime) {
-            clearInterval(blurInterval);
-            const newState = toggleCheck(item);
-            toggleEffectOnTimerEnd(item);
-            console.debug(`[MMM-CalDAV-Tasks] new state: ${newState}`);
-            console.debug(`[MMM-CalDAV-Tasks] item id: ${item.id}`);
-
-            this.sendSocketNotification("MMM-CalDAV-Tasks-TOGGLE", {
-              id: item.id,
-              status: newState,
-              config: this.config,
-              urlIndex: item.getAttribute("data-url-index"),
-              filename: item.getAttribute("vtodo-filename")
-            });
-            resetEffects();
-          } else {
-            const progress = elapsed / toggleTime;
-            item.style.filter = `blur(${4 * progress}px)`;
-            item.style.opacity = `${1 - progress}`;
-          }
-        }, effectSpeed);
-      };
-
-      const toggleEffectOnTimerEnd = (item) => {
-        console.debug("[MMM-CalDAV-Tasks] toggleEffectOnTimerEnd called");
-        if (this.config.playSound) {
-          this.audio
-            .play()
-            .catch((error) => console.error("Error playing audio:", error));
-        }
-
-        startTime = Date.now();
-        const effecttoggleTime = 1200;
-        const overlay = item.cloneNode(true);
-
-        overlay.style.position = "absolute";
-        overlay.style.top = `${item.offsetTop + this.config.offsetTop}px`;
-        overlay.style.left = `${item.offsetLeft + this.config.offsetLeft}px`;
-        overlay.style.color = "red";
-        overlay.style.zIndex = "100000";
-        overlay.style.pointerEvents = "none";
-        overlay.style.filter = "none";
-        overlay.style.opacity = "1";
-
-        const styleEl = document.createElement("style");
-        styleEl.innerHTML = `
-				@keyframes fadeToBright {
-					0% {
-						color: red;
-						opacity: 1;
-					}
-					85% {
-						color: var(--color-text-bright);
-					}
-					100% {
-						color: var(--color-text-bright);
-						opacity: 0;
-					}
-				}
-				`;
-        document.head.appendChild(styleEl);
-
-        overlay.style.animation = `fadeToBright ${effecttoggleTime}ms forwards`;
-        item.parentElement.appendChild(overlay);
-
-        item.style.transition = `filter ${effecttoggleTime}ms ease-in-out`;
-        item.style.filter = "blur(10px)";
-        setTimeout(() => {
-          item.style.filter = "blur(0)";
-        }, effecttoggleTime);
-
-        setTimeout(() => {
-          overlay.remove();
-          item.style.transition = "none";
-          item.style.filter = "none";
-        }, effecttoggleTime + 1000);
-        item.classList.toggle("MMM-CalDAV-Tasks-Completed");
-        const li = item.closest("li");
-        if (li) {
-          const dateSection = li.querySelector(
-            ".MMM-CalDAV-Tasks-Date-Section"
-          );
-          if (dateSection) {
-            if (this.config.hideDateSectionOnCompletion) {
-              dateSection.style.display =
-                dateSection.style.display === "none" ? "block" : "none";
-            } else {
-              dateSection.classList.toggle("MMM-CalDAV-Tasks-Completed");
-            }
-          }
-        }
-      };
 
       const toggleCheck = (listItem) => {
         const iconSpan = listItem.querySelector(".fa");
@@ -564,19 +446,71 @@ Module.register("MMM-CalDAV-Tasks", {
         return isChecked ? "unchecked" : "checked";
       };
 
-      const startHandler = () => {
-        Log.info(`touch/mouse start on item: ${item.id}`);
-        resetEffects();
-        pressTimer = setTimeout(() => { }, this.config.toggleTime);
-        startEffects(item);
+      const handleToggle = () => {
+        const newState = toggleCheck(item);
+        console.debug(`[MMM-CalDAV-Tasks] new state: ${newState}, item id: ${item.id}`);
+
+        // Simple visual feedback
+        item.classList.add("MMM-CalDAV-Tasks-Toggle-Flash");
+        setTimeout(() => {
+          item.classList.remove("MMM-CalDAV-Tasks-Toggle-Flash");
+        }, 300);
+
+        // Toggle completed state
+        item.classList.toggle("MMM-CalDAV-Tasks-Completed");
+
+        // Handle date section visibility
+        const li = item.closest("li");
+        if (li) {
+          const dateSection = li.querySelector(".MMM-CalDAV-Tasks-Date-Section");
+          if (dateSection) {
+            if (this.config.hideDateSectionOnCompletion) {
+              dateSection.style.display =
+                dateSection.style.display === "none" ? "block" : "none";
+            } else {
+              dateSection.classList.toggle("MMM-CalDAV-Tasks-Completed");
+            }
+          }
+        }
+
+        // Send notification to backend
+        this.sendSocketNotification("MMM-CalDAV-Tasks-TOGGLE", {
+          id: item.id,
+          status: newState,
+          config: this.config,
+          urlIndex: item.getAttribute("data-url-index"),
+          filename: item.getAttribute("vtodo-filename")
+        });
       };
 
-      item.addEventListener("mousedown", startHandler);
-      item.addEventListener("touchstart", startHandler, { passive: true });
-      item.addEventListener("mouseup", resetEffects);
-      item.addEventListener("mouseleave", resetEffects);
-      item.addEventListener("touchend", resetEffects);
-      item.addEventListener("touchcancel", resetEffects);
+      const cancelPress = () => {
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        }
+        item.classList.remove("MMM-CalDAV-Tasks-Pressing");
+      };
+
+      const startPress = () => {
+        Log.info(`touch/mouse start on item: ${item.id}`);
+        cancelPress();
+
+        // Add pressing state for visual feedback
+        item.classList.add("MMM-CalDAV-Tasks-Pressing");
+
+        // Set timer for long press
+        pressTimer = setTimeout(() => {
+          item.classList.remove("MMM-CalDAV-Tasks-Pressing");
+          handleToggle();
+        }, this.config.toggleTime);
+      };
+
+      item.addEventListener("mousedown", startPress);
+      item.addEventListener("touchstart", startPress, { passive: true });
+      item.addEventListener("mouseup", cancelPress);
+      item.addEventListener("mouseleave", cancelPress);
+      item.addEventListener("touchend", cancelPress);
+      item.addEventListener("touchcancel", cancelPress);
     });
   },
 

@@ -9,17 +9,7 @@ You can toggle the status of the task via longpress / long touch and it will be 
 Current development status: **released** \
 ![Small Screenshot](/assets/small_screenshot.png?raw=true)
 
-## ⚡ Recent Updates (January 2026)
 
-**Version 1.2.0 - Refactored & Enhanced**
-
-- ✅ **Improved Error Handling:** Better error messages with specific guidance (e.g., "Use app password!")
-- ✅ **Enhanced Config Validation:** Automatic type checking, range validation, and helpful error messages
-- ✅ **Modularized Code:** Extracted reusable utilities (date-utils, config-validator, error-handler)
-- ✅ **Better Defaults:** Missing config options are automatically filled with sensible defaults
-- ✅ **Code Quality:** 29/29 unit tests passing, ESLint compliant, fully documented
-
-For developers: See [UTILITIES.md](UTILITIES.md) for utility module documentation and [REFACTORING_REPORT.md](REFACTORING_REPORT.md) for technical details.
 
 ## Dependencies
 
@@ -93,10 +83,7 @@ To use this module, add the following most important settings in the configurati
 | `hideCompletedTasksAfter ` | *Optional*: How many days after completion should tasks be hidden? Default `1`
 | `dateFormat`         | *Optional*: Format for displaying dates. Default `DD.MM.YYYY` Uses [moment.js formats](https://momentjs.com/docs/#/displaying/format/)
 | `headings`         | *Optional*: Array of headings for the tasks.
-| `playsound`         | *Optional*: Should a sound be played when a task is toggled? Default `true`
-| `offsetTop`             | *Optional*: Offset of the module in pixels. Default `0`
-| `offsetLeft`             | *Optional*: Offset of the module in pixels. Default `0`
-| `toggleTime`         | *Optional*: How long do you need to click / touch the task list item to toggle it. Default `1600` (1.6 seconds)
+| `toggleTime`         | *Optional*: How long do you need to click / touch the task list item to toggle it. Default `1000` (1 second)
 | `showCompletionPercent`     | *Optional*: Shows the percentage of completion. Default `false`
 | `mapEmptyPriorityTo`     | *Optional*: Map empty priority to a value. Default `5`
 | `mapEmptySortIndexTo`     | *Optional*: Map empty sort index to a value. Default `999999`
@@ -108,12 +95,6 @@ To use this module, add the following most important settings in the configurati
 | `hideDateSectionOnCompletion` | *Optional*: Hides the date section of a task once it is completed. Default `true` |
 | `developerMode`             | *Optional*: When developing under Windows the Fontawesome Icons do not load. This just embeds Fontawesome from an external source. Default `false` |
 | ~~`hideCompletedTasks`~~ | ~~*Optional*: should completed tasks show up or not~~
-
-### The glow effect bug:
-When you toggle a task there is a glow effect which strangely was offset on windows but not on a Raspberry Pi - or maybe it was the different screen. You will know what I mean if you see that there is s.th. wrong with the effect.
-| `developerMode`      | *Optional*: When developing under Windows the Fontawesome Icons do not load. This just embeds Fontawesome from an external source. Default `false`
-
-If you do not see the effect at all this is likely due to another module. For instance I wanted my calendar module to download a public holidays calendar from the internet resulting in hundreds of errors per minute. Removing that calendar solved it.
 
 ### 🐞General bug handling:
 See my example some lines above how fast a bug comes from another module. Go to your MagicMirror² folder and `node --run start:dev` to chase the bugs!
@@ -164,6 +145,8 @@ If you get a *WebDav: Unknown error!* just wait for the next `updateInterval`. I
 | .MMM-CalDAV-Tasks-SubList            | Styles sublists within task items, useful for organizing sub-tasks under main tasks.          |
 | .MMM-CalDAV-Tasks-Priority-1 to .MMM-CalDAV-Tasks-Priority-9 | Applies color coding based on task priority levels, helping to visually distinguish tasks by their urgency or importance. |
 | .MMM-CalDAV-Tasks-Completed          | Styles completed tasks, typically by reducing opacity and adding a strikethrough to indicate completion. |
+| .MMM-CalDAV-Tasks-Pressing           | Applied while holding down on a task (long press), provides visual feedback with reduced opacity. |
+| .MMM-CalDAV-Tasks-Toggle-Flash       | Brief flash effect shown when a task is toggled, providing visual confirmation. |
 | .MMM-CalDAV-Tasks-Started           | Styles tasks that have already started, making them visually distinct.                        |
 | .MMM-CalDAV-Tasks-Overdue           | Styles overdue tasks, highlighting them to indicate urgency.                                 |
 ## Screenshots
