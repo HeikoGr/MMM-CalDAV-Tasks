@@ -1,50 +1,8 @@
-# Module-local Dockerfile copied from repo root (minimal adaptation)
-FROM node:22-bookworm-slim
+FROM ghcr.io/heikogr/mmm-devcontainer-base:node24-trixie-slim
 
 WORKDIR /opt/magic_mirror
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    curl \
-    python3 \
-    ca-certificates \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# Clone MagicMirror
-RUN git clone --depth=1 https://github.com/MagicMirrorOrg/MagicMirror.git . && \
-    npm install --omit=dev && \
-    npm cache clean --force && \
-    rm -rf /opt/magic_mirror/.git
-
-RUN update-ca-certificates
-
-
-WORKDIR /opt/magic_mirror/modules
-
-RUN git clone --depth=1 https://github.com/uxigene/MMM-Cursor 
-    # npm install --omit=dev
-
-WORKDIR /opt/magic_mirror
-
-RUN npm install -g pm2
-
-# Install common dev tooling globally
-RUN npm install -g \
-    eslint \
-    eslint-plugin-n \
-    prettier \
-    cspell \
-    @eslint/css \
-    @eslint/js \
-    @eslint/json \
-    prettier-plugin-jinja-template \
-    @stylistic/eslint-plugin
-
-WORKDIR /opt/magic_mirror
-
-COPY ./entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh || true
+COPY --chmod=755 ./entrypoint.sh /entrypoint.sh
 
 # Provide a default PM2 ecosystem file so `pm2-runtime` can start MagicMirror.
 # This is a minimal file intended for development in the devcontainer.
