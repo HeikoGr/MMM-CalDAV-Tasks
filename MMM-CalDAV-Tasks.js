@@ -134,13 +134,19 @@ Module.register("MMM-CalDAV-Tasks", {
     self.loadingTimeoutTimer = setTimeout(() => {
       if (!self.toDoList && !self.lastSuccessfulData) {
         // First load failed
-        self.error = "<strong>Request Timeout:</strong><br>" +
+        self.error =
+          "<strong>Request Timeout:</strong><br>" +
           "No response from CalDAV server.<br>" +
           "Check your network connection and server settings.<br>" +
           `<span style='font-size: 0.8em; color: #888;'>Timeout after ${self.config.frontendTimeout / 1000}s</span>`;
         self.updateDom();
-        Log.error(`[MMM-CalDAV-Tasks] Frontend timeout - no response after ${self.config.frontendTimeout}ms`);
-      } else if (self.lastUpdateRequest && (Date.now() - self.lastUpdateRequest) >= self.config.frontendTimeout) {
+        Log.error(
+          `[MMM-CalDAV-Tasks] Frontend timeout - no response after ${self.config.frontendTimeout}ms`
+        );
+      } else if (
+        self.lastUpdateRequest &&
+        Date.now() - self.lastUpdateRequest >= self.config.frontendTimeout
+      ) {
         // Update failed, but we have old data
         Log.warn(`[MMM-CalDAV-Tasks] Update timeout - keeping previous data`);
         // Keep showing old data, don't set error
@@ -316,8 +322,9 @@ Module.register("MMM-CalDAV-Tasks", {
     const isCompleted = status === "COMPLETED";
     const now = new Date();
 
-    let html = `<div class='${listItemClass}${isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
-      }' data-url-index='${urlIndex}' id='${uid}' vtodo-filename='${filename}'>`;
+    let html = `<div class='${listItemClass}${
+      isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
+    }' data-url-index='${urlIndex}' id='${uid}' vtodo-filename='${filename}'>`;
 
     // icon and VTODO text (summary)
     const priorityIconClass = TaskRenderer.getPriorityIconClass(
@@ -348,8 +355,9 @@ Module.register("MMM-CalDAV-Tasks", {
       (this.config.displayStartDate && start) ||
       (this.config.displayDueDate && dueFormatted)
     ) {
-      const dateClass = `MMM-CalDAV-Tasks-Date-Section${isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
-        }`;
+      const dateClass = `MMM-CalDAV-Tasks-Date-Section${
+        isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
+      }`;
       const dateStyle =
         isCompleted && this.config.hideDateSectionOnCompletion
           ? ' style="display:none;"'
@@ -395,8 +403,9 @@ Module.register("MMM-CalDAV-Tasks", {
     const now = new Date();
     const isCompleted = status === "COMPLETED";
 
-    const baseClass = `MMM-CalDAV-Tasks-Date-Section${isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
-      }`;
+    const baseClass = `MMM-CalDAV-Tasks-Date-Section${
+      isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
+    }`;
     const displayStyle =
       isCompleted && this.config.hideDateSectionOnCompletion
         ? ' style="display:none;"'
@@ -448,7 +457,9 @@ Module.register("MMM-CalDAV-Tasks", {
 
       const handleToggle = () => {
         const newState = toggleCheck(item);
-        console.debug(`[MMM-CalDAV-Tasks] new state: ${newState}, item id: ${item.id}`);
+        console.debug(
+          `[MMM-CalDAV-Tasks] new state: ${newState}, item id: ${item.id}`
+        );
 
         // Simple visual feedback
         item.classList.add("MMM-CalDAV-Tasks-Toggle-Flash");
@@ -462,7 +473,9 @@ Module.register("MMM-CalDAV-Tasks", {
         // Handle date section visibility
         const li = item.closest("li");
         if (li) {
-          const dateSection = li.querySelector(".MMM-CalDAV-Tasks-Date-Section");
+          const dateSection = li.querySelector(
+            ".MMM-CalDAV-Tasks-Date-Section"
+          );
           if (dateSection) {
             if (this.config.hideDateSectionOnCompletion) {
               dateSection.style.display =

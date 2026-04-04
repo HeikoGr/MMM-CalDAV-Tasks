@@ -133,10 +133,7 @@
           "detail": "Restart all PM2 processes and flush logs"
         }
       },
-      "dependsOn": [
-        "pm2: restart & clean",
-        "pm2: logs (follow)"
-      ],
+      "dependsOn": ["pm2: restart & clean", "pm2: logs (follow)"],
       "problemMatcher": []
     }
   ]

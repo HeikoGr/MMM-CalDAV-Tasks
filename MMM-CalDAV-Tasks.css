@@ -50,7 +50,7 @@
   vertical-align: middle;
 }
 
-.MMM-CalDAV-Tasks-wrapper>ul {
+.MMM-CalDAV-Tasks-wrapper > ul {
   padding: 0;
 }
 
@@ -89,7 +89,7 @@
   font-size: var(--font-size-xsmall);
 }
 
-.MMM-CalDAV-Tasks-List-Item>div {
+.MMM-CalDAV-Tasks-List-Item > div {
   pointer-events: auto;
 }
 

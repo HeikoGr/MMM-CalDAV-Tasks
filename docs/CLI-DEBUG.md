@@ -30,16 +30,16 @@ The tool is already included in the module. No additional installation required.
 cd /opt/magic_mirror/modules/MMM-CalDAV-Tasks
 
 # Show help
-node cli-debug.js help
+node scripts/cli-debug.js help
 
 # Validate configuration
-node cli-debug.js test-config
+node scripts/cli-debug.js test-config
 
 # Fetch tasks
-node cli-debug.js fetch
+node scripts/cli-debug.js fetch
 
 # Toggle task status
-node cli-debug.js toggle <uid>
+node scripts/cli-debug.js toggle <uid>
 ```
 
 ### NPM Scripts
@@ -61,14 +61,14 @@ node --run debug:fetch       # Fetch tasks
 Displays help and usage information.
 
 ```bash
-node cli-debug.js help
+node scripts/cli-debug.js help
 ```
 
 **Output:**
 ```
 📘 MMM-CalDAV-Tasks CLI Debug Tool
 
-Usage: node cli-debug.js <command> [options]
+Usage: node scripts/cli-debug.js <command> [options]
 
 Commands:
   help              Show this help message
@@ -91,7 +91,7 @@ Options:
 Validates the configuration file using the config-validator module.
 
 ```bash
-node cli-debug.js test-config
+node scripts/cli-debug.js test-config
 ```
 
 **Example output:**
@@ -136,7 +136,7 @@ node cli-debug.js test-config
 Fetches tasks from the CalDAV server and displays them.
 
 ```bash
-node cli-debug.js fetch [options]
+node scripts/cli-debug.js fetch [options]
 ```
 
 **Options:**
@@ -191,7 +191,7 @@ node cli-debug.js fetch [options]
 
 **Example output (verbose with completed):**
 ```bash
-node cli-debug.js fetch --show-completed --verbose
+node scripts/cli-debug.js fetch --show-completed --verbose
 ```
 
 ```
@@ -214,7 +214,7 @@ node cli-debug.js fetch --show-completed --verbose
 
 **Example output (with UIDs and files):**
 ```bash
-node cli-debug.js fetch --show-uid --show-file
+node scripts/cli-debug.js fetch --show-uid --show-file
 ```
 
 ```
@@ -233,7 +233,7 @@ node cli-debug.js fetch --show-uid --show-file
 Toggles the completion status of a task.
 
 ```bash
-node cli-debug.js toggle <uid>
+node scripts/cli-debug.js toggle <uid>
 ```
 
 **Parameters:**
@@ -241,7 +241,7 @@ node cli-debug.js toggle <uid>
 
 **Example:**
 ```bash
-node cli-debug.js toggle A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6
+node scripts/cli-debug.js toggle A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6
 ```
 
 **Output:**
@@ -269,13 +269,13 @@ node cli-debug.js toggle A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6
 
 **Error handling:**
 ```bash
-node cli-debug.js toggle invalid-uid
+node scripts/cli-debug.js toggle invalid-uid
 ```
 
 ```
 ❌ Task with UID invalid-uid not found
 
-💡 Tip: Run "node cli-debug.js fetch --show-uid" to see all available UIDs
+💡 Tip: Run "node scripts/cli-debug.js fetch --show-uid" to see all available UIDs
 ```
 
 ---
@@ -324,7 +324,7 @@ By default, the tool reads configuration from `config/config.js`.
 Use the `--config` option to specify a custom config file:
 
 ```bash
-node cli-debug.js fetch --config /path/to/custom-config.js
+node scripts/cli-debug.js fetch --config /path/to/custom-config.js
 ```
 
 ---
@@ -378,17 +378,17 @@ node --run debug:fetch
 **Complete a task**
 ```bash
 # 1. Fetch with UIDs
-node cli-debug.js fetch --show-uid
+node scripts/cli-debug.js fetch --show-uid
 
 # 2. Copy UID of completed task
 
 # 3. Toggle status
-node cli-debug.js toggle A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6
+node scripts/cli-debug.js toggle A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6
 ```
 
 **Review all tasks including completed**
 ```bash
-node cli-debug.js fetch --show-completed --verbose
+node scripts/cli-debug.js fetch --show-completed --verbose
 ```
 
 ---
@@ -397,17 +397,17 @@ node cli-debug.js fetch --show-completed --verbose
 
 **Check configuration after changes**
 ```bash
-node cli-debug.js test-config
+node scripts/cli-debug.js test-config
 ```
 
 **Verify CalDAV connection**
 ```bash
-node cli-debug.js fetch --verbose
+node scripts/cli-debug.js fetch --verbose
 ```
 
 **Find specific task**
 ```bash
-node cli-debug.js fetch --show-uid | grep "Task name"
+node scripts/cli-debug.js fetch --show-uid | grep "Task name"
 ```
 
 ---
@@ -473,24 +473,24 @@ cp config/config.template.js config/config.js
 Enable debug mode for detailed error messages:
 
 ```bash
-DEBUG=1 node cli-debug.js fetch
+DEBUG=1 node scripts/cli-debug.js fetch
 ```
 
 ### Filtering Output
 
 **Show only overdue tasks:**
 ```bash
-node cli-debug.js fetch | grep "OVERDUE"
+node scripts/cli-debug.js fetch | grep "OVERDUE"
 ```
 
 **Count active tasks:**
 ```bash
-node cli-debug.js fetch | grep "Active:" | awk '{print $2}'
+node scripts/cli-debug.js fetch | grep "Active:" | awk '{print $2}'
 ```
 
 **Export task list:**
 ```bash
-node cli-debug.js fetch --show-completed > tasks.txt
+node scripts/cli-debug.js fetch --show-completed > tasks.txt
 ```
 
 ---
@@ -510,7 +510,7 @@ The CLI tool uses the following modules:
 ### Architecture
 
 ```
-cli-debug.js
+scripts/cli-debug.js
     ├── loadConfig()           - Loads and parses config file
     ├── testConfig()           - Validates config using config-validator
     ├── fetchTasks()           - Fetches tasks via webDavHelper

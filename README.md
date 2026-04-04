@@ -111,7 +111,7 @@ node --run debug:config
 node --run debug:fetch
 
 # Toggle task status
-node cli-debug.js toggle <task-uid>
+node scripts/cli-debug.js toggle <task-uid>
 
 # Show help
 node --run debug:help
@@ -123,7 +123,9 @@ The CLI tool lets you test the module functionality without running MagicMirror�
 - Testing CalDAV server access
 - Managing tasks from the command line
 
-📖 See [CLI-DEBUG.md](CLI-DEBUG.md) for detailed documentation.
+📖 See [docs/CLI-DEBUG.md](docs/CLI-DEBUG.md) for detailed documentation.
+
+Further module-specific documentation is collected in [docs/README.md](docs/README.md).
 
 ### Note:
 If both conditions `startsInDays`and `dueInDays`are set both are checked after each other. So when one or both conditions are true the task will be shown.

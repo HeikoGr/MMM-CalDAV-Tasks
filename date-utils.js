@@ -8,33 +8,33 @@ const { datetime } = require("rrule");
  * @throws {Error} If date format is invalid
  */
 function parseIcsComponents(dateStr) {
-    const isDateTime = dateStr.includes("T");
-    const [datePart, timePart = ""] = dateStr.split("T");
+  const isDateTime = dateStr.includes("T");
+  const [datePart, timePart = ""] = dateStr.split("T");
 
-    const year = parseInt(datePart.substring(0, 4));
-    const month = parseInt(datePart.substring(4, 6));
-    const day = parseInt(datePart.substring(6, 8));
+  const year = parseInt(datePart.substring(0, 4));
+  const month = parseInt(datePart.substring(4, 6));
+  const day = parseInt(datePart.substring(6, 8));
 
-    let hours = 0;
-    let minutes = 0;
-    let seconds = 0;
+  let hours = 0;
+  let minutes = 0;
+  let seconds = 0;
 
-    if (isDateTime && timePart) {
-        const time = timePart.replace("Z", "");
-        hours = parseInt(time.substring(0, 2));
-        minutes = parseInt(time.substring(2, 4));
-        seconds = parseInt(time.substring(4, 6));
-    }
+  if (isDateTime && timePart) {
+    const time = timePart.replace("Z", "");
+    hours = parseInt(time.substring(0, 2));
+    minutes = parseInt(time.substring(2, 4));
+    seconds = parseInt(time.substring(4, 6));
+  }
 
-    // Validation
-    if (isNaN(year) || isNaN(month) || isNaN(day)) {
-        throw new Error(`Invalid date format: ${dateStr}`);
-    }
-    if (isDateTime && (isNaN(hours) || isNaN(minutes) || isNaN(seconds))) {
-        throw new Error(`Invalid datetime format: ${dateStr}`);
-    }
+  // Validation
+  if (isNaN(year) || isNaN(month) || isNaN(day)) {
+    throw new Error(`Invalid date format: ${dateStr}`);
+  }
+  if (isDateTime && (isNaN(hours) || isNaN(minutes) || isNaN(seconds))) {
+    throw new Error(`Invalid datetime format: ${dateStr}`);
+  }
 
-    return { year, month, day, hours, minutes, seconds, isDateTime };
+  return { year, month, day, hours, minutes, seconds, isDateTime };
 }
 
 /**
@@ -55,24 +55,24 @@ function parseIcsComponents(dateStr) {
  * // => RRule datetime object
  */
 function parseIcsDate(dateStr, returnType = "jsDate") {
-    const { year, month, day, hours, minutes, seconds, isDateTime } =
-        parseIcsComponents(dateStr);
+  const { year, month, day, hours, minutes, seconds, isDateTime } =
+    parseIcsComponents(dateStr);
 
-    switch (returnType) {
-        case "jsDate":
-            // JavaScript Date (month is 0-indexed)
-            return new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds));
+  switch (returnType) {
+    case "jsDate":
+      // JavaScript Date (month is 0-indexed)
+      return new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds));
 
-        case "rruleDatetime":
-            // RRule datetime (month is 1-indexed)
-            if (isDateTime) {
-                return new datetime(year, month, day, hours, minutes, seconds);
-            }
-            return new datetime(year, month, day);
+    case "rruleDatetime":
+      // RRule datetime (month is 1-indexed)
+      if (isDateTime) {
+        return new datetime(year, month, day, hours, minutes, seconds);
+      }
+      return new datetime(year, month, day);
 
-        default:
-            throw new Error(`Unknown returnType: ${returnType}`);
-    }
+    default:
+      throw new Error(`Unknown returnType: ${returnType}`);
+  }
 }
 
 /**
@@ -90,10 +90,10 @@ function parseIcsDate(dateStr, returnType = "jsDate") {
  * // => '20240101'
  */
 function formatIcsDate(date, format = "datetime") {
-    const isoString = date.toISOString();
-    const formatted = isoString.replace(/[-:]/g, "").split(".")[0] + "Z";
+  const isoString = date.toISOString();
+  const formatted = isoString.replace(/[-:]/g, "").split(".")[0] + "Z";
 
-    return format === "date" ? formatted.split("T")[0] : formatted;
+  return format === "date" ? formatted.split("T")[0] : formatted;
 }
 
 /**
@@ -107,8 +107,8 @@ function formatIcsDate(date, format = "datetime") {
  * // => 9
  */
 function daysBetween(date1, date2) {
-    const ms = Math.abs(new Date(date2) - new Date(date1));
-    return Math.floor(ms / (1000 * 60 * 60 * 24));
+  const ms = Math.abs(new Date(date2) - new Date(date1));
+  return Math.floor(ms / (1000 * 60 * 60 * 24));
 }
 
 /**
@@ -121,7 +121,7 @@ function daysBetween(date1, date2) {
  * // => true
  */
 function isOverdue(dueDate) {
-    return new Date() > new Date(dueDate);
+  return new Date() > new Date(dueDate);
 }
 
 /**
@@ -134,13 +134,13 @@ function isOverdue(dueDate) {
  * // => true
  */
 function hasStarted(startDate) {
-    return new Date() >= new Date(startDate);
+  return new Date() >= new Date(startDate);
 }
 
 module.exports = {
-    parseIcsDate,
-    formatIcsDate,
-    daysBetween,
-    isOverdue,
-    hasStarted
+  parseIcsDate,
+  formatIcsDate,
+  daysBetween,
+  isOverdue,
+  hasStarted
 };

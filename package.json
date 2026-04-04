@@ -18,24 +18,24 @@
     "lint:fix": "eslint --fix && prettier --write .",
     "test:spelling": "cspell .",
     "check": "node check.js ../../config/config.js || true",
-    "debug": "node cli-debug.js",
-    "debug:help": "node cli-debug.js help",
-    "debug:config": "node cli-debug.js test-config",
-    "debug:fetch": "node cli-debug.js fetch",
-    "mmcheck": "node scripts/magicmirror-check.mjs --current"
+    "debug": "node scripts/cli-debug.js",
+    "debug:help": "node scripts/cli-debug.js help",
+    "debug:config": "node scripts/cli-debug.js test-config",
+    "debug:fetch": "node scripts/cli-debug.js fetch",
+    "mmcheck": "node scripts/magicmirror-check.mjs --devcontainer-only --current"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "cspell": "^9.6.4",
-    "eslint": "^10.0.0",
+    "cspell": "^9.7.0",
+    "eslint": "^10.2.0",
     "eslint-plugin-n": "^17.24.0",
-    "globals": "^17.3.0",
+    "globals": "^17.4.0",
     "prettier": "^3.8.1",
     "prettier-plugin-jinja-template": "^2.1.0"
   },
   "dependencies": {
     "moment": "^2.30.1",
-    "node-ical": "^0.25.1",
+    "node-ical": "^0.26.0",
     "rrule": "^2.8.1",
     "tsdav": "^2.1.8",
     "webdav": "^5.9.0"

@@ -25,7 +25,10 @@ async function getFileContents(config, url) {
   await Promise.race([
     client.login(),
     new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(`CalDAV login timed out after ${timeout}ms`)), timeout)
+      setTimeout(
+        () => reject(new Error(`CalDAV login timed out after ${timeout}ms`)),
+        timeout
+      )
     )
   ]);
 
@@ -33,7 +36,10 @@ async function getFileContents(config, url) {
   const calendars = await Promise.race([
     client.fetchCalendars(),
     new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(`Fetch calendars timed out after ${timeout}ms`)), timeout)
+      setTimeout(
+        () => reject(new Error(`Fetch calendars timed out after ${timeout}ms`)),
+        timeout
+      )
     )
   ]);
 
@@ -60,7 +66,13 @@ async function getFileContents(config, url) {
         filters
       }),
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error(`Fetch calendar objects timed out after ${timeout}ms`)), timeout)
+        setTimeout(
+          () =>
+            reject(
+              new Error(`Fetch calendar objects timed out after ${timeout}ms`)
+            ),
+          timeout
+        )
       )
     ]);
   }
@@ -75,7 +87,10 @@ async function putFileContents(config, url, data) {
   await Promise.race([
     client.login(),
     new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(`CalDAV login timed out after ${timeout}ms`)), timeout)
+      setTimeout(
+        () => reject(new Error(`CalDAV login timed out after ${timeout}ms`)),
+        timeout
+      )
     )
   ]);
   try {
@@ -171,7 +186,10 @@ async function fetchCalendarData(config) {
   await Promise.race([
     client.login(),
     new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(`CalDAV login timed out after ${timeout}ms`)), timeout)
+      setTimeout(
+        () => reject(new Error(`CalDAV login timed out after ${timeout}ms`)),
+        timeout
+      )
     )
   ]);
 
@@ -179,7 +197,10 @@ async function fetchCalendarData(config) {
   let calendars = await Promise.race([
     client.fetchCalendars(),
     new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(`Fetch calendars timed out after ${timeout}ms`)), timeout)
+      setTimeout(
+        () => reject(new Error(`Fetch calendars timed out after ${timeout}ms`)),
+        timeout
+      )
     )
   ]);
   calendars = calendars.filter((calendar) =>
@@ -216,7 +237,15 @@ async function fetchCalendarData(config) {
         filters
       }),
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error(`Fetch objects from ${calendar.displayName || 'calendar'} timed out after ${timeout}ms`)), timeout)
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                `Fetch objects from ${calendar.displayName || "calendar"} timed out after ${timeout}ms`
+              )
+            ),
+          timeout
+        )
       )
     ]);
 

@@ -63,7 +63,7 @@ let config = {
 ### Hilfe anzeigen
 
 ```bash
-node cli-debug.js help
+node scripts/cli-debug.js help
 # oder mit npm script:
 node --run debug:help
 ```
@@ -71,7 +71,7 @@ node --run debug:help
 ### Konfiguration testen
 
 ```bash
-node cli-debug.js test-config
+node scripts/cli-debug.js test-config
 # oder:
 node --run debug:config
 ```
@@ -84,7 +84,7 @@ node --run debug:config
 ### Tasks vom Server abrufen
 
 ```bash
-node cli-debug.js fetch
+node scripts/cli-debug.js fetch
 # oder:
 node --run debug:fetch
 ```
@@ -119,7 +119,7 @@ node --run debug:fetch
 ### Task-Status umschalten
 
 ```bash
-node cli-debug.js toggle <UID>
+node scripts/cli-debug.js toggle <UID>
 ```
 
 **UID ermitteln:** Verwende `fetch` um die UID eines Tasks zu finden
@@ -127,7 +127,7 @@ node cli-debug.js toggle <UID>
 **Beispiel:**
 ```bash
 # Task als erledigt markieren (oder wieder öffnen)
-node cli-debug.js toggle 9941C9D7-2175-4EAE-830B-58B19B948B09
+node scripts/cli-debug.js toggle 9941C9D7-2175-4EAE-830B-58B19B948B09
 ```
 
 **Ausgabe:**
@@ -147,7 +147,7 @@ node cli-debug.js toggle 9941C9D7-2175-4EAE-830B-58B19B948B09
 ### Alternative Konfigurationsdatei verwenden
 
 ```bash
-node cli-debug.js fetch --config /path/to/custom-config.js
+node scripts/cli-debug.js fetch --config /path/to/custom-config.js
 ```
 
 ## NPM Scripts
@@ -166,7 +166,7 @@ Das Modul stellt folgende npm-Scripts bereit:
 Für detaillierte Fehlerinformationen mit Stack Traces:
 
 ```bash
-DEBUG=1 node cli-debug.js fetch
+DEBUG=1 node scripts/cli-debug.js fetch
 ```
 
 ## Architektur
@@ -176,7 +176,7 @@ DEBUG=1 node cli-debug.js fetch
 Das CLI-Tool besteht aus folgenden Komponenten:
 
 ```
-cli-debug.js
+scripts/cli-debug.js
 ├── MockNodeHelper         - Simuliert MagicMirror NodeHelper
 ├── loadConfig()           - Lädt und parst Konfigurationsdatei
 ├── testConfig()           - Validiert Konfiguration (config-validator.js)
@@ -244,7 +244,7 @@ node --run debug:config
 
 ```bash
 # Detaillierte Fehlerausgabe
-DEBUG=1 node cli-debug.js fetch
+DEBUG=1 node scripts/cli-debug.js fetch
 
 # Überprüfen ob Server erreichbar
 node --run debug:fetch
@@ -257,7 +257,7 @@ node --run debug:fetch
 node --run debug:fetch | grep "○"
 
 # Task als erledigt markieren
-node cli-debug.js toggle ABC123-DEF456
+node scripts/cli-debug.js toggle ABC123-DEF456
 ```
 
 ### 4. CI/CD Integration

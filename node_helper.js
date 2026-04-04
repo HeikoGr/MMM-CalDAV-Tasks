@@ -49,13 +49,17 @@ module.exports = NodeHelper.create({
 
     // Prevent parallel requests for same module
     if (self.pendingRequests.has(moduleId)) {
-      console.log(`[MMM-CalDAV-Tasks] Skipping update for ${moduleId} - request already in progress`);
+      console.log(
+        `[MMM-CalDAV-Tasks] Skipping update for ${moduleId} - request already in progress`
+      );
       return;
     }
 
     self.pendingRequests.set(moduleId, true);
     const startTime = Date.now();
-    console.log(`[MMM-CalDAV-Tasks] Starting data fetch for module ${moduleId}`);
+    console.log(
+      `[MMM-CalDAV-Tasks] Starting data fetch for module ${moduleId}`
+    );
 
     try {
       // Validate and normalize configuration
@@ -105,12 +109,17 @@ module.exports = NodeHelper.create({
       }
 
       const duration = Date.now() - startTime;
-      console.log(`[MMM-CalDAV-Tasks] Data fetch completed for module ${moduleId} in ${duration}ms - ${calendarData.length} calendar(s), ${allTasks.length} task(s)`);
+      console.log(
+        `[MMM-CalDAV-Tasks] Data fetch completed for module ${moduleId} in ${duration}ms - ${calendarData.length} calendar(s), ${allTasks.length} task(s)`
+      );
 
       callback(calendarData);
     } catch (error) {
       const duration = Date.now() - startTime;
-      console.error(`[MMM-CalDAV-Tasks] Data fetch failed for module ${moduleId} after ${duration}ms:`, error.message);
+      console.error(
+        `[MMM-CalDAV-Tasks] Data fetch failed for module ${moduleId} after ${duration}ms:`,
+        error.message
+      );
       handleError(error, moduleId, self.sendError.bind(self));
     } finally {
       // Always clean up pending request
@@ -138,7 +147,13 @@ module.exports = NodeHelper.create({
       await Promise.race([
         completer.completeVTodo(config, filename),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error(`Toggle task status timed out after ${timeout}ms`)), timeout)
+          setTimeout(
+            () =>
+              reject(
+                new Error(`Toggle task status timed out after ${timeout}ms`)
+              ),
+            timeout
+          )
         )
       ]);
 

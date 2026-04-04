@@ -1,6 +1,6 @@
 # MagicMirror Module Check Results
 
-**Check Date:** 2/1/2026, 11:56:18 AM
+**Check Date:** 4/4/2026, 8:40:20 AM
 **Modules Directory:** /opt/magic_mirror/modules
 **Modules Checked:** 1
 
@@ -8,16 +8,17 @@
 
 - ✅ **0** modules passed all checks
 - ⚠️  **1** modules with issues
-- 📊 **1** total issues found
+- 📊 **2** total issues found
 
 ## ⚠️ Modules with Issues (1)
 
 ### MMM-CalDAV-Tasks
-**Issues:** 1
-1. Recommendation: The README's update section should provide a copyable fenced command block (for example ```bash ...). Please add one so users can update the module quickly (basic instructions [1]).
+**Issues:** 2
+1. There are no keywords in 'package.json'. We would use them as tags on the module list page.
+2. Warning: No LICENSE file (example LICENSE file [1]).
 
 **Links:**
-- [1] https://github.com/MagicMirrorOrg/MagicMirror-3rd-Party-Modules/blob/main/guides/readme_bestpractices.md#Update-Instructions
+- [1] https://github.com/KristjanESPERANTO/MMM-WebSpeechTTS/blob/main/LICENSE.md
 
 ---
 

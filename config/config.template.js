@@ -19,14 +19,14 @@ let config = {
 
     { module: "clock", position: "top_left" },
     {
-      module: 'MMM-CalDAV-Tasks',
+      module: "MMM-CalDAV-Tasks",
       disabled: false,
       position: "top_bar",
       config: {
         webDavAuth: {
-          url: 'https://nc.<your-nextcloud-server>/remote.php/dav/',
+          url: "https://nc.<your-nextcloud-server>/remote.php/dav/",
           username: "<username>",
-          password: "<password>>",
+          password: "<password>>"
         },
         // includeCalendars: ['Alex', 'Heiko', 'Merle'],
         updateInterval: 60000,
@@ -36,10 +36,9 @@ let config = {
         displayStartDate: false,
         showCompletionPercent: true,
         startsInDays: 30,
-        dateFormat: "DD.MM.YYYY HH:mm",
+        dateFormat: "DD.MM.YYYY HH:mm"
       }
-    },
-
+    }
   ]
 };
 
