@@ -15,7 +15,7 @@ Module.register("MMM-CalDAV-Tasks", {
     webDavAuth: {
       url: "https://<your-nextcloud-server>/remote.php/dav/",
       username: "<USERNAME>",
-      password: "<PASSWORD>"
+      password: "<PASSWORD>",
     },
     // optional
     includeCalendars: [],
@@ -43,7 +43,7 @@ Module.register("MMM-CalDAV-Tasks", {
     hideDateSectionOnCompletion: true,
     developerMode: false,
     requestTimeout: 30000, // 30 seconds timeout for CalDAV requests
-    frontendTimeout: 60000 // 60 seconds before showing timeout error in frontend
+    frontendTimeout: 60000, // 60 seconds before showing timeout error in frontend
   },
 
   requiresVersion: "2.1.0", // Required version of MagicMirror
@@ -54,9 +54,13 @@ Module.register("MMM-CalDAV-Tasks", {
   lastSuccessfulData: null, // Keep last successful data for graceful fallback
   loadingTimeoutTimer: null, // Timer for frontend timeout detection
   lastUpdateRequest: null, // Timestamp of last update request
+  updateTimer: null,
+  isSuspended: false,
+  instanceId: null,
 
   start() {
     const self = this;
+    self.instanceId = this.identifier;
 
     // Flag for check if module is loaded
     self.loaded = false;
@@ -97,15 +101,85 @@ Module.register("MMM-CalDAV-Tasks", {
 
       // Schedule update timer.
       self.getData(this.config.mapEmptyPriorityTo); // TODO: here i get the data from
-
-      setInterval(() => {
-        self.getData();
-        self.updateDom();
-      }, self.config.updateInterval);
+      self.startUpdateTimer();
     } else {
       Log.info("config invalid");
       self.error = "config invalid";
       self.updateDom();
+    }
+  },
+
+  getScripts() {
+    return [this.file("lib/task-renderer.js")];
+  },
+
+  getStyles() {
+    return ["MMM-CalDAV-Tasks.css", "font-awesome.css"];
+  },
+
+  socketNotificationReceived(notification, payload) {
+    const self = this;
+
+    if (notification === `MMM-CalDAV-Tasks-Helper-TODOS#${this.identifier}`) {
+      if (self.loadingTimeoutTimer) {
+        clearTimeout(self.loadingTimeoutTimer);
+        self.loadingTimeoutTimer = null;
+      }
+
+      self.lastSuccessfulData = payload;
+      self.toDoList = payload;
+      self.error = null;
+      self.lastUpdateRequest = null;
+
+      Log.log("[MMM-CalDAV-Tasks] received payload: ", payload);
+      this.updateDom();
+    }
+    if (notification === `MMM-CalDAV-Tasks-Helper-LOG#${this.identifier}`) {
+      Log.log("LOG: ", payload);
+    }
+    if (notification === `MMM-CalDAV-Tasks-Helper-ERROR#${this.identifier}`) {
+      if (self.loadingTimeoutTimer) {
+        clearTimeout(self.loadingTimeoutTimer);
+        self.loadingTimeoutTimer = null;
+      }
+
+      Log.error("ERROR: ", payload);
+
+      if (self.lastSuccessfulData) {
+        Log.warn("[MMM-CalDAV-Tasks] Error occurred, keeping previous data");
+        self.toDoList = self.lastSuccessfulData;
+        self.error = `${payload}<br><span style='font-size: 0.8em; color: #888;'>Showing previous data</span>`;
+      } else {
+        self.error = `${payload}<br>`;
+      }
+
+      self.lastUpdateRequest = null;
+      this.updateDom();
+    }
+  },
+
+  suspend() {
+    this.isSuspended = true;
+    this.clearUpdateTimer();
+
+    if (this.loadingTimeoutTimer) {
+      clearTimeout(this.loadingTimeoutTimer);
+      this.loadingTimeoutTimer = null;
+    }
+  },
+
+  resume() {
+    this.isSuspended = false;
+    this.startUpdateTimer();
+    this.getData();
+  },
+
+  stop() {
+    this.clearUpdateTimer();
+
+    if (this.loadingTimeoutTimer) {
+      clearTimeout(this.loadingTimeoutTimer);
+      this.loadingTimeoutTimer = null;
     }
   },
 
@@ -121,6 +195,10 @@ Module.register("MMM-CalDAV-Tasks", {
    */
   getData() {
     const self = this;
+
+    if (self.isSuspended) {
+      return;
+    }
 
     // Clear any existing timeout
     if (self.loadingTimeoutTimer) {
@@ -141,7 +219,7 @@ Module.register("MMM-CalDAV-Tasks", {
           `<span style='font-size: 0.8em; color: #888;'>Timeout after ${self.config.frontendTimeout / 1000}s</span>`;
         self.updateDom();
         Log.error(
-          `[MMM-CalDAV-Tasks] Frontend timeout - no response after ${self.config.frontendTimeout}ms`
+          `[MMM-CalDAV-Tasks] Frontend timeout - no response after ${self.config.frontendTimeout}ms`,
         );
       } else if (
         self.lastUpdateRequest &&
@@ -155,8 +233,32 @@ Module.register("MMM-CalDAV-Tasks", {
 
     this.sendSocketNotification("MMM-CalDAV-Tasks-UPDATE", {
       id: this.identifier,
-      config: this.config
+      instanceId: this.instanceId,
+      config: this.config,
     });
+  },
+
+  startUpdateTimer() {
+    if (this.updateTimer || this.isSuspended) {
+      return;
+    }
+
+    this.updateTimer = setInterval(() => {
+      if (this.isSuspended) {
+        return;
+      }
+      this.getData();
+      this.updateDom();
+    }, this.config.updateInterval);
+  },
+
+  clearUpdateTimer() {
+    if (!this.updateTimer) {
+      return;
+    }
+
+    clearInterval(this.updateTimer);
+    this.updateTimer = null;
   },
 
   getDom() {
@@ -176,6 +278,7 @@ Module.register("MMM-CalDAV-Tasks", {
     // create element wrapper for show into the module
     const wrapper = document.createElement("div");
     wrapper.className = "MMM-CalDAV-Tasks-wrapper";
+    wrapper.dataset.instanceId = this.instanceId || this.identifier;
 
     // Show error message if present (even with old data)
     if (self.error) {
@@ -204,7 +307,7 @@ Module.register("MMM-CalDAV-Tasks", {
 
     // Initialize long press handlers after the DOM is updated
     setTimeout(() => {
-      self.initLongPressHandlers();
+      self.initLongPressHandlers(wrapper);
     }, 0);
 
     return wrapper;
@@ -317,19 +420,18 @@ Module.register("MMM-CalDAV-Tasks", {
       summary,
       rrule,
       start,
-      dueFormatted
+      dueFormatted,
     } = element;
     const isCompleted = status === "COMPLETED";
     const now = new Date();
 
-    let html = `<div class='${listItemClass}${
-      isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
-    }' data-url-index='${urlIndex}' id='${uid}' vtodo-filename='${filename}'>`;
+    let html = `<div class='${listItemClass}${isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
+      }' data-url-index='${urlIndex}' id='${uid}' vtodo-filename='${filename}'>`;
 
     // icon and VTODO text (summary)
     const priorityIconClass = TaskRenderer.getPriorityIconClass(
       priority,
-      this.config.colorize
+      this.config.colorize,
     );
 
     html += `<div class="${priorityIconClass}">${icon}</div>`;
@@ -355,9 +457,8 @@ Module.register("MMM-CalDAV-Tasks", {
       (this.config.displayStartDate && start) ||
       (this.config.displayDueDate && dueFormatted)
     ) {
-      const dateClass = `MMM-CalDAV-Tasks-Date-Section${
-        isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
-      }`;
+      const dateClass = `MMM-CalDAV-Tasks-Date-Section${isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
+        }`;
       const dateStyle =
         isCompleted && this.config.hideDateSectionOnCompletion
           ? ' style="display:none;"'
@@ -403,9 +504,8 @@ Module.register("MMM-CalDAV-Tasks", {
     const now = new Date();
     const isCompleted = status === "COMPLETED";
 
-    const baseClass = `MMM-CalDAV-Tasks-Date-Section${
-      isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
-    }`;
+    const baseClass = `MMM-CalDAV-Tasks-Date-Section${isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
+      }`;
     const displayStyle =
       isCompleted && this.config.hideDateSectionOnCompletion
         ? ' style="display:none;"'
@@ -437,11 +537,17 @@ Module.register("MMM-CalDAV-Tasks", {
   },
 
   // Handle long press for toggling tasks
-  initLongPressHandlers() {
+  initLongPressHandlers(rootElement) {
     console.debug("[MMM-CalDAV-Tasks] ready for long press");
-    const items = document.querySelectorAll(".MMM-CalDAV-Tasks-List-Item");
+    const items =
+      rootElement?.querySelectorAll(".MMM-CalDAV-Tasks-List-Item") || [];
 
     items.forEach((item) => {
+      if (item.dataset.longPressBound === "true") {
+        return;
+      }
+
+      item.dataset.longPressBound = "true";
       let pressTimer = null;
 
       const toggleCheck = (listItem) => {
@@ -458,7 +564,7 @@ Module.register("MMM-CalDAV-Tasks", {
       const handleToggle = () => {
         const newState = toggleCheck(item);
         console.debug(
-          `[MMM-CalDAV-Tasks] new state: ${newState}, item id: ${item.id}`
+          `[MMM-CalDAV-Tasks] new state: ${newState}, item id: ${item.id}`,
         );
 
         // Simple visual feedback
@@ -474,7 +580,7 @@ Module.register("MMM-CalDAV-Tasks", {
         const li = item.closest("li");
         if (li) {
           const dateSection = li.querySelector(
-            ".MMM-CalDAV-Tasks-Date-Section"
+            ".MMM-CalDAV-Tasks-Date-Section",
           );
           if (dateSection) {
             if (this.config.hideDateSectionOnCompletion) {
@@ -489,10 +595,11 @@ Module.register("MMM-CalDAV-Tasks", {
         // Send notification to backend
         this.sendSocketNotification("MMM-CalDAV-Tasks-TOGGLE", {
           id: item.id,
+          instanceId: this.instanceId,
           status: newState,
           config: this.config,
           urlIndex: item.getAttribute("data-url-index"),
-          filename: item.getAttribute("vtodo-filename")
+          filename: item.getAttribute("vtodo-filename"),
         });
       };
 
@@ -527,61 +634,6 @@ Module.register("MMM-CalDAV-Tasks", {
     });
   },
 
-  getScripts() {
-    return ["task-renderer.js"];
-  },
-
-  getStyles() {
-    return ["MMM-CalDAV-Tasks.css", "font-awesome.css"];
-  },
-
-  socketNotificationReceived(notification, payload) {
-    const self = this;
-
-    if (notification === `MMM-CalDAV-Tasks-Helper-TODOS#${this.identifier}`) {
-      // Clear timeout timer on successful response
-      if (self.loadingTimeoutTimer) {
-        clearTimeout(self.loadingTimeoutTimer);
-        self.loadingTimeoutTimer = null;
-      }
-
-      // Store successful data for graceful fallback
-      self.lastSuccessfulData = payload;
-      self.toDoList = payload;
-      self.error = null; // Clear any previous errors
-      self.lastUpdateRequest = null;
-
-      Log.log("[MMM-CalDAV-Tasks] received payload: ", payload);
-      this.updateDom();
-    }
-    if (notification === `MMM-CalDAV-Tasks-Helper-LOG#${this.identifier}`) {
-      Log.log("LOG: ", payload);
-    }
-    if (notification === `MMM-CalDAV-Tasks-Helper-ERROR#${this.identifier}`) {
-      // Clear timeout timer on error response
-      if (self.loadingTimeoutTimer) {
-        clearTimeout(self.loadingTimeoutTimer);
-        self.loadingTimeoutTimer = null;
-      }
-
-      Log.error("ERROR: ", payload);
-
-      // Graceful fallback: keep showing old data if we have it
-      if (self.lastSuccessfulData) {
-        Log.warn("[MMM-CalDAV-Tasks] Error occurred, keeping previous data");
-        self.toDoList = self.lastSuccessfulData;
-        // Show error briefly but keep old data visible
-        self.error = `${payload}<br><span style='font-size: 0.8em; color: #888;'>Showing previous data</span>`;
-      } else {
-        // No fallback data available
-        self.error = `${payload}<br>`;
-      }
-
-      self.lastUpdateRequest = null;
-      this.updateDom();
-    }
-  },
-
   verifyConfig(config) {
     // Basic client-side validation - detailed validation happens in node_helper
     if (!config.webDavAuth || !config.webDavAuth.url) {
@@ -613,5 +665,5 @@ Module.register("MMM-CalDAV-Tasks", {
     }
 
     return true;
-  }
+  },
 });

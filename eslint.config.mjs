@@ -5,7 +5,7 @@ import pluginN from "eslint-plugin-n";
 
 export default defineConfig([
   {
-    ignores: ["**/node_modules/**", "assets/**", "sounds/**"]
+    ignores: ["**/node_modules/**", "assets/**", "sounds/**"],
   },
   js.configs.recommended,
   {
@@ -15,15 +15,15 @@ export default defineConfig([
       ecmaVersion: 2021,
       sourceType: "commonjs",
       globals: {
-        ...globals.node
-      }
+        ...globals.node,
+      },
     },
     plugins: {
-      n: pluginN
+      n: pluginN,
     },
     rules: {
-      ...pluginN.configs.recommended.rules
-    }
+      ...pluginN.configs.recommended.rules,
+    },
   },
   {
     files: ["MMM-CalDAV-Tasks.js"],
@@ -34,17 +34,17 @@ export default defineConfig([
         ...globals.browser,
         Log: "readonly",
         Module: "readonly",
-        config: "readonly"
-      }
+        config: "readonly",
+      },
     },
     rules: {
       "no-console": [
         "warn",
         {
-          allow: ["warn", "error"]
-        }
-      ]
-    }
+          allow: ["warn", "error"],
+        },
+      ],
+    },
   },
   {
     files: ["**/*.mjs"],
@@ -52,9 +52,9 @@ export default defineConfig([
       ecmaVersion: "latest",
       sourceType: "module",
       globals: {
-        ...globals.node
-      }
-    }
+        ...globals.node,
+      },
+    },
   },
   {
     files: ["tests/**/*.js"],
@@ -63,8 +63,8 @@ export default defineConfig([
       sourceType: "commonjs",
       globals: {
         ...globals.node,
-        ...globals.mocha
-      }
-    }
-  }
+        ...globals.mocha,
+      },
+    },
+  },
 ]);

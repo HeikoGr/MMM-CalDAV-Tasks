@@ -13,8 +13,8 @@ let config = {
     {
       module: "MMM-Cursor",
       config: {
-        timeout: 1500
-      }
+        timeout: 1500,
+      },
     },
 
     { module: "clock", position: "top_left" },
@@ -26,7 +26,7 @@ let config = {
         webDavAuth: {
           url: "https://nc.<your-nextcloud-server>/remote.php/dav/",
           username: "<username>",
-          password: "<password>>"
+          password: "<password>>",
         },
         // includeCalendars: ['Alex', 'Heiko', 'Merle'],
         updateInterval: 60000,
@@ -36,10 +36,10 @@ let config = {
         displayStartDate: false,
         showCompletionPercent: true,
         startsInDays: 30,
-        dateFormat: "DD.MM.YYYY HH:mm"
-      }
-    }
-  ]
+        dateFormat: "DD.MM.YYYY HH:mm",
+      },
+    },
+  ],
 };
 
 if (typeof module !== "undefined") {

@@ -9,26 +9,38 @@
 /* eslint-disable n/no-missing-require */
 const NodeHelper = require("node_helper");
 /* eslint-enable n/no-missing-require */
-const { transformData, sortList, appendUrlIndex } = require("./transformer");
+const { createLevelLogger } = require("./lib/runtime-utils");
+const {
+  transformData,
+  sortList,
+  appendUrlIndex,
+} = require("./lib/transformer");
 const {
   parseList,
   mapEmptyPriorityTo,
   mapEmptySortIndexTo,
   fetchCalendarData,
-  initDAVClient
-} = require("./webDavHelper");
-const VTodoCompleter = require("./vtodo-completer.js");
-const { handleError } = require("./error-handler");
-const { validateConfig } = require("./config-validator");
+  initDAVClient,
+} = require("./lib/webDavHelper");
+const VTodoCompleter = require("./lib/vtodo-completer.js");
+const { handleError } = require("./lib/error-handler");
+const { validateConfig } = require("./lib/config-validator");
 
 module.exports = NodeHelper.create({
   // Track ongoing requests to prevent parallel updates
   pendingRequests: new Map(),
 
+  start() {
+    this.logger = createLevelLogger({
+      prefix: "[MMM-CalDAV-Tasks]",
+      getLevel: () => "info",
+    });
+  },
+
   socketNotificationReceived(notification, payload) {
     const self = this;
-    const moduleId = payload.id;
-    console.log(`Module ID: ${moduleId}`);
+    const moduleId = payload.id || payload.instanceId || "default";
+    this.logger.info(`Module ID: ${moduleId}`);
 
     // Refresh the tasks list
     if (notification === "MMM-CalDAV-Tasks-UPDATE") {
@@ -39,7 +51,7 @@ module.exports = NodeHelper.create({
 
     // Toggle the status of a task on the server
     if (notification === "MMM-CalDAV-Tasks-TOGGLE") {
-      console.log("MMM-CalDAV-Tasks-TOGGLE"); // , payload);
+      this.logger.info("MMM-CalDAV-Tasks-TOGGLE");
       this.toggleStatusViaWebDav(payload.config, payload.filename); // up to here the log shows the correct values (92daf9339-baf6 checked {config})
     }
   },
@@ -49,16 +61,16 @@ module.exports = NodeHelper.create({
 
     // Prevent parallel requests for same module
     if (self.pendingRequests.has(moduleId)) {
-      console.log(
-        `[MMM-CalDAV-Tasks] Skipping update for ${moduleId} - request already in progress`
+      this.logger.info(
+        `[MMM-CalDAV-Tasks] Skipping update for ${moduleId} - request already in progress`,
       );
       return;
     }
 
     self.pendingRequests.set(moduleId, true);
     const startTime = Date.now();
-    console.log(
-      `[MMM-CalDAV-Tasks] Starting data fetch for module ${moduleId}`
+    this.logger.info(
+      `[MMM-CalDAV-Tasks] Starting data fetch for module ${moduleId}`,
     );
 
     try {
@@ -66,7 +78,7 @@ module.exports = NodeHelper.create({
       const {
         valid,
         config: normalizedConfig,
-        errors
+        errors,
       } = validateConfig(config);
 
       if (!valid) {
@@ -79,7 +91,7 @@ module.exports = NodeHelper.create({
         // Log deprecation warnings
         errors
           .filter((e) => e.type === "deprecation")
-          .forEach((e) => console.warn(`[MMM-CalDAV-Tasks] ${e.message}`));
+          .forEach((e) => this.logger.warn(e.message));
       }
 
       // Use normalized config with defaults
@@ -94,11 +106,11 @@ module.exports = NodeHelper.create({
         const rawList = parseList(icsList, effectiveConfig.dateFormat);
         const priorityList = mapEmptyPriorityTo(
           rawList,
-          effectiveConfig.mapEmptyPriorityTo
+          effectiveConfig.mapEmptyPriorityTo,
         );
         const sortIndexList = mapEmptySortIndexTo(
           priorityList,
-          effectiveConfig.mapEmptySortIndexTo
+          effectiveConfig.mapEmptySortIndexTo,
         );
         const indexedList = appendUrlIndex(sortIndexList, i);
         const sortedList = sortList(indexedList, effectiveConfig.sortMethod);
@@ -109,16 +121,16 @@ module.exports = NodeHelper.create({
       }
 
       const duration = Date.now() - startTime;
-      console.log(
-        `[MMM-CalDAV-Tasks] Data fetch completed for module ${moduleId} in ${duration}ms - ${calendarData.length} calendar(s), ${allTasks.length} task(s)`
+      this.logger.info(
+        `Data fetch completed for module ${moduleId} in ${duration}ms - ${calendarData.length} calendar(s), ${allTasks.length} task(s)`,
       );
 
       callback(calendarData);
     } catch (error) {
       const duration = Date.now() - startTime;
-      console.error(
-        `[MMM-CalDAV-Tasks] Data fetch failed for module ${moduleId} after ${duration}ms:`,
-        error.message
+      this.logger.error(
+        `Data fetch failed for module ${moduleId} after ${duration}ms:`,
+        error.message,
       );
       handleError(error, moduleId, self.sendError.bind(self));
     } finally {
@@ -131,13 +143,13 @@ module.exports = NodeHelper.create({
   sendData(moduleId, payload) {
     this.sendSocketNotification(
       `MMM-CalDAV-Tasks-Helper-TODOS#${moduleId}`,
-      payload
+      payload,
     );
   },
 
   async toggleStatusViaWebDav(config, filename) {
     const timeout = config.requestTimeout || 30000;
-    console.log(`[MMM-CalDAV-Tasks] Toggling task status for: ${filename}`);
+    this.logger.info(`Toggling task status for: ${filename}`);
 
     try {
       const client = initDAVClient(config);
@@ -150,16 +162,16 @@ module.exports = NodeHelper.create({
           setTimeout(
             () =>
               reject(
-                new Error(`Toggle task status timed out after ${timeout}ms`)
+                new Error(`Toggle task status timed out after ${timeout}ms`),
               ),
-            timeout
-          )
-        )
+            timeout,
+          ),
+        ),
       ]);
 
-      console.log(`[MMM-CalDAV-Tasks] Successfully toggled task: ${filename}`);
+      this.logger.info(`Successfully toggled task: ${filename}`);
     } catch (error) {
-      console.error("[MMM-CalDAV-Tasks] Toggle error:", error.message);
+      this.logger.error("Toggle error:", error.message);
       // Don't throw - toggle errors shouldn't break the module
     }
   },
@@ -167,14 +179,14 @@ module.exports = NodeHelper.create({
   sendLog(moduleId, payload) {
     this.sendSocketNotification(
       `MMM-CalDAV-Tasks-Helper-LOG#${moduleId}`,
-      payload
+      payload,
     );
   },
 
   sendError(moduleId, payload) {
     this.sendSocketNotification(
       `MMM-CalDAV-Tasks-Helper-ERROR#${moduleId}`,
-      payload
+      payload,
     );
-  }
+  },
 });

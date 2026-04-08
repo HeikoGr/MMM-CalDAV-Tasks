@@ -40,23 +40,27 @@ class MockNodeHelper {
 
 // Mock the node_helper module for require
 const mockNodeHelperModule = {
-  exports: MockNodeHelper
+  exports: MockNodeHelper,
 };
 
 // Inject mock before requiring node_helper
 require.cache["node_helper"] = mockNodeHelperModule;
 
 // Load node_helper functions directly
-const { transformData, sortList, appendUrlIndex } = require("../transformer");
+const {
+  transformData,
+  sortList,
+  appendUrlIndex,
+} = require("../lib/transformer");
 const {
   parseList,
   mapEmptyPriorityTo,
   mapEmptySortIndexTo,
   fetchCalendarData,
-  initDAVClient
-} = require("../webDavHelper");
-const VTodoCompleter = require("../vtodo-completer.js");
-const { validateConfig } = require("../config-validator");
+  initDAVClient,
+} = require("../lib/webDavHelper");
+const VTodoCompleter = require("../lib/vtodo-completer.js");
+const { validateConfig } = require("../lib/config-validator");
 
 // Configuration
 let config = null;
@@ -71,7 +75,7 @@ const flags = {
   showFile: args.includes("--show-file"),
   showUid: args.includes("--show-uid"),
   showCompleted: args.includes("--show-completed"),
-  verbose: args.includes("--verbose") || args.includes("-v")
+  verbose: args.includes("--verbose") || args.includes("-v"),
 };
 
 // Check for --config flag
@@ -88,7 +92,7 @@ function loadConfig() {
     if (!fs.existsSync(configPath)) {
       console.error(`❌ Config file not found: ${configPath}`);
       console.log(
-        "\n💡 Tip: Create config/config.js from config/config.template.js"
+        "\n💡 Tip: Create config/config.js from config/config.template.js",
       );
       process.exit(1);
     }
@@ -99,13 +103,13 @@ function loadConfig() {
     if (configContent.includes("modules:")) {
       // Extract MMM-CalDAV-Tasks module config
       const moduleMatch = configContent.match(
-        /module:\s*['"]MMM-CalDAV-Tasks['"]\s*,[\s\S]*?config:\s*(\{[\s\S]*?\})\s*,?\s*\}/
+        /module:\s*['"]MMM-CalDAV-Tasks['"]\s*,[\s\S]*?config:\s*(\{[\s\S]*?\})\s*,?\s*\}/,
       );
 
       if (!moduleMatch) {
         console.error("❌ MMM-CalDAV-Tasks module not found in config file");
         console.log(
-          "\n💡 Tip: Make sure the module is configured in config.js"
+          "\n💡 Tip: Make sure the module is configured in config.js",
         );
         process.exit(1);
       }
@@ -204,11 +208,11 @@ async function fetchTasks() {
       const rawList = parseList(icsList, effectiveConfig.dateFormat);
       const priorityList = mapEmptyPriorityTo(
         rawList,
-        effectiveConfig.mapEmptyPriorityTo
+        effectiveConfig.mapEmptyPriorityTo,
       );
       const sortIndexList = mapEmptySortIndexTo(
         priorityList,
-        effectiveConfig.mapEmptySortIndexTo
+        effectiveConfig.mapEmptySortIndexTo,
       );
       const indexedList = appendUrlIndex(sortIndexList, i);
       const sortedList = sortList(indexedList, effectiveConfig.sortMethod);
@@ -221,15 +225,15 @@ async function fetchTasks() {
 
     // Display results
     const completedCount = allTasks.filter(
-      (t) => t.status === "COMPLETED"
+      (t) => t.status === "COMPLETED",
     ).length;
     const activeCount = allTasks.length - completedCount;
 
     console.log(
-      `✅ Successfully fetched ${allTasks.length} tasks from ${calendarData.length} calendar(s)`
+      `✅ Successfully fetched ${allTasks.length} tasks from ${calendarData.length} calendar(s)`,
     );
     console.log(
-      `   Active: ${activeCount} | Completed: ${completedCount}${!flags.showCompleted ? " (hidden)" : ""}\n`
+      `   Active: ${activeCount} | Completed: ${completedCount}${!flags.showCompleted ? " (hidden)" : ""}\n`,
     );
 
     calendarData.forEach((calendar, index) => {
@@ -243,13 +247,13 @@ async function fetchTasks() {
         let displayTasks = calendar.tasks;
         if (!flags.showCompleted) {
           displayTasks = displayTasks.filter(
-            (task) => task.status !== "COMPLETED"
+            (task) => task.status !== "COMPLETED",
           );
         }
 
         if (displayTasks.length === 0) {
           console.log(
-            `   ℹ️  No active tasks (use --show-completed to see all)`
+            `   ℹ️  No active tasks (use --show-completed to see all)`,
           );
         } else {
           console.log(`\n   📝 Tasks (${displayTasks.length}):\n`);
@@ -260,7 +264,7 @@ async function fetchTasks() {
 
             // Main task line
             console.log(
-              `      ${index + 1}. ${status} ${summary} ${priority !== "-" ? `[P${priority}]` : ""}`
+              `      ${index + 1}. ${status} ${summary} ${priority !== "-" ? `[P${priority}]` : ""}`,
             );
 
             // Due date
@@ -269,14 +273,14 @@ async function fetchTasks() {
               const isOverdue =
                 new Date(task.due) < new Date() && task.status !== "COMPLETED";
               console.log(
-                `          📅 Due: ${dueDate}${isOverdue ? " ⚠️ OVERDUE" : ""}`
+                `          📅 Due: ${dueDate}${isOverdue ? " ⚠️ OVERDUE" : ""}`,
               );
             }
 
             // Start date
             if (task.dtstart && flags.verbose) {
               console.log(
-                `          🏁 Started: ${task.dtstartFormatted || task.dtstart}`
+                `          🏁 Started: ${task.dtstartFormatted || task.dtstart}`,
               );
             }
 
@@ -295,7 +299,7 @@ async function fetchTasks() {
                   3: "daily",
                   4: "hourly",
                   5: "minutely",
-                  6: "secondly"
+                  6: "secondly",
                 };
                 const freq = freqMap[opts.freq] || "unknown";
                 const interval = opts.interval || 1;
@@ -379,7 +383,7 @@ async function toggleTask(uid) {
   if (!foundTask) {
     console.error(`❌ Task with UID ${uid} not found`);
     console.log(
-      '\n💡 Tip: Run "node --run debug:fetch" to see all available UIDs'
+      '\n💡 Tip: Run "node --run debug:fetch" to see all available UIDs',
     );
     process.exit(1);
   }
@@ -396,7 +400,7 @@ async function toggleTask(uid) {
     console.log("\n✅ Task toggled successfully!");
     console.log(
       "   New status:",
-      foundTask.status === "COMPLETED" ? "IN-PROGRESS" : "COMPLETED"
+      foundTask.status === "COMPLETED" ? "IN-PROGRESS" : "COMPLETED",
     );
 
     console.log("\n🔄 Fetching updated tasks...\n");
@@ -482,7 +486,7 @@ async function main() {
       default:
         console.error(`❌ Unknown command: ${command}`);
         console.log(
-          'Run "node scripts/cli-debug.js help" for usage information\n'
+          'Run "node scripts/cli-debug.js help" for usage information\n',
         );
         process.exit(1);
     }

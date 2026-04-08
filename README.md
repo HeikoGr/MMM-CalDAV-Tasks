@@ -10,10 +10,20 @@ Current development status: **released** \
 ![Small Screenshot](/assets/small_screenshot.png?raw=true)
 
 
+## Features
+
+- Fetches and renders CalDAV task lists from one or more calendars
+- Supports long-press toggling of task completion
+- Keeps previous data visible on transient backend errors
+- Uses per-instance request correlation for parallel module instances
+- Supports `suspend()` / `resume()` so polling stops while the module is hidden
+
+
 
 ## Dependencies
 
 - Working CalDAV Server (e.g. NextCloud with installed Tasks app)
+- Node.js `>=20`
 
 ## NextCloud preparations
 > [!WARNING]
@@ -64,6 +74,18 @@ To use this module, add the following most important settings in the configurati
     },
 },
 ```
+
+## Multi-Instance Behavior
+
+`MMM-CalDAV-Tasks` can be used more than once in the same MagicMirror setup. The frontend now keeps an explicit `instanceId` aligned with the MagicMirror module identifier and scopes long-press DOM handling to the current module wrapper.
+
+If you run several task lists, set a distinct MagicMirror `identifier` in each module block so instances stay easy to distinguish in config and logs.
+
+## Lifecycle Behavior
+
+- On startup the module fetches data immediately and starts the polling timer.
+- While the module is hidden or suspended, the polling timer and frontend timeout watchdog are stopped.
+- On `resume()`, polling restarts and a fresh fetch is triggered right away.
 
 ## Configuration options
 
