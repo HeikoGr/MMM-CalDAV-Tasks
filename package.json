@@ -23,23 +23,21 @@
     "url": "git+https://github.com/HeikoGr/MMM-CalDAV-Tasks.git"
   },
   "scripts": {
-    "lint": "eslint --ext .js && prettier --check .",
-    "lint:fix": "eslint --fix && prettier --write .",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
     "test:spelling": "cspell .",
     "check": "node check.js ../../config/config.js || true",
     "debug": "node scripts/cli-debug.js",
     "debug:help": "node scripts/cli-debug.js help",
     "debug:config": "node scripts/cli-debug.js test-config",
     "debug:fetch": "node scripts/cli-debug.js fetch",
-    "mmcheck": "node scripts/magicmirror-check.mjs --devcontainer-only --current"
+    "mmcheck": "node scripts/magicmirror-check.mjs --devcontainer-only --current",
+    "deps:check": "npm outdated && ncu",
+    "deps:update": "ncu -u && npm install"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
+    "@biomejs/biome": "^2.4.11",
     "cspell": "^10.0.0",
-    "eslint": "^10.2.0",
-    "eslint-plugin-n": "^17.24.0",
-    "globals": "^17.4.0",
-    "prettier": "^3.8.1",
     "prettier-plugin-jinja-template": "^2.1.0"
   },
   "dependencies": {
