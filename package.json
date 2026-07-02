@@ -37,7 +37,7 @@
     "biome:migrate": "biome migrate --write"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.1",
+    "@biomejs/biome": "^2.5.2",
     "cspell": "^10.0.1",
     "prettier-plugin-jinja-template": "^2.2.0"
   },
