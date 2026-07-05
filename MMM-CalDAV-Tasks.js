@@ -61,6 +61,24 @@ Module.register("MMM-CalDAV-Tasks", {
   start() {
     const self = this;
     self.instanceId = this.identifier;
+    this.shared = globalThis.MMModuleShared;
+    this.sharedContext = this.shared.createModuleContext(
+      "MMM-CalDAV-Tasks",
+      this.identifier,
+      {
+        instanceId: this.identifier,
+        logLevel: "info",
+        logStructured: true,
+        logRedaction: true,
+      },
+    );
+    this.transport = this.shared.createTransport({
+      moduleName: "MMM-CalDAV-Tasks",
+      identifier: this.identifier,
+      instanceId: this.sharedContext.instanceId,
+      sendSocketNotification: this.sendSocketNotification.bind(this),
+    });
+    this.notifications = this.transport.notifications;
 
     // Flag for check if module is loaded
     self.loaded = false;
@@ -68,49 +86,17 @@ Module.register("MMM-CalDAV-Tasks", {
     // Initialize TaskRenderer (will be loaded via getScripts())
     // Note: TaskRenderer is loaded asynchronously, so we initialize it in getDom()
 
-    /*
-     * A little fallback if the config is still of the old type
-     * this is for "listUrl" which was a string before
-     */
-    if (self.verifyConfig(self.config)) {
-      if (self.isListUrlSingleValue(self.config.listUrl)) {
-        self.error =
-          "A little config Error in MMM-CalDAV-Task: 'listUrl' should be an array now as the module now supports multiple urls. Example:<br>" +
-          "<div class='MMM-CalDAV-Tasks-New-Config-Note'>" +
-          "<span style='color: #e34c26;'>Old:</span><br> <span style='font-family: Courier; color: lightblue;'>listUrl</span>: <span style='font-family: Courier; color: brown;'>\"https://my-nextcloud.com/remote.php/dav/calendars/cornelius/private-tasks/\"</span><span style='font-family: Courier; color: white;'>,</span><br>" +
-          "<span style='color: #4caf50;'>New:</span><br> <span style='font-family: Courier; color: lightblue;'>listUrl</span>: [<span style='font-family: Courier; color: brown;'>\"https://my-nextcloud.com/remote.php/dav/calendars/cornelius/private-tasks/\"</span><span style='font-family: Courier; color: white;'>,</span>]" +
-          "<span style='color: #4caf50;'><br>Example with two urls:</span><br> <span style='font-family: Courier; color: lightblue;'>listUrl</span>: [" +
-          "<span style='font-family: Courier; color: brown;'>\"https://my-nextcloud.com/remote.php/dav/calendars/cornelius/private-tasks/\"</span><span style='font-family: Courier; color: white;'>,</span><br> " +
-          "<span style='font-family: Courier; color: brown;'>\"https://my-nextcloud.com/remote.php/dav/calendars/cornelius/work-tasks/\"</span><span style='font-family: Courier; color: white;'></span>]," +
-          "</div>";
-        self.updateDom();
-        return;
-      }
-
-      // this is for the old "hideCompletedTasks" boolean which now is "hideCompletedTasksAfter" with a number
-      if (this.config.hideCompletedTasks) {
-        const infoText =
-          "<span style='color:  #e34c26;'>Deprecation:</span> <span style='color: #ffffff;'>The old 'hideCompletedTasks' boolean is deprecated. Use </span>" +
-          "<span style='color: #ffcc00;'>hideCompletedTasksAfter</span><span style='color: #ffffff;'> to specify the number of days after which completed tasks are hidden." +
-          "Use. 0 to hide at once. Example: </span>" +
-          "<br><span style='font-family: Courier; color: lightblue;'>hideCompletedTasksAfter</span>:  <span style='font-family: Courier; color: blue;'>1</span><span style='font-family: Courier; color: white;'>,</span><br></br>";
-        this.error = infoText;
-        self.updateDom();
-        return;
-      }
-
-      // Schedule update timer.
-      self.getData(this.config.mapEmptyPriorityTo); // TODO: here i get the data from
-      self.startUpdateTimer();
-    } else {
-      Log.info("config invalid");
-      self.error = "config invalid";
+    if (!self.verifyConfig(self.config)) {
       self.updateDom();
+      return;
     }
+
+    self.getData();
+    self.startUpdateTimer();
   },
 
   getScripts() {
-    return [this.file("lib/task-renderer.js")];
+    return [this.file("lib/mmm-shared.js"), this.file("lib/task-renderer.js")];
   },
 
   getStyles() {
@@ -120,37 +106,44 @@ Module.register("MMM-CalDAV-Tasks", {
   socketNotificationReceived(notification, payload) {
     const self = this;
 
-    if (notification === `MMM-CalDAV-Tasks-Helper-TODOS#${this.identifier}`) {
+    if (
+      notification === this.notifications.RESPONSE &&
+      payload?.identifier === this.identifier &&
+      payload?.action === "FETCH_TASKS"
+    ) {
       if (self.loadingTimeoutTimer) {
         clearTimeout(self.loadingTimeoutTimer);
         self.loadingTimeoutTimer = null;
       }
 
-      self.lastSuccessfulData = payload;
-      self.toDoList = payload;
+      self.lastSuccessfulData = payload.data;
+      self.toDoList = payload.data;
       self.error = null;
       self.lastUpdateRequest = null;
 
-      Log.log("[MMM-CalDAV-Tasks] received payload: ", payload);
+      Log.log("[MMM-CalDAV-Tasks] received payload", payload);
       this.updateDom();
+      return;
     }
-    if (notification === `MMM-CalDAV-Tasks-Helper-LOG#${this.identifier}`) {
-      Log.log("LOG: ", payload);
-    }
-    if (notification === `MMM-CalDAV-Tasks-Helper-ERROR#${this.identifier}`) {
+
+    if (
+      notification === this.notifications.ERROR &&
+      payload?.identifier === this.identifier
+    ) {
       if (self.loadingTimeoutTimer) {
         clearTimeout(self.loadingTimeoutTimer);
         self.loadingTimeoutTimer = null;
       }
 
-      Log.error("ERROR: ", payload);
+      Log.error("ERROR", payload);
+      const message = payload?.error?.message || "Request failed";
 
       if (self.lastSuccessfulData) {
         Log.warn("[MMM-CalDAV-Tasks] Error occurred, keeping previous data");
         self.toDoList = self.lastSuccessfulData;
-        self.error = `${payload}<br><span style='font-size: 0.8em; color: #888;'>Showing previous data</span>`;
+        self.error = `${message}<br><span style='font-size: 0.8em; color: #888;'>Showing previous data</span>`;
       } else {
-        self.error = `${payload}<br>`;
+        self.error = `${message}<br>`;
       }
 
       self.lastUpdateRequest = null;
@@ -183,16 +176,6 @@ Module.register("MMM-CalDAV-Tasks", {
     }
   },
 
-  isListUrlSingleValue(listUrl) {
-    return typeof listUrl === "string";
-  },
-
-  /*
-   * getData
-   * function example return data and show it in the module wrapper
-   * get a URL request
-   *
-   */
   getData() {
     const self = this;
 
@@ -231,9 +214,7 @@ Module.register("MMM-CalDAV-Tasks", {
       }
     }, self.config.frontendTimeout);
 
-    this.sendSocketNotification("MMM-CalDAV-Tasks-UPDATE", {
-      id: this.identifier,
-      instanceId: this.instanceId,
+    this.transport.sendRequest("FETCH_TASKS", {
       config: this.config,
     });
   },
@@ -592,10 +573,8 @@ Module.register("MMM-CalDAV-Tasks", {
           }
         }
 
-        // Send notification to backend
-        this.sendSocketNotification("MMM-CalDAV-Tasks-TOGGLE", {
+        this.transport.sendRequest("TOGGLE_TASK", {
           id: item.id,
-          instanceId: this.instanceId,
           status: newState,
           config: this.config,
           urlIndex: item.getAttribute("data-url-index"),
@@ -635,7 +614,7 @@ Module.register("MMM-CalDAV-Tasks", {
   },
 
   verifyConfig(config) {
-    // Basic client-side validation - detailed validation happens in node_helper
+    // Frontend validation only checks required credentials.
     if (!config.webDavAuth || !config.webDavAuth.url) {
       this.error =
         "<strong>Configuration Error:</strong><ul>" +
@@ -654,14 +633,6 @@ Module.register("MMM-CalDAV-Tasks", {
         "</ul>";
       Log.error("[MMM-CalDAV-Tasks] Missing webDavAuth credentials");
       return false;
-    }
-
-    // Apply defaults for any missing optional config
-    const defaults = this.defaults;
-    for (const key in defaults) {
-      if (typeof config[key] === "undefined") {
-        config[key] = defaults[key];
-      }
     }
 
     return true;

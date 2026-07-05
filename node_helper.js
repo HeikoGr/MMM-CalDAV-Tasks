@@ -9,7 +9,7 @@
 /* eslint-disable n/no-missing-require */
 const NodeHelper = require("node_helper");
 /* eslint-enable n/no-missing-require */
-const { createLevelLogger } = require("./lib/runtime-utils");
+const shared = require("./lib/mmm-shared");
 const {
   transformData,
   sortList,
@@ -23,7 +23,6 @@ const {
   initDAVClient,
 } = require("./lib/webDavHelper");
 const VTodoCompleter = require("./lib/vtodo-completer.js");
-const { handleError } = require("./lib/error-handler");
 const { validateConfig } = require("./lib/config-validator");
 
 module.exports = NodeHelper.create({
@@ -31,32 +30,57 @@ module.exports = NodeHelper.create({
   pendingRequests: new Map(),
 
   start() {
-    this.logger = createLevelLogger({
-      prefix: "[MMM-CalDAV-Tasks]",
+    this.notifications = shared.buildNotifications("MMM-CalDAV-Tasks");
+    this.transport = shared.createNodeTransport({
+      moduleName: "MMM-CalDAV-Tasks",
+      sendSocketNotification: this.sendSocketNotification.bind(this),
+    });
+    this.errorFactory = shared.createErrorFactory();
+    this.logger = shared.createLogger({
+      moduleName: "MMM-CalDAV-Tasks",
+      identifier: "node_helper",
       getLevel: () => "info",
+      structured: true,
+      redact: true,
     });
   },
 
   socketNotificationReceived(notification, payload) {
-    const self = this;
-    const moduleId = payload.id || payload.instanceId || "default";
-    this.logger.info(`Module ID: ${moduleId}`);
-
-    // Refresh the tasks list
-    if (notification === "MMM-CalDAV-Tasks-UPDATE") {
-      self.getData(moduleId, payload.config, (payload) => {
-        self.sendData(moduleId, payload);
-      });
+    if (notification !== this.notifications.REQUEST) {
+      return;
     }
 
-    // Toggle the status of a task on the server
-    if (notification === "MMM-CalDAV-Tasks-TOGGLE") {
-      this.logger.info("MMM-CalDAV-Tasks-TOGGLE");
-      this.toggleStatusViaWebDav(payload.config, payload.filename); // up to here the log shows the correct values (92daf9339-baf6 checked {config})
+    const moduleId = payload?.identifier || payload?.instanceId || "default";
+    this.logger.info("request received", {
+      moduleId,
+      action: payload?.action,
+      requestId: payload?.requestId,
+    });
+
+    if (payload?.action === "FETCH_TASKS") {
+      this.getData(moduleId, payload?.data?.config, payload);
+      return;
+    }
+
+    if (payload?.action === "TOGGLE_TASK") {
+      this.toggleStatusViaWebDav(payload?.data?.config, payload?.data?.filename)
+        .then(() => {
+          this.transport.sendSuccess(payload, { toggled: true });
+        })
+        .catch((error) => {
+          this.transport.sendError(
+            payload,
+            this.errorFactory.fromException(error, {
+              code: "TOGGLE_FAILED",
+              retryable: true,
+              details: { moduleId },
+            }),
+          );
+        });
     }
   },
 
-  async getData(moduleId, config, callback) {
+  async getData(moduleId, config, requestEnvelope) {
     const self = this;
 
     // Prevent parallel requests for same module
@@ -124,27 +148,25 @@ module.exports = NodeHelper.create({
       this.logger.info(
         `Data fetch completed for module ${moduleId} in ${duration}ms - ${calendarData.length} calendar(s), ${allTasks.length} task(s)`,
       );
-
-      callback(calendarData);
+      this.transport.sendSuccess(requestEnvelope, calendarData);
     } catch (error) {
       const duration = Date.now() - startTime;
       this.logger.error(
         `Data fetch failed for module ${moduleId} after ${duration}ms:`,
-        error.message,
+        { message: error instanceof Error ? error.message : String(error) },
       );
-      handleError(error, moduleId, self.sendError.bind(self));
+      this.transport.sendError(
+        requestEnvelope,
+        this.errorFactory.fromException(error, {
+          code: "FETCH_TASKS_FAILED",
+          retryable: true,
+          details: { moduleId },
+        }),
+      );
     } finally {
       // Always clean up pending request
       self.pendingRequests.delete(moduleId);
     }
-  },
-
-  // TODO: was this the function meant to toggle the status on the server side?
-  sendData(moduleId, payload) {
-    this.sendSocketNotification(
-      `MMM-CalDAV-Tasks-Helper-TODOS#${moduleId}`,
-      payload,
-    );
   },
 
   async toggleStatusViaWebDav(config, filename) {
@@ -171,22 +193,11 @@ module.exports = NodeHelper.create({
 
       this.logger.info(`Successfully toggled task: ${filename}`);
     } catch (error) {
-      this.logger.error("Toggle error:", error.message);
-      // Don't throw - toggle errors shouldn't break the module
+      this.logger.error("Toggle error", {
+        message: error instanceof Error ? error.message : String(error),
+        filename,
+      });
+      throw error;
     }
-  },
-
-  sendLog(moduleId, payload) {
-    this.sendSocketNotification(
-      `MMM-CalDAV-Tasks-Helper-LOG#${moduleId}`,
-      payload,
-    );
-  },
-
-  sendError(moduleId, payload) {
-    this.sendSocketNotification(
-      `MMM-CalDAV-Tasks-Helper-ERROR#${moduleId}`,
-      payload,
-    );
   },
 });

@@ -165,11 +165,8 @@ async function testConfig() {
       console.log(`  ${index + 1}. [${error.type}] ${error.message}`);
     });
 
-    const criticalErrors = errors.filter((e) => e.type !== "deprecation");
-    if (criticalErrors.length > 0) {
-      console.log("\n❌ Critical errors found. Please fix your configuration.");
-      process.exit(1);
-    }
+    console.log("\n❌ Configuration errors found. Please fix your configuration.");
+    process.exit(1);
   }
 }
 
@@ -184,16 +181,8 @@ async function fetchTasks() {
     const { valid, config: normalizedConfig, errors } = validateConfig(config);
 
     if (!valid) {
-      const criticalErrors = errors.filter((e) => e.type !== "deprecation");
-      if (criticalErrors.length > 0) {
-        const errorMsg = criticalErrors.map((e) => e.message).join("; ");
-        throw new Error(`Configuration error: ${errorMsg}`);
-      }
-
-      // Log deprecation warnings
-      errors
-        .filter((e) => e.type === "deprecation")
-        .forEach((e) => console.warn(`[CLI] ${e.message}`));
+      const errorMsg = errors.map((e) => e.message).join("; ");
+      throw new Error(`Configuration error: ${errorMsg}`);
     }
 
     // Use normalized config with defaults
