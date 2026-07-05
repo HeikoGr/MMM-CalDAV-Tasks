@@ -501,7 +501,6 @@ node scripts/cli-debug.js fetch --show-completed > tasks.txt
 
 The CLI tool uses the following modules:
 - `config-validator.js` - Configuration validation
-- `error-handler.js` - Error handling
 - `webDavHelper.js` - CalDAV communication
 - `transformer.js` - Data transformation
 - `vtodo-completer.js` - Task completion logic

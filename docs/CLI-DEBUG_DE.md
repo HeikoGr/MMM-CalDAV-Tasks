@@ -192,7 +192,6 @@ Das Tool verwendet die gleichen Backend-Module wie `node_helper.js`:
 - `webDavHelper.js` - CalDAV-Kommunikation
 - `vtodo-completer.js` - Task-Completion (inkl. wiederkehrende Tasks)
 - `config-validator.js` - Konfigurationsvalidierung
-- `error-handler.js` - Fehlerbehandlung
 - `date-utils.js` - Datumsformatierung (indirekt via vtodo-completer)
 
 ### Workflow
