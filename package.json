@@ -1,7 +1,7 @@
 {
   "name": "mmm-caldav-tasks",
   "type": "commonjs",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "MagicMirror module to display and manage CalDAV tasks (to-dos)",
   "keywords": [
     "magicmirror",
@@ -32,12 +32,10 @@
     "debug:config": "node scripts/cli-debug.js test-config",
     "debug:fetch": "node scripts/cli-debug.js fetch",
     "mmcheck": "node scripts/magicmirror-check.mjs --devcontainer-only --current",
-    "deps:check": "npm outdated && ncu",
-    "deps:update": "ncu -u && npm install",
-    "biome:migrate": "biome migrate --write"
+    "deps:update": "ncu -u && npm install && biome migrate --write"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.2",
+    "@biomejs/biome": "^2.5.3",
     "cspell": "^10.0.1",
     "prettier-plugin-jinja-template": "^2.2.0"
   },
