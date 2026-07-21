@@ -1,6 +1,10 @@
 # MMM-CalDAV-Tasks Documentation
 
-This directory contains the repository's additional documentation. The main entry point for installation, configuration, and usage remains [../README.md](../README.md).
+User-facing setup, configuration, and troubleshooting documentation now lives in the project wiki.
+
+- Wiki: <https://github.com/HeikoGr/MMM-CalDAV-Tasks/wiki>
+
+This directory contains the repository's additional technical and development documentation.
 
 ## Contents
 
