@@ -96,7 +96,7 @@ Module.register("MMM-CalDAV-Tasks", {
   },
 
   getScripts() {
-    return [this.file("lib/mmm-shared.js"), this.file("lib/task-renderer.js")];
+    return [this.file("lib/mmm-shared/mmm-shared.js"), this.file("lib/task-renderer.js")];
   },
 
   getStyles() {

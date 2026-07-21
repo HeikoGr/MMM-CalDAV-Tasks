@@ -23,6 +23,7 @@
     "url": "git+https://github.com/HeikoGr/MMM-CalDAV-Tasks.git"
   },
   "scripts": {
+    "postinstall": "node scripts/install-mmm-shared-submodule.js",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "test:spelling": "cspell .",
