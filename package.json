@@ -1,7 +1,7 @@
 {
   "name": "mmm-caldav-tasks",
   "type": "commonjs",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "MagicMirror module to display and manage CalDAV tasks (to-dos)",
   "keywords": [
     "magicmirror",
@@ -27,24 +27,24 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "test:spelling": "cspell .",
-    "check": "node check.js ../../config/config.js || true",
+    "check": "node --run mmcheck",
     "debug": "node scripts/cli-debug.js",
     "debug:help": "node scripts/cli-debug.js help",
     "debug:config": "node scripts/cli-debug.js test-config",
     "debug:fetch": "node scripts/cli-debug.js fetch",
     "mmcheck": "node scripts/magicmirror-check.mjs --devcontainer-only --current",
-    "deps:update": "ncu -u && npm install && biome migrate --write"
+    "deps:update": "npx --yes npm-check-updates -u && npm install && npx @biomejs/biome migrate --write"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.3",
+    "@biomejs/biome": "^2.5.5",
     "cspell": "^10.0.1",
     "prettier-plugin-jinja-template": "^2.2.0"
   },
   "dependencies": {
     "moment": "^2.30.1",
-    "node-ical": "^0.26.1",
+    "node-ical": "^0.27.1",
     "rrule": "^2.8.1",
-    "tsdav": "^2.3.0",
+    "tsdav": "^2.3.1",
     "webdav": "^5.10.0"
   }
 }

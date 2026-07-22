@@ -8,10 +8,18 @@ MagicMirror module for CalDAV task lists, including long-press task completion a
 cd ~/MagicMirror/modules
 git clone https://github.com/HeikoGr/MMM-CalDAV-Tasks
 cd MMM-CalDAV-Tasks
-npm install
+npm ci --omit=dev
 ```
 
-## Minimal Example
+## Update
+
+```bash
+cd ~/MagicMirror/modules/MMM-CalDAV-Tasks
+git pull
+npm ci --omit=dev
+```
+
+## Configuration
 
 ```js
 {
@@ -25,7 +33,7 @@ npm install
         includeCalendars: [],
         updateInterval: 60 * 1000,
     },
-}
+},
 ```
 
 ## Documentation
