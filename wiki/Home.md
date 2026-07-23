@@ -2,6 +2,10 @@
 
 MMM-CalDAV-Tasks displays CalDAV task lists in MagicMirror and can optionally toggle task completion by long press.
 
+## Screenshot
+
+![MMM-CalDAV-Tasks](../assets/example.png)
+
 Use this wiki if you want to:
 
 - install the module cleanly

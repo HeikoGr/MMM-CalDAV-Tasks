@@ -2,6 +2,11 @@
 
 MagicMirror module for CalDAV task lists, including long-press task completion and multi-instance support.
 
+## Screenshots
+
+![Overview](example.png)
+
+
 ## Installation
 
 ```bash
