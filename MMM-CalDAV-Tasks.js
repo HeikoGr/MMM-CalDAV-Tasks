@@ -30,7 +30,7 @@ Module.register("MMM-CalDAV-Tasks", {
     showWithoutDue: true,
     hideCompletedTasksAfter: 1, // 1 day
     dateFormat: "DD.MM.YYYY",
-    headings: [null],
+    headings: [],
     toggleTime: 1000, // mseconds - long press duration
     showCompletionPercent: false,
     mapEmptyPriorityTo: 5,
