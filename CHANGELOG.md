@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.0.0](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v1.1.9...v2.0.0) (2026-08-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ci:** The commit message format is now enforced by commitlint, and users must follow the Conventional Commits specification.
+
+### 🔌 Features
+
+* **ci:** add GitHub Actions workflows for CI and release management ([06d3d43](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/06d3d43b6bf2170a86f328060f5950c8bf089398))
+
+
+### 🐛 Fixes
+
+* **ci:** update Node.js version to 22.22.2 in CI workflows ([41985ca](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/41985cabd4d8e03149ccc89d0babbd578f267a5a))
+
 ## [Unreleased]
 
 ### Changed
