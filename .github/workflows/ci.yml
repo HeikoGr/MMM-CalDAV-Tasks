@@ -31,7 +31,7 @@ jobs:
         with:
           # Test the minimum version declared in package.json engines, not the latest.
           # Otherwise the supported floor is never actually exercised.
-          node-version: '20'
+          node-version: '22.22.2'
           cache: npm
 
       - name: Install dependencies
@@ -61,7 +61,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '22.22.2'
           cache: npm
 
       - name: Install dependencies
