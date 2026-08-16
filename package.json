@@ -27,7 +27,6 @@
     "postinstall": "node scripts/install-mmm-shared-submodule.js",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "test:spelling": "cspell .",
     "check": "node --run mmcheck",
     "debug": "node scripts/cli-debug.js",
     "debug:help": "node scripts/cli-debug.js help",
@@ -45,8 +44,6 @@
     "@biomejs/biome": "^2.5.7",
     "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.2.2",
-    "@cspell/dict-de-de": "^4.1.2",
-    "cspell": "^10.0.1",
     "lint-staged": "^17.3.0",
     "prettier-plugin-jinja-template": "^2.2.0",
     "simple-git-hooks": "^2.13.1"

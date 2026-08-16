@@ -1,5 +1,3 @@
-/* eslint-disable no-redeclare, no-console */
-/* global Module, Log, TaskRenderer */
 
 /*
  * MagicMirror²

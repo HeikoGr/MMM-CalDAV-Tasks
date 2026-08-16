@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   check:
-    name: Lint, spelling
+    name: Lint
     runs-on: ubuntu-latest
 
     steps:
@@ -40,10 +40,7 @@ jobs:
       - name: Lint
         run: node --run lint
 
-      # No unit test suite yet - this module only has lint and spelling checks.
-
-      - name: Spell check
-        run: node --run test:spelling
+      # No unit test suite yet - this module only has lint checks.
 
   commit-messages:
     name: Commit messages

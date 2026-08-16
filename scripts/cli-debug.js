@@ -13,7 +13,6 @@
  *   --config <path>  - Path to config file (default: ./config/config.js)
  */
 
-/* eslint-disable n/no-process-exit */
 // CLI tool requires process.exit() for proper exit codes
 
 const fs = require("fs");
