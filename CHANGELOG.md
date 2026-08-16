@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.0.1](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.0.0...v2.0.1) (2026-08-16)
+
+
+### 🧱 Refactoring
+
+* remove cspell integration and associated vocabulary file ([e253f8b](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/e253f8b3076dbd7585852f290f2812f31fcd407d))
+
 ## [2.0.0](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v1.1.9...v2.0.0) (2026-08-15)
 
 
