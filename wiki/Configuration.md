@@ -6,7 +6,9 @@
 | --- | --- |
 | `webDavAuth` | Required authentication object with `url`, `username`, and `password`. |
 | `includeCalendars` | Optional array of calendar names to include. Empty means all calendars. |
-| `updateInterval` | Refresh interval in milliseconds. |
+| `updateInterval` | Refresh interval in milliseconds. Default: 10 min. The long-press toggle renders optimistically and triggers its own refresh, so it does not need a short interval. |
+| `backgroundRefresh` | Keep refreshing while the module is hidden (e.g. under MMM-Carousel). Default `true`, so showing the module never causes a request. |
+| `quietHours` | Optional window without any polling, e.g. `{ from: "23:00", to: "06:00" }`. |
 | `sortMethod` | Sorting mode such as `priority`, `priority desc`, `created`, `modified desc`. |
 | `headings` | Optional array of headings for grouped output. |
 | `toggleTime` | Long-press time in milliseconds before a task is toggled. |

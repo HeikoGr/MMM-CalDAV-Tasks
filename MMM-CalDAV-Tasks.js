@@ -17,7 +17,15 @@ Module.register("MMM-CalDAV-Tasks", {
     },
     // optional
     includeCalendars: [],
-    updateInterval: 60000,
+    // Task lists change on a scale of minutes; the one case that needs to be
+    // instant is the own long-press toggle, and that renders optimistically and
+    // triggers its own refresh.
+    updateInterval: 10 * 60 * 1000,
+    // Keep refreshing while the module is hidden (e.g. under MMM-Carousel) so
+    // the displayed data is warm whenever the module becomes visible.
+    backgroundRefresh: true,
+    // Optional window without any polling, e.g. { from: "23:00", to: "06:00" }.
+    quietHours: null,
     sortMethod: "priority",
     colorize: false,
     startsInDays: 999999,
@@ -48,12 +56,10 @@ Module.register("MMM-CalDAV-Tasks", {
 
   toDoList: null,
   error: null,
-  renderer: null, // TaskRenderer instance
   lastSuccessfulData: null, // Keep last successful data for graceful fallback
   loadingTimeoutTimer: null, // Timer for frontend timeout detection
   lastUpdateRequest: null, // Timestamp of last update request
-  updateTimer: null,
-  isSuspended: false,
+  lifecycle: null,
   instanceId: null,
 
   start() {
@@ -77,6 +83,13 @@ Module.register("MMM-CalDAV-Tasks", {
       sendSocketNotification: this.sendSocketNotification.bind(this),
     });
     this.notifications = this.transport.notifications;
+    this.logger = this.shared.createLogger({
+      moduleName: "MMM-CalDAV-Tasks",
+      identifier: this.identifier,
+      getLevel: () => (this.config.developerMode ? "debug" : "info"),
+      structured: false,
+      redact: true,
+    });
 
     // Flag for check if module is loaded
     self.loaded = false;
@@ -84,13 +97,24 @@ Module.register("MMM-CalDAV-Tasks", {
     // Initialize TaskRenderer (will be loaded via getScripts())
     // Note: TaskRenderer is loaded asynchronously, so we initialize it in getDom()
 
-    if (!self.verifyConfig(self.config)) {
-      self.updateDom();
-      return;
-    }
+    // An invalid config still gets a lifecycle so rendering and visibility keep
+    // working - it just never fetches.
+    const configValid = self.verifyConfig(self.config);
 
-    self.getData();
-    self.startUpdateTimer();
+    this.lifecycle = this.shared.createLifecycle({
+      module: this,
+      logger: this.logger,
+      updateInterval: this.config.updateInterval,
+      minUpdateInterval: 30 * 1000,
+      backgroundRefresh: this.config.backgroundRefresh !== false,
+      quietHours: this.config.quietHours,
+      onFetch: configValid ? () => this.getData() : null,
+    });
+    this.lifecycle.start();
+
+    if (!configValid) {
+      this.lifecycle.render();
+    }
   },
 
   getScripts() {
@@ -120,7 +144,19 @@ Module.register("MMM-CalDAV-Tasks", {
       self.lastUpdateRequest = null;
 
       Log.log("[MMM-CalDAV-Tasks] received payload", payload);
-      this.updateDom();
+      this.lifecycle.markDataReceived();
+      this.lifecycle.render();
+      return;
+    }
+
+    // A completed toggle invalidates the cached list right away, independent of
+    // the regular interval.
+    if (
+      notification === this.notifications.RESPONSE &&
+      payload?.identifier === this.identifier &&
+      payload?.action === "TOGGLE_TASK"
+    ) {
+      this.lifecycle.requestFetch("task-toggled", { force: true });
       return;
     }
 
@@ -136,6 +172,10 @@ Module.register("MMM-CalDAV-Tasks", {
       Log.error("ERROR", payload);
       const message = payload?.error?.message || "Request failed";
 
+      if (payload?.action === "FETCH_TASKS") {
+        this.lifecycle.markFetchFailed();
+      }
+
       if (self.lastSuccessfulData) {
         Log.warn("[MMM-CalDAV-Tasks] Error occurred, keeping previous data");
         self.toDoList = self.lastSuccessfulData;
@@ -145,41 +185,20 @@ Module.register("MMM-CalDAV-Tasks", {
       }
 
       self.lastUpdateRequest = null;
-      this.updateDom();
+      this.lifecycle.render();
     }
   },
 
   suspend() {
-    this.isSuspended = true;
-    this.clearUpdateTimer();
-
-    if (this.loadingTimeoutTimer) {
-      clearTimeout(this.loadingTimeoutTimer);
-      this.loadingTimeoutTimer = null;
-    }
+    this.lifecycle.suspend();
   },
 
   resume() {
-    this.isSuspended = false;
-    this.startUpdateTimer();
-    this.getData();
-  },
-
-  stop() {
-    this.clearUpdateTimer();
-
-    if (this.loadingTimeoutTimer) {
-      clearTimeout(this.loadingTimeoutTimer);
-      this.loadingTimeoutTimer = null;
-    }
+    this.lifecycle.resume();
   },
 
   getData() {
     const self = this;
-
-    if (self.isSuspended) {
-      return;
-    }
 
     // Clear any existing timeout
     if (self.loadingTimeoutTimer) {
@@ -198,7 +217,8 @@ Module.register("MMM-CalDAV-Tasks", {
           "No response from CalDAV server.<br>" +
           "Check your network connection and server settings.<br>" +
           `<span style='font-size: 0.8em; color: #888;'>Timeout after ${self.config.frontendTimeout / 1000}s</span>`;
-        self.updateDom();
+        self.lifecycle.markFetchFailed();
+        self.lifecycle.render();
         Log.error(
           `[MMM-CalDAV-Tasks] Frontend timeout - no response after ${self.config.frontendTimeout}ms`,
         );
@@ -215,29 +235,6 @@ Module.register("MMM-CalDAV-Tasks", {
     this.transport.sendRequest("FETCH_TASKS", {
       config: this.config,
     });
-  },
-
-  startUpdateTimer() {
-    if (this.updateTimer || this.isSuspended) {
-      return;
-    }
-
-    this.updateTimer = setInterval(() => {
-      if (this.isSuspended) {
-        return;
-      }
-      this.getData();
-      this.updateDom();
-    }, this.config.updateInterval);
-  },
-
-  clearUpdateTimer() {
-    if (!this.updateTimer) {
-      return;
-    }
-
-    clearInterval(this.updateTimer);
-    this.updateTimer = null;
   },
 
   getDom() {
@@ -330,43 +327,6 @@ Module.register("MMM-CalDAV-Tasks", {
     });
 
     return ul;
-  },
-
-  shouldHideElement(element) {
-    const now = new Date();
-
-    if (
-      element.status === "COMPLETED" &&
-      this.config.hideCompletedTasksAfter !== null
-    ) {
-      const completedDate = new Date(element.completed);
-      const daysSinceCompleted = (now - completedDate) / (1000 * 60 * 60 * 24);
-      if (daysSinceCompleted > this.config.hideCompletedTasksAfter) {
-        return true;
-      }
-    }
-
-    if (element.start) {
-      const start = new Date(element.start);
-      const daysUntilStart = (start - now) / (1000 * 60 * 60 * 24);
-      if (daysUntilStart > this.config.startsInDays) {
-        return true;
-      }
-    } else if (!this.config.showWithoutStart) {
-      return true;
-    }
-
-    if (element.end) {
-      const end = new Date(element.end);
-      const daysUntilDue = (end - now) / (1000 * 60 * 60 * 24);
-      if (daysUntilDue > this.config.dueInDays) {
-        return true;
-      }
-    } else if (!this.config.showWithoutDue) {
-      return true;
-    }
-
-    return false;
   },
 
   addHeadingIfNeeded(ul, element) {
