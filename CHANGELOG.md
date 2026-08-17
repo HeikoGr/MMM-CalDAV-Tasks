@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.1.0](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.0.1...v2.1.0) (2026-08-17)
+
+
+### 🔌 Features
+
+* **devcontainer:** add postStart.sh script for credential management ([bfb632a](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/bfb632a9e36fb0ae2a26b9968538bf0d7d933a12))
+* **devcontainer:** enhance devcontainer configuration and add Playwright MCP support ([5a7e978](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/5a7e97819ae67c28dd8ca019cb6431722441dcc7))
+
+
+### 🐛 Fixes
+
+* **deps:** restore Dependabot configuration for GitHub Actions and npm updates ([5a7e978](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/5a7e97819ae67c28dd8ca019cb6431722441dcc7))
+
+
+### 🧱 Refactoring
+
+* **tasks:** improve task lifecycle management and update interval handling ([5a7e978](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/5a7e97819ae67c28dd8ca019cb6431722441dcc7))
+
+
+### 📚 Documentation
+
+* update configuration documentation for new options ([5a7e978](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/5a7e97819ae67c28dd8ca019cb6431722441dcc7))
+
 ## [2.0.1](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.0.0...v2.0.1) (2026-08-16)
 
 
