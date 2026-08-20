@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.1.1](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.1.0...v2.1.1) (2026-08-20)
+
+
+### 📦 Build & Dependencies
+
+* **deps:** bump @biomejs/biome to version 2.5.9 ([b52b084](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/b52b0846950809e4722bb057cf9bd5b91f15ed48))
+
 ## [2.1.0](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.0.1...v2.1.0) (2026-08-17)
 
 
