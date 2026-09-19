@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.2.0](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.1.1...v2.2.0) (2026-09-19)
+
+
+### 🔌 Features
+
+* modernize task rendering and improve CalDAV reliability ([fc69975](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/fc699758860c7ea9f2c07e1d3341ac7a2fcbbfdb))
+
 ## [2.1.1](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.1.0...v2.1.1) (2026-08-20)
 
 
