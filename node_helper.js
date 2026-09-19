@@ -104,16 +104,9 @@ module.exports = NodeHelper.create({
       } = validateConfig(config);
 
       if (!valid) {
-        const criticalErrors = errors.filter((e) => e.type !== "deprecation");
-        if (criticalErrors.length > 0) {
-          const errorMsg = criticalErrors.map((e) => e.message).join("; ");
-          throw new Error(`Configuration error: ${errorMsg}`);
-        }
-
-        // Log deprecation warnings
-        errors
-          .filter((e) => e.type === "deprecation")
-          .forEach((e) => this.logger.warn(e.message));
+        throw new Error(
+          `Configuration error: ${errors.map((e) => e.message).join("; ")}`,
+        );
       }
 
       // Use normalized config with defaults

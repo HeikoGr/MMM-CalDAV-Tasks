@@ -179,9 +179,13 @@ Module.register("MMM-CalDAV-Tasks", {
       if (self.lastSuccessfulData) {
         Log.warn("[MMM-CalDAV-Tasks] Error occurred, keeping previous data");
         self.toDoList = self.lastSuccessfulData;
-        self.error = `${message}<br><span style='font-size: 0.8em; color: #888;'>Showing previous data</span>`;
+        self.error = {
+          title: "Update failed",
+          lines: [message],
+          hint: "Showing previous data",
+        };
       } else {
-        self.error = `${message}<br>`;
+        self.error = { title: "Error", lines: [message] };
       }
 
       self.lastUpdateRequest = null;
@@ -212,11 +216,14 @@ Module.register("MMM-CalDAV-Tasks", {
     self.loadingTimeoutTimer = setTimeout(() => {
       if (!self.toDoList && !self.lastSuccessfulData) {
         // First load failed
-        self.error =
-          "<strong>Request Timeout:</strong><br>" +
-          "No response from CalDAV server.<br>" +
-          "Check your network connection and server settings.<br>" +
-          `<span style='font-size: 0.8em; color: #888;'>Timeout after ${self.config.frontendTimeout / 1000}s</span>`;
+        self.error = {
+          title: "Request Timeout",
+          lines: [
+            "No response from CalDAV server.",
+            "Check your network connection and server settings.",
+          ],
+          hint: `Timeout after ${self.config.frontendTimeout / 1000}s`,
+        };
         self.lifecycle.markFetchFailed();
         self.lifecycle.render();
         Log.error(
@@ -258,35 +265,96 @@ Module.register("MMM-CalDAV-Tasks", {
 
     // Show error message if present (even with old data)
     if (self.error) {
-      const errorDiv = document.createElement("div");
-      errorDiv.className = "MMM-CalDAV-Tasks-error";
-      errorDiv.innerHTML = self.error;
-      wrapper.appendChild(errorDiv);
+      wrapper.appendChild(self.createErrorElement(self.error));
     }
 
     if (self.toDoList) {
       for (const element of self.toDoList) {
-        const calWrapper = document.createElement("div");
-        calWrapper.className = "MMM-CalDAV-Tasks-Calendar-wrapper";
-        const h2 = document.createElement("h2");
-        h2.textContent = element.summary;
-        h2.className = "MMM-CalDAV-Tasks-Calendar-Heading";
-        h2.style.color = element.calendarColor;
-        calWrapper.appendChild(h2);
-        calWrapper.appendChild(self.renderList(element.tasks));
-        wrapper.appendChild(calWrapper);
+        wrapper.appendChild(self.renderCalendar(element));
       }
     } else if (!self.error) {
-      // Only show loading if we don't have an error message
-      wrapper.innerHTML = "<div>Loading...</div>";
+      const loading = document.createElement("div");
+      loading.className = "MMM-CalDAV-Tasks-Loading";
+      loading.textContent = "Loading...";
+      wrapper.appendChild(loading);
     }
 
-    // Initialize long press handlers after the DOM is updated
-    setTimeout(() => {
-      self.initLongPressHandlers(wrapper);
-    }, 0);
-
     return wrapper;
+  },
+
+  createErrorElement(error) {
+    const errorDiv = document.createElement("div");
+    errorDiv.className = "MMM-CalDAV-Tasks-error";
+
+    const title = document.createElement("div");
+    title.className = "MMM-CalDAV-Tasks-error-title";
+    title.textContent = error.title;
+    errorDiv.appendChild(title);
+
+    for (const line of error.lines) {
+      const lineDiv = document.createElement("div");
+      lineDiv.textContent = line;
+      errorDiv.appendChild(lineDiv);
+    }
+
+    if (error.hint) {
+      const hint = document.createElement("div");
+      hint.className = "MMM-CalDAV-Tasks-error-hint";
+      hint.textContent = error.hint;
+      errorDiv.appendChild(hint);
+    }
+
+    return errorDiv;
+  },
+
+  renderCalendar(calendar) {
+    const calWrapper = document.createElement("div");
+    calWrapper.className = "MMM-CalDAV-Tasks-Calendar-wrapper";
+    if (calendar.calendarColor) {
+      calWrapper.style.setProperty(
+        "--calendar-color",
+        calendar.calendarColor,
+      );
+    }
+
+    const header = document.createElement("div");
+    header.className = "MMM-CalDAV-Tasks-Calendar-Header";
+
+    const h2 = document.createElement("h2");
+    h2.textContent = calendar.summary;
+    h2.className = "MMM-CalDAV-Tasks-Calendar-Heading";
+    header.appendChild(h2);
+
+    const { total, done } = TaskRenderer.countTasks(calendar.tasks, this.config);
+    if (total > 0) {
+      const count = document.createElement("span");
+      count.className = "MMM-CalDAV-Tasks-Count";
+      count.textContent = `${total - done}`;
+      header.appendChild(count);
+    }
+
+    calWrapper.appendChild(header);
+
+    if (total > 0 && done > 0) {
+      const track = document.createElement("div");
+      track.className = "MMM-CalDAV-Tasks-Progress";
+      const bar = document.createElement("div");
+      bar.className = "MMM-CalDAV-Tasks-Progress-Bar";
+      bar.style.width = `${Math.round((done / total) * 100)}%`;
+      track.appendChild(bar);
+      calWrapper.appendChild(track);
+    }
+
+    if (total === 0) {
+      const empty = document.createElement("div");
+      empty.className = "MMM-CalDAV-Tasks-Empty";
+      empty.textContent = "All done";
+      calWrapper.appendChild(empty);
+    } else {
+      calWrapper.appendChild(this.renderList(calendar.tasks));
+    }
+
+    return calWrapper;
   },
 
   // create list of tasks
@@ -307,15 +375,7 @@ Module.register("MMM-CalDAV-Tasks", {
       }
 
       self.addHeadingIfNeeded(ul, element);
-
-      const listItemClass = "MMM-CalDAV-Tasks-List-Item";
-      const icon = TaskRenderer.getIconHTML(element.status);
-
-      li.innerHTML = self.createListItemHTML(element, listItemClass, icon);
-
-      if (self.config.showCompletionPercent === true) {
-        self.drawCompletionCanvas(li, element);
-      }
+      li.appendChild(self.createListItem(element));
 
       if (element.children) {
         const childList = self.renderList(element.children, false);
@@ -349,246 +409,238 @@ Module.register("MMM-CalDAV-Tasks", {
     }
   },
 
-  createListItemHTML(element, listItemClass, icon) {
-    const {
-      priority,
-      status,
-      urlIndex,
-      uid,
-      filename,
-      summary,
-      rrule,
-      start,
-      dueFormatted,
-    } = element;
+  createListItem(element) {
+    const { priority, status, urlIndex, uid, filename, summary, rrule } =
+      element;
     const isCompleted = status === "COMPLETED";
-    const now = new Date();
 
-    let html = `<div class='${listItemClass}${isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
-      }' data-url-index='${urlIndex}' id='${uid}' vtodo-filename='${filename}'>`;
+    const item = document.createElement("div");
+    item.className = "MMM-CalDAV-Tasks-List-Item";
+    if (isCompleted) {
+      item.classList.add("MMM-CalDAV-Tasks-Completed");
+    }
+    item.dataset.urlIndex = urlIndex;
+    item.id = uid;
+    item.setAttribute("vtodo-filename", filename);
 
-    // icon and VTODO text (summary)
-    const priorityIconClass = TaskRenderer.getPriorityIconClass(
+    const iconBox = document.createElement("div");
+    iconBox.className = TaskRenderer.getPriorityIconClass(
       priority,
       this.config.colorize,
     );
+    iconBox.appendChild(TaskRenderer.createIcon(status));
+    item.appendChild(iconBox);
 
-    html += `<div class="${priorityIconClass}">${icon}</div>`;
-    html += `<div class='MMM-CalDAV-Tasks-Summary'>${summary}</div>`;
+    const body = document.createElement("div");
+    body.className = "MMM-CalDAV-Tasks-Body";
 
-    // percentage
-    html += "<div class='MMM-CalDAV-Tasks-Percentage'>";
-    if (this.config.showCompletionPercent) {
-      html += "<canvas class='MMM-CalDAV-Tasks-CompletionCanvas'></canvas>";
-    }
-    html += "</div>";
-
-    // rrule-icon
+    const summaryDiv = document.createElement("div");
+    summaryDiv.className = "MMM-CalDAV-Tasks-Summary";
+    summaryDiv.textContent = summary;
     if (rrule) {
-      html +=
-        '<div class="MMM-CalDAV-Tasks-RRule-Icon fa-solid fa-repeat"></div>';
-    } else {
-      html += '<div class="MMM-CalDAV-Tasks-RRule-Icon">&nbsp;</div>';
+      const repeat = document.createElement("span");
+      repeat.className =
+        "MMM-CalDAV-Tasks-RRule-Icon fa-solid fa-repeat";
+      summaryDiv.appendChild(repeat);
     }
+    body.appendChild(summaryDiv);
+    body.appendChild(this.createDateSection(element));
+    item.appendChild(body);
 
-    // date section
-    if (
-      (this.config.displayStartDate && start) ||
-      (this.config.displayDueDate && dueFormatted)
-    ) {
-      const dateClass = `MMM-CalDAV-Tasks-Date-Section${isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
-        }`;
-      const dateStyle =
-        isCompleted && this.config.hideDateSectionOnCompletion
-          ? ' style="display:none;"'
-          : "";
-
-      html += `<div class="${dateClass}"${dateStyle}>`;
-
-      if (this.config.displayStartDate && start) {
-        const startDate = new Date(start);
-        const startClass =
-          now > startDate
-            ? "MMM-CalDAV-Tasks-Started"
-            : "MMM-CalDAV-Tasks-StartDate";
-        html += `<span class="${startClass}"> ${startDate.toLocaleDateString(undefined, this.config.dateFormat)}</span>`;
-      }
-
-      if (this.config.displayDueDate && dueFormatted) {
-        const dueClass =
-          now > new Date(dueFormatted)
-            ? "MMM-CalDAV-Tasks-Overdue"
-            : "MMM-CalDAV-Tasks-DueDate";
-        html += `<span class="${dueClass}"> ${dueFormatted}</span>`;
-      }
-
-      html += "</div>";
-    } else {
-      html += '<div class="MMM-CalDAV-Tasks-Date-Section"></div>';
-    }
-
-    html += "</div>";
-    return html;
-  },
-
-  drawCompletionCanvas(li, element) {
-    const canvas = li.querySelector("canvas.MMM-CalDAV-Tasks-CompletionCanvas");
-    if (canvas) {
+    if (this.config.showCompletionPercent) {
+      const percentage = document.createElement("div");
+      percentage.className = "MMM-CalDAV-Tasks-Percentage";
+      const canvas = document.createElement("canvas");
+      canvas.className = "MMM-CalDAV-Tasks-CompletionCanvas";
       TaskRenderer.drawCompletionChart(canvas, element.completion, this.config);
+      percentage.appendChild(canvas);
+      item.appendChild(percentage);
     }
+
+    // Fills over toggleTime so the long press shows how long to keep holding.
+    const pressProgress = document.createElement("div");
+    pressProgress.className = "MMM-CalDAV-Tasks-Press-Progress";
+    item.appendChild(pressProgress);
+
+    this.bindLongPress(item);
+
+    return item;
   },
 
   createDateSection(element) {
-    const { status, start, dueFormatted } = element;
+    const { status, dueFormatted, startFormatted } = element;
     const now = new Date();
     const isCompleted = status === "COMPLETED";
+    const language = globalThis.config?.language;
 
-    const baseClass = `MMM-CalDAV-Tasks-Date-Section${isCompleted ? " MMM-CalDAV-Tasks-Completed" : ""
-      }`;
-    const displayStyle =
-      isCompleted && this.config.hideDateSectionOnCompletion
-        ? ' style="display:none;"'
-        : "";
+    const section = document.createElement("div");
+    section.className = "MMM-CalDAV-Tasks-Date-Section";
+    if (isCompleted) {
+      section.classList.add("MMM-CalDAV-Tasks-Completed");
+      if (this.config.hideDateSectionOnCompletion) {
+        section.style.display = "none";
+      }
+    }
 
-    let html = `<div class="${baseClass}"${displayStyle}>`;
-
-    // add start date
+    const start = TaskRenderer.parseISO(element.startISO);
     if (this.config.displayStartDate && start) {
-      const startDate = new Date(start);
-      const startClass =
-        now > startDate
-          ? "MMM-CalDAV-Tasks-Started"
-          : "MMM-CalDAV-Tasks-StartDate";
-      html += `<span class="${startClass}"> ${startDate.toLocaleDateString(undefined, this.config.dateFormat)}</span>`;
+      const hasStarted = now > start;
+      const badge = document.createElement("span");
+      badge.className = "MMM-CalDAV-Tasks-Badge MMM-CalDAV-Tasks-StartDate";
+      if (hasStarted && this.config.highlightStartedTasks) {
+        badge.classList.add("MMM-CalDAV-Tasks-Started");
+      }
+      badge.textContent = this.formatDateLabel(
+        start,
+        now,
+        startFormatted,
+        language,
+        element.startDateOnly,
+      );
+      section.appendChild(badge);
     }
 
-    // add due date
-    if (this.config.displayDueDate && dueFormatted) {
-      const dueClass =
-        now > new Date(dueFormatted)
-          ? "MMM-CalDAV-Tasks-Overdue"
-          : "MMM-CalDAV-Tasks-DueDate";
-      html += `<span class="${dueClass}"> ${dueFormatted}</span>`;
+    const due = TaskRenderer.parseISO(element.dueISO);
+    if (this.config.displayDueDate && due) {
+      const state = TaskRenderer.getDueState(element, now);
+      const badge = document.createElement("span");
+      badge.className = "MMM-CalDAV-Tasks-Badge MMM-CalDAV-Tasks-DueDate";
+      if (state === "overdue" && this.config.highlightOverdueTasks) {
+        badge.classList.add("MMM-CalDAV-Tasks-Overdue");
+      } else if (state === "today" || state === "soon") {
+        badge.classList.add(`MMM-CalDAV-Tasks-Due-${state}`);
+      }
+      badge.textContent = this.formatDateLabel(
+        due,
+        now,
+        dueFormatted,
+        language,
+        element.dueDateOnly,
+      );
+      section.appendChild(badge);
     }
 
-    html += "</div>";
-    return html;
+    return section;
+  },
+
+  /*
+   * Near dates read better relative ("tomorrow", "2 days ago"); anything
+   * further out keeps the configured absolute format. For a task due today
+   * the time of day is the useful part, so "today" gives way to it.
+   */
+  formatDateLabel(date, now, absolute, language, dateOnly) {
+    const days = TaskRenderer.calendarDaysBetween(now, date);
+    if (days === 0 && !dateOnly && absolute) {
+      return absolute;
+    }
+    if (Math.abs(days) <= 7) {
+      return TaskRenderer.formatRelative(date, now, language);
+    }
+    return absolute || TaskRenderer.formatRelative(date, now, language);
   },
 
   // Handle long press for toggling tasks
-  initLongPressHandlers(rootElement) {
-    console.debug("[MMM-CalDAV-Tasks] ready for long press");
-    const items =
-      rootElement?.querySelectorAll(".MMM-CalDAV-Tasks-List-Item") || [];
+  bindLongPress(item) {
+    let pressTimer = null;
+    const progress = item.querySelector(".MMM-CalDAV-Tasks-Press-Progress");
 
-    items.forEach((item) => {
-      if (item.dataset.longPressBound === "true") {
+    const toggleCheck = () => {
+      const iconSpan = item.querySelector(".fa");
+      if (!iconSpan) {
         return;
       }
+      const isChecked = iconSpan.classList.contains("fa-check-square");
+      iconSpan.classList.toggle("fa-check-square", !isChecked);
+      iconSpan.classList.toggle("fa-square", isChecked);
+      return isChecked ? "unchecked" : "checked";
+    };
 
-      item.dataset.longPressBound = "true";
-      let pressTimer = null;
+    const handleToggle = () => {
+      const newState = toggleCheck();
 
-      const toggleCheck = (listItem) => {
-        const iconSpan = listItem.querySelector(".fa");
-        if (!iconSpan) {
-          return;
+      item.classList.add("MMM-CalDAV-Tasks-Toggle-Flash");
+      setTimeout(() => {
+        item.classList.remove("MMM-CalDAV-Tasks-Toggle-Flash");
+      }, 300);
+
+      item.classList.toggle("MMM-CalDAV-Tasks-Completed");
+
+      // The item holds only its own date section; nested tasks keep theirs.
+      const dateSection = item.querySelector(".MMM-CalDAV-Tasks-Date-Section");
+      if (dateSection) {
+        if (this.config.hideDateSectionOnCompletion) {
+          dateSection.style.display =
+            dateSection.style.display === "none" ? "" : "none";
+        } else {
+          dateSection.classList.toggle("MMM-CalDAV-Tasks-Completed");
         }
-        const isChecked = iconSpan.classList.contains("fa-check-square");
-        iconSpan.classList.toggle("fa-check-square", !isChecked);
-        iconSpan.classList.toggle("fa-square", isChecked);
-        return isChecked ? "unchecked" : "checked";
-      };
+      }
 
-      const handleToggle = () => {
-        const newState = toggleCheck(item);
-        console.debug(
-          `[MMM-CalDAV-Tasks] new state: ${newState}, item id: ${item.id}`,
-        );
+      this.transport.sendRequest("TOGGLE_TASK", {
+        id: item.id,
+        status: newState,
+        config: this.config,
+        urlIndex: item.dataset.urlIndex,
+        filename: item.getAttribute("vtodo-filename"),
+      });
+    };
 
-        // Simple visual feedback
-        item.classList.add("MMM-CalDAV-Tasks-Toggle-Flash");
-        setTimeout(() => {
-          item.classList.remove("MMM-CalDAV-Tasks-Toggle-Flash");
-        }, 300);
+    const cancelPress = () => {
+      if (pressTimer) {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+      item.classList.remove("MMM-CalDAV-Tasks-Pressing");
+      progress.style.transition = "none";
+      progress.style.transform = "scaleX(0)";
+    };
 
-        // Toggle completed state
-        item.classList.toggle("MMM-CalDAV-Tasks-Completed");
+    const startPress = () => {
+      cancelPress();
+      item.classList.add("MMM-CalDAV-Tasks-Pressing");
 
-        // Handle date section visibility
-        const li = item.closest("li");
-        if (li) {
-          const dateSection = li.querySelector(
-            ".MMM-CalDAV-Tasks-Date-Section",
-          );
-          if (dateSection) {
-            if (this.config.hideDateSectionOnCompletion) {
-              dateSection.style.display =
-                dateSection.style.display === "none" ? "block" : "none";
-            } else {
-              dateSection.classList.toggle("MMM-CalDAV-Tasks-Completed");
-            }
-          }
-        }
+      // Restart the fill from zero; reading offsetWidth applies the reset
+      // before the new transition starts.
+      void progress.offsetWidth;
+      progress.style.transition = `transform ${this.config.toggleTime}ms linear`;
+      progress.style.transform = "scaleX(1)";
 
-        this.transport.sendRequest("TOGGLE_TASK", {
-          id: item.id,
-          status: newState,
-          config: this.config,
-          urlIndex: item.getAttribute("data-url-index"),
-          filename: item.getAttribute("vtodo-filename"),
-        });
-      };
-
-      const cancelPress = () => {
-        if (pressTimer) {
-          clearTimeout(pressTimer);
-          pressTimer = null;
-        }
-        item.classList.remove("MMM-CalDAV-Tasks-Pressing");
-      };
-
-      const startPress = () => {
-        Log.info(`touch/mouse start on item: ${item.id}`);
+      pressTimer = setTimeout(() => {
         cancelPress();
+        handleToggle();
+      }, this.config.toggleTime);
+    };
 
-        // Add pressing state for visual feedback
-        item.classList.add("MMM-CalDAV-Tasks-Pressing");
-
-        // Set timer for long press
-        pressTimer = setTimeout(() => {
-          item.classList.remove("MMM-CalDAV-Tasks-Pressing");
-          handleToggle();
-        }, this.config.toggleTime);
-      };
-
-      item.addEventListener("mousedown", startPress);
-      item.addEventListener("touchstart", startPress, { passive: true });
-      item.addEventListener("mouseup", cancelPress);
-      item.addEventListener("mouseleave", cancelPress);
-      item.addEventListener("touchend", cancelPress);
-      item.addEventListener("touchcancel", cancelPress);
-    });
+    item.addEventListener("mousedown", startPress);
+    item.addEventListener("touchstart", startPress, { passive: true });
+    item.addEventListener("mouseup", cancelPress);
+    item.addEventListener("mouseleave", cancelPress);
+    item.addEventListener("touchend", cancelPress);
+    item.addEventListener("touchcancel", cancelPress);
   },
 
   verifyConfig(config) {
     // Frontend validation only checks required credentials.
     if (!config.webDavAuth || !config.webDavAuth.url) {
-      this.error =
-        "<strong>Configuration Error:</strong><ul>" +
-        '<li>Required config "webDavAuth.url" is missing.</li>' +
-        "<li>Please configure your CalDAV server URL, username and password.</li>" +
-        "</ul>";
+      this.error = {
+        title: "Configuration Error",
+        lines: [
+          'Required config "webDavAuth.url" is missing.',
+          "Please configure your CalDAV server URL, username and password.",
+        ],
+      };
       Log.error("[MMM-CalDAV-Tasks] Missing required webDavAuth configuration");
       return false;
     }
 
     if (!config.webDavAuth.username || !config.webDavAuth.password) {
-      this.error =
-        "<strong>Configuration Error:</strong><ul>" +
-        "<li>Required credentials missing in webDavAuth.</li>" +
-        "<li>Please provide username and password (use an app password!).</li>" +
-        "</ul>";
+      this.error = {
+        title: "Configuration Error",
+        lines: [
+          "Required credentials missing in webDavAuth.",
+          "Please provide username and password (use an app password!).",
+        ],
+      };
       Log.error("[MMM-CalDAV-Tasks] Missing webDavAuth credentials");
       return false;
     }

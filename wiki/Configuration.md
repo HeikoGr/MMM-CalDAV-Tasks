@@ -30,7 +30,7 @@
 | --- | --- |
 | `displayStartDate` | Show task start dates. |
 | `displayDueDate` | Show task due dates. |
-| `dateFormat` | Output format for displayed dates using Moment.js tokens. |
+| `dateFormat` | Output format for displayed dates using Moment.js tokens. Dates within a week are shown relative ("tomorrow", "2 days ago") in the MagicMirror language instead; all-day tasks drop the time tokens. |
 | `colorize` | Colorize icons based on task priority. |
 | `showCompletionPercent` | Show completion progress as a percentage. |
 | `highlightStartedTasks` | Highlight tasks that have already started. |
@@ -52,11 +52,19 @@
 Useful CSS selectors include:
 
 - `.MMM-CalDAV-Tasks-wrapper`
+- `.MMM-CalDAV-Tasks-Calendar-wrapper` (carries the calendar color as `--calendar-color`)
+- `.MMM-CalDAV-Tasks-Calendar-Header`, `.MMM-CalDAV-Tasks-Count`, `.MMM-CalDAV-Tasks-Progress-Bar`
 - `.MMM-CalDAV-Tasks-List-Item`
-- `.MMM-CalDAV-Tasks-Date-Section`
+- `.MMM-CalDAV-Tasks-Date-Section`, `.MMM-CalDAV-Tasks-Badge`
 - `.MMM-CalDAV-Tasks-Completed`
 - `.MMM-CalDAV-Tasks-Started`
-- `.MMM-CalDAV-Tasks-Overdue`
+- `.MMM-CalDAV-Tasks-Overdue`, `.MMM-CalDAV-Tasks-Due-today`, `.MMM-CalDAV-Tasks-Due-soon`
+- `.MMM-CalDAV-Tasks-Empty`
+- `.MMM-CalDAV-Tasks-Press-Progress` (fills while a long press is held)
 - `.MMM-CalDAV-Tasks-Toggle-Flash`
+
+The module arranges calendars side by side and wraps them when the position runs
+out of width, so a `custom.css` that forces `width`/`display: inline-block` on
+`.MMM-CalDAV-Tasks-Calendar-wrapper` is no longer needed.
 
 If you need full CLI and troubleshooting support while adjusting your config, continue with [CLI Debug](CLI-Debug) or [Troubleshooting](Troubleshooting).
