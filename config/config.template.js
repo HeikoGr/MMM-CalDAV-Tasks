@@ -29,7 +29,7 @@ let config = {
           password: "<password>>",
         },
         // includeCalendars: ['Alex', 'Heiko', 'Merle'],
-        updateInterval: 60000,
+        updateInterval: 10 * 60 * 1000,
         hideCompletedTasksAfter: 0,
         sortMethod: "created",
         colorize: true,

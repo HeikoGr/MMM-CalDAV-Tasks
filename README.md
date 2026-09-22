@@ -36,7 +36,10 @@ npm ci --omit=dev
             password: "<CalDAV_APP_PASSWORD>",
         },
         includeCalendars: [],
-        updateInterval: 60 * 1000,
+        // Default is 10 minutes. Task lists change on a scale of minutes and the
+        // long-press toggle triggers its own refresh, so a shorter interval only
+        // adds traffic.
+        updateInterval: 10 * 60 * 1000,
     },
 },
 ```

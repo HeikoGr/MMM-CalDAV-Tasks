@@ -13,7 +13,7 @@ Add a module block like this to your MagicMirror `config/config.js`:
       password: "<CalDAV_APP_PASSWORD>",
     },
     includeCalendars: [],
-    updateInterval: 60 * 1000,
+    updateInterval: 10 * 60 * 1000,
   },
 }
 ```
@@ -25,5 +25,8 @@ You can run more than one task list in the same MagicMirror setup. If you do, as
 ## Lifecycle Notes
 
 - The module fetches data immediately on startup.
-- While the module is hidden or suspended, polling stops.
-- On resume, polling restarts with a fresh fetch.
+- With the default `backgroundRefresh: true` polling keeps running while the module is
+  hidden or suspended, so the list is already up to date when it becomes visible again.
+- Set `backgroundRefresh: false` to stop polling while hidden; `resume()` then restarts it
+  with a fresh fetch.
+- Use `quietHours` (e.g. `{ from: "23:00", to: "06:00" }`) to pause polling overnight.

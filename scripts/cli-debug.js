@@ -338,6 +338,9 @@ async function fetchTasks() {
 
 /**
  * Toggle task completion status (implements toggleStatusViaWebDav from node_helper)
+ *
+ * Like the long press in the frontend this flips the current status: an open
+ * task is completed, a completed one is reopened.
  */
 async function toggleTask(uid) {
   if (!uid) {
@@ -383,13 +386,18 @@ async function toggleTask(uid) {
   try {
     const client = initDAVClient(config);
     const completer = new VTodoCompleter(client);
-    await completer.completeVTodo(config, filename);
+    const reopen = foundTask.status === "COMPLETED";
+
+    const result = reopen
+      ? await completer.uncompleteVTodo(config, filename)
+      : await completer.completeVTodo(config, filename);
 
     console.log("\n✅ Task toggled successfully!");
-    console.log(
-      "   New status:",
-      foundTask.status === "COMPLETED" ? "IN-PROGRESS" : "COMPLETED",
-    );
+    console.log("   New status:", reopen ? "NEEDS-ACTION" : "COMPLETED");
+    if (result?.new) {
+      console.log("   Completed occurrence written to:", result.new);
+      console.log("   Series moved to its next due date.");
+    }
 
     console.log("\n🔄 Fetching updated tasks...\n");
     await fetchTasks();
@@ -415,7 +423,7 @@ Commands:
   help              Show this help message
   test-config       Validate configuration file
   fetch             Fetch and display all tasks
-  toggle <uid>      Toggle task completion status by UID
+  toggle <uid>      Complete an open task, or reopen a completed one, by UID
 
 Options:
   --config <path>      Path to config file (default: ./config/config.js)

@@ -25,6 +25,7 @@
   "scripts": {
     "prepare": "node scripts/install-hooks.js",
     "postinstall": "node scripts/install-mmm-shared-submodule.js",
+    "test": "node --test tests/*.test.js",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "check": "node --run mmcheck",

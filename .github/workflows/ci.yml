@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   check:
-    name: Lint
+    name: Lint & Test
     runs-on: ubuntu-latest
 
     steps:
@@ -40,7 +40,8 @@ jobs:
       - name: Lint
         run: node --run lint
 
-      # No unit test suite yet - this module only has lint checks.
+      - name: Test
+        run: node --run test
 
   commit-messages:
     name: Commit messages

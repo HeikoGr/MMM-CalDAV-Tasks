@@ -22,6 +22,7 @@ const {
 } = require("./lib/webDavHelper");
 const VTodoCompleter = require("./lib/vtodo-completer.js");
 const { validateConfig } = require("./lib/config-validator");
+const { setLogger } = require("./lib/logger");
 
 module.exports = NodeHelper.create({
   // Track ongoing requests to prevent parallel updates
@@ -41,6 +42,8 @@ module.exports = NodeHelper.create({
       structured: true,
       redact: true,
     });
+    // Route the lib/ modules through the same logger instead of bare console.
+    setLogger(this.logger);
   },
 
   socketNotificationReceived(notification, payload) {
@@ -61,7 +64,11 @@ module.exports = NodeHelper.create({
     }
 
     if (payload?.action === "TOGGLE_TASK") {
-      this.toggleStatusViaWebDav(payload?.data?.config, payload?.data?.filename)
+      this.toggleStatusViaWebDav(
+        payload?.data?.config,
+        payload?.data?.filename,
+        payload?.data?.status,
+      )
         .then(() => {
           this.transport.sendSuccess(payload, { toggled: true });
         })
@@ -96,21 +103,7 @@ module.exports = NodeHelper.create({
     );
 
     try {
-      // Validate and normalize configuration
-      const {
-        valid,
-        config: normalizedConfig,
-        errors,
-      } = validateConfig(config);
-
-      if (!valid) {
-        throw new Error(
-          `Configuration error: ${errors.map((e) => e.message).join("; ")}`,
-        );
-      }
-
-      // Use normalized config with defaults
-      const effectiveConfig = { ...config, ...normalizedConfig };
+      const effectiveConfig = this.normalizeConfig(config);
 
       const allTasks = [];
       const calendarData = await fetchCalendarData(effectiveConfig);
@@ -160,27 +153,66 @@ module.exports = NodeHelper.create({
     }
   },
 
-  async toggleStatusViaWebDav(config, filename) {
-    const timeout = config.requestTimeout || 30000;
-    this.logger.info(`Toggling task status for: ${filename}`);
+  /**
+   * Validate the frontend config and merge in the schema defaults.
+   *
+   * Every path that talks to the server goes through this, so read and write
+   * do not work off two different versions of the same config.
+   * @param {Object} config - The raw config as sent by the frontend.
+   * @returns {Object} The effective configuration.
+   */
+  normalizeConfig(config) {
+    const { valid, config: normalizedConfig, errors } = validateConfig(config);
+
+    if (!valid) {
+      throw new Error(
+        `Configuration error: ${errors.map((e) => e.message).join("; ")}`,
+      );
+    }
+
+    return { ...config, ...normalizedConfig };
+  },
+
+  async toggleStatusViaWebDav(config, filename, status) {
+    const effectiveConfig = this.normalizeConfig(config);
+    const timeout = effectiveConfig.requestTimeout;
+    // The frontend flips the icon optimistically and sends the state it now
+    // shows, so "unchecked" has to reopen the task rather than complete it
+    // a second time.
+    const reopen = status === "unchecked";
+
+    this.logger.info(
+      `${reopen ? "Reopening" : "Completing"} task: ${filename}`,
+    );
 
     try {
-      const client = initDAVClient(config);
-      const completer = new VTodoCompleter(client);
+      const client = initDAVClient(effectiveConfig);
+      const completer = new VTodoCompleter(client, { logger: this.logger });
 
-      // Toggle with timeout
-      await Promise.race([
-        completer.completeVTodo(config, filename),
-        new Promise((_, reject) =>
-          setTimeout(
-            () =>
-              reject(
-                new Error(`Toggle task status timed out after ${timeout}ms`),
-              ),
-            timeout,
-          ),
-        ),
-      ]);
+      const operation = reopen
+        ? completer.uncompleteVTodo(effectiveConfig, filename)
+        : completer.completeVTodo(effectiveConfig, filename);
+
+      // Toggle with timeout. The timer is cleared once the race is decided, so
+      // a finished toggle does not keep a pending handle around for the rest of
+      // the timeout.
+      let timer = null;
+      try {
+        await Promise.race([
+          operation,
+          new Promise((_, reject) => {
+            timer = setTimeout(
+              () =>
+                reject(
+                  new Error(`Toggle task status timed out after ${timeout}ms`),
+                ),
+              timeout,
+            );
+          }),
+        ]);
+      } finally {
+        clearTimeout(timer);
+      }
 
       this.logger.info(`Successfully toggled task: ${filename}`);
     } catch (error) {

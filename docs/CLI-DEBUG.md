@@ -74,7 +74,7 @@ Commands:
   help              Show this help message
   test-config       Validate configuration file
   fetch             Fetch and display all tasks
-  toggle <uid>      Toggle task completion status by UID
+  toggle <uid>      Complete an open task, or reopen a completed one, by UID
 
 Options:
   --config <path>      Path to config file (default: ./config/config.js)
@@ -113,7 +113,7 @@ node scripts/cli-debug.js test-config
     "username": "johndoe",
     "password": "***"
   },
-  "updateInterval": 60000,
+  "updateInterval": 600000,
   "sortMethod": "priority",
   "colorize": false,
   ...
@@ -230,7 +230,13 @@ node scripts/cli-debug.js fetch --show-uid --show-file
 
 ### `toggle <uid>`
 
-Toggles the completion status of a task.
+Toggles the completion status of a task: an open task is completed, a completed one is
+reopened. This mirrors the long press in the module.
+
+For a recurring task, completing it writes two objects: a standalone copy of the finished
+occurrence (new UID, no `RRULE`) and the series itself, moved on to its next due date. If
+the rule has no occurrence left (`COUNT`/`UNTIL` exhausted), the task is completed in
+place and the series ends.
 
 ```bash
 node scripts/cli-debug.js toggle <uid>
@@ -300,7 +306,7 @@ By default, the tool reads configuration from `config/config.js`.
              username: "johndoe",
              password: "app-password"
            },
-           updateInterval: 60000
+           updateInterval: 10 * 60 * 1000
          }
        }
      ]
@@ -315,7 +321,7 @@ By default, the tool reads configuration from `config/config.js`.
        username: "johndoe",
        password: "app-password"
      },
-     updateInterval: 60000
+     updateInterval: 10 * 60 * 1000
    }
    ```
 

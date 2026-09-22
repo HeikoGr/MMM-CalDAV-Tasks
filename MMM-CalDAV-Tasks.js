@@ -94,6 +94,12 @@ Module.register("MMM-CalDAV-Tasks", {
     // Flag for check if module is loaded
     self.loaded = false;
 
+    // developerMode: show the default cursor for easier development. Set once -
+    // it is a document-wide preference, not per render.
+    if (self.config.developerMode) {
+      document.documentElement.style.cursor = "default";
+    }
+
     // Initialize TaskRenderer (will be loaded via getScripts())
     // Note: TaskRenderer is loaded asynchronously, so we initialize it in getDom()
 
@@ -143,7 +149,9 @@ Module.register("MMM-CalDAV-Tasks", {
       self.error = null;
       self.lastUpdateRequest = null;
 
-      Log.log("[MMM-CalDAV-Tasks] received payload", payload);
+      this.logger.debug("received payload", {
+        calendars: payload.data?.length ?? 0,
+      });
       this.lifecycle.markDataReceived();
       this.lifecycle.render();
       return;
@@ -249,14 +257,6 @@ Module.register("MMM-CalDAV-Tasks", {
 
     // Reinitialize usedUrlIndices before updating the DOM so that the headings are displayed correctly
     this.usedUrlIndices = [];
-
-    /*
-     * developerMode: show default cursor for easier development
-     * FontAwesome is already provided by MagicMirror²
-     */
-    if (this.config.developerMode) {
-      document.documentElement.style.cursor = "default";
-    }
 
     // create element wrapper for show into the module
     const wrapper = document.createElement("div");
@@ -401,10 +401,13 @@ Module.register("MMM-CalDAV-Tasks", {
         headingText !== "null" &&
         headingText !== undefined
       ) {
+        const headingItem = document.createElement("li");
+        headingItem.className = "MMM-CalDAV-Tasks-Heading-Item";
         const h2 = document.createElement("h2");
         h2.className = `MMM-CalDAV-Tasks-Heading-${element.urlIndex}`;
         h2.textContent = headingText;
-        ul.appendChild(h2);
+        headingItem.appendChild(h2);
+        ul.appendChild(headingItem);
       }
     }
   },
@@ -420,8 +423,8 @@ Module.register("MMM-CalDAV-Tasks", {
       item.classList.add("MMM-CalDAV-Tasks-Completed");
     }
     item.dataset.urlIndex = urlIndex;
-    item.id = uid;
-    item.setAttribute("vtodo-filename", filename);
+    item.dataset.uid = uid;
+    item.dataset.vtodoFilename = filename;
 
     const iconBox = document.createElement("div");
     iconBox.className = TaskRenderer.getPriorityIconClass(
@@ -577,11 +580,11 @@ Module.register("MMM-CalDAV-Tasks", {
       }
 
       this.transport.sendRequest("TOGGLE_TASK", {
-        id: item.id,
+        id: item.dataset.uid,
         status: newState,
         config: this.config,
         urlIndex: item.dataset.urlIndex,
-        filename: item.getAttribute("vtodo-filename"),
+        filename: item.dataset.vtodoFilename,
       });
     };
 

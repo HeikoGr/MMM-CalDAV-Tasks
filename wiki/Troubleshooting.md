@@ -26,3 +26,17 @@ If you occasionally see temporary WebDAV errors, wait for the next refresh cycle
 - Increase `toggleTime` slightly.
 - Verify that your browser or touchscreen setup does not intercept the gesture.
 - Test the toggle path with the CLI helper if you need to separate UI issues from backend issues.
+
+### What a long press does
+
+The long press toggles: an open task is completed, a completed one is reopened. Completed
+tasks stay visible for `hideCompletedTasksAfter` days, so a mistaken tap can be undone on
+the mirror itself.
+
+For a recurring task, completing one occurrence writes a separate, completed copy of that
+occurrence and moves the series on to its next due date - so the history stays and the
+series keeps running. When the recurrence rule has no occurrence left, the task is simply
+completed and the series ends.
+
+If a write is rejected by the server, the module shows "Update failed / Showing previous
+data" and the task returns to its previous state on the next refresh.

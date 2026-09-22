@@ -36,7 +36,7 @@ let config = {
           username: 'username',
           password: 'password'
         },
-        updateInterval: 60000,
+        updateInterval: 10 * 60 * 1000,
         // ... weitere Optionen
       }
     }
@@ -53,7 +53,7 @@ let config = {
     username: 'username',
     password: 'password'
   },
-  updateInterval: 60000,
+  updateInterval: 10 * 60 * 1000,
   // ... weitere Optionen
 }
 ```
@@ -212,7 +212,10 @@ Das Tool verwendet die gleichen Backend-Module wie `node_helper.js`:
    - Ruft erst `fetchTasks()` auf
    - Findet Task anhand UID
    - Initialisiert DAV-Client
-   - Ruft `VTodoCompleter.completeVTodo()` auf
+   - Ruft je nach aktuellem Status `VTodoCompleter.completeVTodo()` oder
+     `VTodoCompleter.uncompleteVTodo()` auf
+   - Bei wiederkehrenden Tasks: schreibt die erledigte Instanz als eigenes Objekt und
+     verschiebt die Serie auf den nächsten Termin
    - Zeigt aktualisierte Task-Liste
 
 ## Fehlerbehandlung
