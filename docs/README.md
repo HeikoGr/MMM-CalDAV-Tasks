@@ -16,8 +16,8 @@ This directory contains the repository's additional technical and development do
 
 - Requests are correlated per module instance via MagicMirror identifiers.
 - Long-press handlers are only bound within the current module DOM.
-- The backend owns the schedule (`lib/backend-session.js`, a module-local copy shared with
-  the other modules of this author). The frontend sends its config once (`CONFIGURE`) and
+- The backend owns the schedule (`lib/mmm-shared/backend-session.js`, shared with the
+  other modules of this author). The frontend sends its config once (`CONFIGURE`) and
   reports whether it is visible (`SESSION_STATE`); `node_helper` runs one
   `createLifecycle` from `lib/mmm-shared` per instance on the server - interval, jitter,
   `quietHours`, backoff - and pushes the result as a `DATA` event. With the default

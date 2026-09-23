@@ -5,7 +5,7 @@
  * By Jan Ryklikas
  * MIT Licensed.
  *
- * Wiring only: the backend schedule lives in lib/backend-session.js, the work
+ * Wiring only: the backend schedule lives in lib/mmm-shared/backend-session.js, the work
  * in lib/task-pipeline.js (read) and lib/task-toggle.js (write).
  */
 
@@ -14,7 +14,7 @@ const shared = require("./lib/mmm-shared/mmm-shared");
 const { fetchCalendarData } = require("./lib/webDavHelper");
 const { normalizeConfig } = require("./lib/config-validator");
 const { setLogger } = require("./lib/logger");
-const { createInstanceHub, formatLogEntry } = require("./lib/backend-session");
+const { createInstanceHub, formatLogEntry } = require("./lib/mmm-shared/backend-session");
 const { buildTaskLists } = require("./lib/task-pipeline");
 const { toggleTask } = require("./lib/task-toggle");
 
@@ -41,13 +41,13 @@ const CRITICAL_CONFIG_KEYS = Object.freeze(["webDavAuth"]);
 module.exports = NodeHelper.create({
   start() {
     // The module's own logLevel arrives with CONFIGURE; until then only the
-    // global level applies ("debug" = no extra filter).
+    // global level applies.
     this.logLevel = undefined;
     this.logger = shared.createLogger({
       moduleName: MODULE_NAME,
       identifier: "node_helper",
       consoleRef: logSink,
-      getLevel: () => this.logLevel || "debug",
+      getLevel: () => this.logLevel,
       structured: true,
       redact: true,
     });

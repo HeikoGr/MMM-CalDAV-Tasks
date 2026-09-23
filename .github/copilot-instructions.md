@@ -19,11 +19,10 @@
   (`createTransport`/`createNodeTransport`), `createLogger`, `createErrorFactory` and
   `createLifecycle`. Do not reimplement polling, request correlation or logging locally.
 - The backend owns the schedule (MODULE-PLAN C1-C3): the frontend sends `CONFIGURE` once and
-  `SESSION_STATE` (active/paused); `lib/backend-session.js` runs a `createLifecycle` per
+  `SESSION_STATE` (active/paused); `lib/mmm-shared/backend-session.js` runs a `createLifecycle` per
   instance in `node_helper` and pushes `DATA`/`FETCH_FAILED` events. The frontend lifecycle
-  has no `onFetch` - it only gates rendering (`lifecycle.render()`). `lib/backend-session.js`
-  and `tests/backend-session.test.js` are module-local copies shared with MMM-HomeConnect2,
-  MMM-LibraryMonitor and MMM-Photoprism2; change all copies together.
+  has no `onFetch` - it only gates rendering (`lifecycle.render()`). `backend-session.js` comes
+  from the `lib/mmm-shared` submodule (tests there); change it in the mmm-shared repo.
 - Task filtering by date/completion happens in the backend (`lib/task-filter.js`), not in
   `TaskRenderer`.
 - File layout: `node_helper.js` only wires the hub. Reading: `lib/webDavHelper.js` (DAV) →

@@ -74,10 +74,9 @@ Module.register("MMM-CalDAV-Tasks", {
     this.logger = this.shared.createLogger({
       moduleName: "MMM-CalDAV-Tasks",
       identifier: this.identifier,
-      // MagicMirror's Log applies the global logLevel; the module's own
-      // logLevel can only narrow it ("debug" = no extra filter).
-      consoleRef: globalThis.Log || console,
-      getLevel: () => this.config.logLevel || "debug",
+      // Writes through MagicMirror's Log (global logLevel); the module's own
+      // logLevel can only narrow it.
+      getLevel: () => this.config.logLevel,
       structured: false,
       redact: true,
     });
@@ -99,7 +98,7 @@ Module.register("MMM-CalDAV-Tasks", {
     }
 
     /*
-     * The backend owns the fetch schedule (node_helper + lib/backend-session.js).
+     * The backend owns the fetch schedule (node_helper + lib/mmm-shared/backend-session.js).
      * The lifecycle here only gates rendering while hidden and reports
      * active/paused, which matters for backgroundRefresh: false.
      */
