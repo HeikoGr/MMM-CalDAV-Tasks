@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.3.0](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.2.1...v2.3.0) (2026-09-23)
+
+
+### 🔌 Features
+
+* backend-owned refresh, safer task toggles and logging through MagicMirror's Log ([df5b85f](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/df5b85f9ce67b089e3b839c3d98ebc5e27940b22))
+
+
+### 🧱 Refactoring
+
+* load backend-session.js from the mmm-shared submodule (S5) ([9c7660c](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/9c7660c2284f96bd2d109f3591420a65c5bcadef))
+
 ## [2.2.1](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.2.0...v2.2.1) (2026-09-22)
 
 
