@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.3.1](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.3.0...v2.3.1) (2026-09-23)
+
+
+### 🔧 Tooling
+
+* retrigger CI now that mmm-shared f03681f is published ([33a6537](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/33a65377a7127442773c1f59ddfc0cc0e4ab2b4a))
+
 ## [2.3.0](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.2.1...v2.3.0) (2026-09-23)
 
 

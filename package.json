@@ -1,7 +1,7 @@
 {
   "name": "mmm-caldav-tasks",
   "type": "commonjs",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "MagicMirror module to display and manage CalDAV tasks (to-dos)",
   "keywords": [
     "magicmirror",
