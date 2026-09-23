@@ -15,8 +15,8 @@
 
 // CLI tool requires process.exit() for proper exit codes
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 // Mock the MagicMirror NodeHelper module
 class MockNodeHelper {
@@ -43,21 +43,11 @@ const mockNodeHelperModule = {
 };
 
 // Inject mock before requiring node_helper
-require.cache["node_helper"] = mockNodeHelperModule;
+require.cache.node_helper = mockNodeHelperModule;
 
 // Load node_helper functions directly
-const {
-  transformData,
-  sortList,
-  appendUrlIndex,
-} = require("../lib/transformer");
-const {
-  parseList,
-  mapEmptyPriorityTo,
-  mapEmptySortIndexTo,
-  fetchCalendarData,
-  initDAVClient,
-} = require("../lib/webDavHelper");
+const { transformData, sortList, appendUrlIndex } = require("../lib/transformer");
+const { parseList, mapEmptyPriorityTo, mapEmptySortIndexTo, fetchCalendarData } = require("../lib/webDavHelper");
 const VTodoCompleter = require("../lib/vtodo-completer.js");
 const { validateConfig } = require("../lib/config-validator");
 
@@ -90,9 +80,7 @@ function loadConfig() {
   try {
     if (!fs.existsSync(configPath)) {
       console.error(`❌ Config file not found: ${configPath}`);
-      console.log(
-        "\n💡 Tip: Create config/config.js from config/config.template.js",
-      );
+      console.log("\n💡 Tip: Create config/config.js from config/config.template.js");
       process.exit(1);
     }
 
@@ -107,15 +95,13 @@ function loadConfig() {
 
       if (!moduleMatch) {
         console.error("❌ MMM-CalDAV-Tasks module not found in config file");
-        console.log(
-          "\n💡 Tip: Make sure the module is configured in config.js",
-        );
+        console.log("\n💡 Tip: Make sure the module is configured in config.js");
         process.exit(1);
       }
 
       // Parse the config object
       // Clean up JavaScript code for eval
-      let configStr = moduleMatch[1];
+      const configStr = moduleMatch[1];
 
       // Use safer function constructor
       const parseConfig = new Function(`return ${configStr}`);
@@ -128,7 +114,7 @@ function loadConfig() {
         process.exit(1);
       }
 
-      config = eval(`(${configMatch[0]})`);
+      config = new Function(`return (${configMatch[0]})`)();
     }
 
     console.log("✅ Configuration loaded successfully");
@@ -194,14 +180,8 @@ async function fetchTasks() {
     for (let i = 0; i < calendarData.length; i++) {
       const icsList = calendarData[i].icsStrings;
       const rawList = parseList(icsList, effectiveConfig.dateFormat);
-      const priorityList = mapEmptyPriorityTo(
-        rawList,
-        effectiveConfig.mapEmptyPriorityTo,
-      );
-      const sortIndexList = mapEmptySortIndexTo(
-        priorityList,
-        effectiveConfig.mapEmptySortIndexTo,
-      );
+      const priorityList = mapEmptyPriorityTo(rawList, effectiveConfig.mapEmptyPriorityTo);
+      const sortIndexList = mapEmptySortIndexTo(priorityList, effectiveConfig.mapEmptySortIndexTo);
       const indexedList = appendUrlIndex(sortIndexList, i);
       const sortedList = sortList(indexedList, effectiveConfig.sortMethod);
       const sortedAppleList = sortList(sortedList, "apple");
@@ -212,17 +192,11 @@ async function fetchTasks() {
     }
 
     // Display results
-    const completedCount = allTasks.filter(
-      (t) => t.status === "COMPLETED",
-    ).length;
+    const completedCount = allTasks.filter((t) => t.status === "COMPLETED").length;
     const activeCount = allTasks.length - completedCount;
 
-    console.log(
-      `✅ Successfully fetched ${allTasks.length} tasks from ${calendarData.length} calendar(s)`,
-    );
-    console.log(
-      `   Active: ${activeCount} | Completed: ${completedCount}${!flags.showCompleted ? " (hidden)" : ""}\n`,
-    );
+    console.log(`✅ Successfully fetched ${allTasks.length} tasks from ${calendarData.length} calendar(s)`);
+    console.log(`   Active: ${activeCount} | Completed: ${completedCount}${!flags.showCompleted ? " (hidden)" : ""}\n`);
 
     calendarData.forEach((calendar, index) => {
       console.log(`📅 Calendar ${index + 1}: ${calendar.summary || "Unnamed"}`);
@@ -234,15 +208,11 @@ async function fetchTasks() {
         // Filter tasks based on flags
         let displayTasks = calendar.tasks;
         if (!flags.showCompleted) {
-          displayTasks = displayTasks.filter(
-            (task) => task.status !== "COMPLETED",
-          );
+          displayTasks = displayTasks.filter((task) => task.status !== "COMPLETED");
         }
 
         if (displayTasks.length === 0) {
-          console.log(
-            `   ℹ️  No active tasks (use --show-completed to see all)`,
-          );
+          console.log(`   ℹ️  No active tasks (use --show-completed to see all)`);
         } else {
           console.log(`\n   📝 Tasks (${displayTasks.length}):\n`);
           displayTasks.forEach((task, index) => {
@@ -251,25 +221,18 @@ async function fetchTasks() {
             const summary = task.summary || "Unnamed task";
 
             // Main task line
-            console.log(
-              `      ${index + 1}. ${status} ${summary} ${priority !== "-" ? `[P${priority}]` : ""}`,
-            );
+            console.log(`      ${index + 1}. ${status} ${summary} ${priority !== "-" ? `[P${priority}]` : ""}`);
 
             // Due date
             if (task.due) {
               const dueDate = task.dueFormatted || task.due;
-              const isOverdue =
-                new Date(task.due) < new Date() && task.status !== "COMPLETED";
-              console.log(
-                `          📅 Due: ${dueDate}${isOverdue ? " ⚠️ OVERDUE" : ""}`,
-              );
+              const isOverdue = new Date(task.due) < new Date() && task.status !== "COMPLETED";
+              console.log(`          📅 Due: ${dueDate}${isOverdue ? " ⚠️ OVERDUE" : ""}`);
             }
 
             // Start date
             if (task.dtstart && flags.verbose) {
-              console.log(
-                `          🏁 Started: ${task.dtstartFormatted || task.dtstart}`,
-              );
+              console.log(`          🏁 Started: ${task.dtstartFormatted || task.dtstart}`);
             }
 
             // Recurrence rule
@@ -291,11 +254,9 @@ async function fetchTasks() {
                 };
                 const freq = freqMap[opts.freq] || "unknown";
                 const interval = opts.interval || 1;
-                const until = opts.until
-                  ? ` until ${new Date(opts.until).toLocaleDateString()}`
-                  : "";
+                const until = opts.until ? ` until ${new Date(opts.until).toLocaleDateString()}` : "";
                 const count = opts.count ? ` (${opts.count} times)` : "";
-                rruleText = `Every ${interval > 1 ? interval + " " : ""}${freq}${until}${count}`;
+                rruleText = `Every ${interval > 1 ? `${interval} ` : ""}${freq}${until}${count}`;
               }
               console.log(`          🔁 Repeats: ${rruleText}`);
             }
@@ -373,9 +334,7 @@ async function toggleTask(uid) {
 
   if (!foundTask) {
     console.error(`❌ Task with UID ${uid} not found`);
-    console.log(
-      '\n💡 Tip: Run "node --run debug:fetch" to see all available UIDs',
-    );
+    console.log('\n💡 Tip: Run "node --run debug:fetch" to see all available UIDs');
     process.exit(1);
   }
 
@@ -384,8 +343,7 @@ async function toggleTask(uid) {
   console.log(`   Filename: ${filename}`);
 
   try {
-    const client = initDAVClient(config);
-    const completer = new VTodoCompleter(client);
+    const completer = new VTodoCompleter();
     const reopen = foundTask.status === "COMPLETED";
 
     const result = reopen
@@ -481,9 +439,7 @@ async function main() {
 
       default:
         console.error(`❌ Unknown command: ${command}`);
-        console.log(
-          'Run "node scripts/cli-debug.js help" for usage information\n',
-        );
+        console.log('Run "node scripts/cli-debug.js help" for usage information\n');
         process.exit(1);
     }
 

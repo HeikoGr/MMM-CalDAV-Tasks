@@ -7,11 +7,13 @@
 | `webDavAuth` | Required authentication object with `url`, `username`, and `password`. |
 | `includeCalendars` | Optional array of calendar names to include. Empty means all calendars. |
 | `updateInterval` | Refresh interval in milliseconds. Default: 10 min. The long-press toggle renders optimistically and triggers its own refresh, so it does not need a short interval. |
-| `backgroundRefresh` | Keep refreshing while the module is hidden (e.g. under MMM-Carousel). Default `true`, so showing the module never causes a request. |
+| `backgroundRefresh` | Keep refreshing while the module is hidden (e.g. under MMM-Carousel). Default `true`, so showing the module never causes a request. With `false`, the backend pauses while every display hides the module. |
 | `quietHours` | Optional window without any polling, e.g. `{ from: "23:00", to: "06:00" }`. |
 | `sortMethod` | Sorting mode such as `priority`, `priority desc`, `created`, `modified desc`. |
 | `headings` | Optional array of headings for grouped output. |
 | `toggleTime` | Long-press time in milliseconds before a task is toggled. |
+| `requestTimeout` | Timeout in milliseconds for each CalDAV request in the backend (login, calendar list, calendar objects) and for a whole toggle. Default: 30 s. |
+| `frontendTimeout` | Time in milliseconds after which the module shows "Request Timeout" if the very first load got no answer. Later refreshes keep the previous data. Default: 60 s. |
 
 ## Filtering And Visibility
 
@@ -45,7 +47,8 @@
 | --- | --- |
 | `mapEmptyPriorityTo` | Fallback priority value for tasks without a priority. |
 | `mapEmptySortIndexTo` | Fallback sort index for tasks without one. |
-| `developerMode` | Load external Font Awesome in development setups where local icon loading fails. |
+| `developerMode` | Development aid: shows the default mouse cursor on the mirror page. |
+| `logLevel` | Optional: `none`, `error`, `warn`, `info` or `debug`. All output goes through MagicMirror's `Log`, so the global `logLevel` in `config.js` decides; this option can only narrow it for this module (e.g. `"warn"` with global `DEBUG`). Unset means the global level alone. Applies in the browser console and in the backend (`pm2 logs`); the backend follows the last instance that configured it. |
 
 ## Styling Hooks
 

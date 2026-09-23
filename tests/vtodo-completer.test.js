@@ -49,16 +49,13 @@ function buildIcs({ rrule = null, alarm = null, extra = [] } = {}) {
  */
 function makeCompleter(ics) {
   const puts = [];
-  const completer = new VTodoCompleter(
-    {},
-    {
-      getFileContents: async () => ({ data: ics }),
-      putFileContents: async (_config, filename, data, options) => {
-        puts.push({ filename, data, options });
-        return { ok: true };
-      },
+  const completer = new VTodoCompleter({
+    getFileContents: async () => ({ data: ics }),
+    putFileContents: async (_config, filename, data, options) => {
+      puts.push({ filename, data, options });
+      return { ok: true };
     },
-  );
+  });
   return { completer, puts };
 }
 
@@ -68,11 +65,7 @@ test("completing a non-recurring task marks it done in place", async () => {
   const { completer, puts } = makeCompleter(buildIcs());
   const completedDate = new Date("2026-09-22T12:00:00Z");
 
-  const result = await completer.completeVTodo(
-    {},
-    FILENAME,
-    completedDate,
-  );
+  const result = await completer.completeVTodo({}, FILENAME, completedDate);
 
   assert.deepEqual(result, { original: FILENAME });
   assert.equal(puts.length, 1);
@@ -85,9 +78,7 @@ test("completing a non-recurring task marks it done in place", async () => {
 });
 
 test("completing a recurring task records the occurrence and moves the series", async () => {
-  const { completer, puts } = makeCompleter(
-    buildIcs({ rrule: "FREQ=DAILY" }),
-  );
+  const { completer, puts } = makeCompleter(buildIcs({ rrule: "FREQ=DAILY" }));
   const completedDate = new Date("2026-09-22T12:00:00Z");
 
   const result = await completer.completeVTodo({}, FILENAME, completedDate);
@@ -118,20 +109,14 @@ test("completing a recurring task records the occurrence and moves the series", 
   assert.equal(prop(series.data, "VTODO", "PERCENT-COMPLETE"), null);
 
   const newDue = icsToDate(prop(series.data, "VTODO", "DUE"));
-  assert.ok(
-    newDue >= startOfToday,
-    `next due ${newDue.toISOString()} must not be in the past`,
-  );
+  assert.ok(newDue >= startOfToday, `next due ${newDue.toISOString()} must not be in the past`);
   // The fixture runs from 08:00 to 10:00; that window has to survive the move.
   const newStart = icsToDate(prop(series.data, "VTODO", "DTSTART"));
   assert.equal(newDue.getTime() - newStart.getTime(), 2 * 60 * 60 * 1000);
 });
 
 test("a series without DTSTART does not get one invented", async () => {
-  const withoutStart = buildIcs({ rrule: "FREQ=DAILY" }).replace(
-    "DTSTART:20200105T080000Z\r\n",
-    "",
-  );
+  const withoutStart = buildIcs({ rrule: "FREQ=DAILY" }).replace("DTSTART:20200105T080000Z\r\n", "");
   const { completer, puts } = makeCompleter(withoutStart);
 
   await completer.completeVTodo({}, FILENAME, new Date("2026-09-22T12:00:00Z"));
@@ -143,9 +128,7 @@ test("a series without DTSTART does not get one invented", async () => {
 
 test("an exhausted RRULE completes the last occurrence instead of jumping to 1970", async () => {
   // Three daily occurrences from 2020 - all of them are long past.
-  const { completer, puts } = makeCompleter(
-    buildIcs({ rrule: "FREQ=DAILY;COUNT=3" }),
-  );
+  const { completer, puts } = makeCompleter(buildIcs({ rrule: "FREQ=DAILY;COUNT=3" }));
   const completedDate = new Date("2026-09-22T12:00:00Z");
 
   const result = await completer.completeVTodo({}, FILENAME, completedDate);
@@ -155,16 +138,11 @@ test("an exhausted RRULE completes the last occurrence instead of jumping to 197
   assert.equal(result.new, null);
   assert.equal(prop(puts[0].data, "VTODO", "STATUS"), "COMPLETED");
   assert.equal(prop(puts[0].data, "VTODO", "DUE"), "20200105T100000Z");
-  assert.ok(
-    !puts[0].data.includes("19700101"),
-    "must not write the epoch as a due date",
-  );
+  assert.ok(!puts[0].data.includes("19700101"), "must not write the epoch as a due date");
 });
 
 test("an UNTIL rule that has run out also completes in place", async () => {
-  const { completer, puts } = makeCompleter(
-    buildIcs({ rrule: "FREQ=WEEKLY;UNTIL=20200201T100000Z" }),
-  );
+  const { completer, puts } = makeCompleter(buildIcs({ rrule: "FREQ=WEEKLY;UNTIL=20200201T100000Z" }));
 
   await completer.completeVTodo({}, FILENAME, new Date("2026-09-22T12:00:00Z"));
 
@@ -174,9 +152,7 @@ test("an UNTIL rule that has run out also completes in place", async () => {
 });
 
 test("a relative VALARM trigger survives completion untouched", async () => {
-  const { completer, puts } = makeCompleter(
-    buildIcs({ rrule: "FREQ=DAILY", alarm: ["TRIGGER:-PT15M"] }),
-  );
+  const { completer, puts } = makeCompleter(buildIcs({ rrule: "FREQ=DAILY", alarm: ["TRIGGER:-PT15M"] }));
 
   // Parsing "-PT15M" as a date used to throw and abort the whole completion.
   await completer.completeVTodo({}, FILENAME, new Date("2026-09-22T12:00:00Z"));
@@ -220,9 +196,7 @@ test("a VALARM without UID does not add a second UID to the task", async () => {
 });
 
 test("the completed occurrence drops the alarm of the series", async () => {
-  const { completer, puts } = makeCompleter(
-    buildIcs({ rrule: "FREQ=DAILY", alarm: ["TRIGGER:-PT15M"] }),
-  );
+  const { completer, puts } = makeCompleter(buildIcs({ rrule: "FREQ=DAILY", alarm: ["TRIGGER:-PT15M"] }));
 
   await completer.completeVTodo({}, FILENAME, new Date("2026-09-22T12:00:00Z"));
 
@@ -260,9 +234,7 @@ test("uncompleteVTodo reopens a completed task", async () => {
 });
 
 test("uncompleting a task that never had COMPLETED still opens it", async () => {
-  const { completer, puts } = makeCompleter(
-    buildIcs({ extra: ["STATUS:COMPLETED"] }),
-  );
+  const { completer, puts } = makeCompleter(buildIcs({ extra: ["STATUS:COMPLETED"] }));
 
   await completer.uncompleteVTodo({}, FILENAME);
 
@@ -288,20 +260,14 @@ test("an all-day task keeps its date-only due value", async () => {
 });
 
 test("a failing write propagates instead of reporting success", async () => {
-  const completer = new VTodoCompleter(
-    {},
-    {
-      getFileContents: async () => ({ data: buildIcs() }),
-      putFileContents: async () => {
-        throw new Error("CalDAV write failed with 403 Forbidden");
-      },
+  const completer = new VTodoCompleter({
+    getFileContents: async () => ({ data: buildIcs() }),
+    putFileContents: async () => {
+      throw new Error("CalDAV write failed with 403 Forbidden");
     },
-  );
+  });
 
-  await assert.rejects(
-    () => completer.completeVTodo({}, FILENAME),
-    /403/,
-  );
+  await assert.rejects(() => completer.completeVTodo({}, FILENAME), /403/);
 });
 
 test("CRLF content is recognised as recurring just like LF content", async () => {
@@ -314,17 +280,17 @@ test("CRLF content is recognised as recurring just like LF content", async () =>
   const crlf = buildIcs({ rrule: "FREQ=DAILY" });
   const lf = crlf.replace(/\r\n/g, "\n");
 
-  for (const [label, ics] of [["CRLF", crlf], ["LF", lf]]) {
+  for (const [label, ics] of [
+    ["CRLF", crlf],
+    ["LF", lf],
+  ]) {
     const { completer, puts } = makeCompleter(ics);
     await completer.completeVTodo({}, FILENAME, new Date("2026-09-22T12:00:00Z"));
 
     assert.equal(puts.length, 2, `${label}: recurring path must run`);
     for (const put of puts) {
       const body = put.data;
-      assert.ok(
-        !/END:VCALENDAR\r\n./.test(body),
-        `${label}: nothing may be appended after END:VCALENDAR`,
-      );
+      assert.ok(!/END:VCALENDAR\r\n./.test(body), `${label}: nothing may be appended after END:VCALENDAR`);
       assert.ok(!body.includes("\r\r"), `${label}: no doubled carriage return`);
     }
     assert.equal(prop(puts[0].data, "VTODO", "STATUS"), "COMPLETED");
@@ -368,16 +334,11 @@ test("a COUNT rule that fell behind only keeps the occurrences still ahead", asy
 });
 
 test("an UNTIL rule is left alone when the series moves", async () => {
-  const { completer, puts } = makeCompleter(
-    buildIcs({ rrule: "FREQ=WEEKLY;UNTIL=20991231T100000Z" }),
-  );
+  const { completer, puts } = makeCompleter(buildIcs({ rrule: "FREQ=WEEKLY;UNTIL=20991231T100000Z" }));
 
   await completer.completeVTodo({}, FILENAME, new Date("2026-09-22T12:00:00Z"));
 
-  assert.equal(
-    prop(puts[1].data, "VTODO", "RRULE"),
-    "FREQ=WEEKLY;UNTIL=20991231T100000Z",
-  );
+  assert.equal(prop(puts[1].data, "VTODO", "RRULE"), "FREQ=WEEKLY;UNTIL=20991231T100000Z");
 });
 
 test("a COUNT series runs out instead of recurring forever", async () => {
@@ -399,4 +360,35 @@ test("a COUNT series runs out instead of recurring forever", async () => {
   assert.deepEqual(written, [2, 2, 1]);
   assert.equal(prop(ics, "VTODO", "STATUS"), "COMPLETED");
   assert.equal(prop(ics, "VTODO", "DUE"), "20990119T100000Z");
+});
+
+test("a folded RRULE is unfolded before the series is moved", async () => {
+  // RFC 5545 folds long lines; the rule only reads "FREQ=DAILY" once unfolded.
+  const ics = buildIcs({ rrule: "FREQ=DA\r\n ILY" });
+  const { completer, puts } = makeCompleter(ics);
+
+  await completer.completeVTodo({}, FILENAME, new Date("2026-09-22T12:00:00Z"));
+
+  assert.equal(puts.length, 2, "recognised as recurring: occurrence plus series");
+  const [occurrence, series] = puts;
+  // The finished occurrence loses the whole folded property, continuation included.
+  assert.ok(!occurrence.data.includes("RRULE"));
+  assert.ok(!occurrence.data.includes(" ILY"));
+  // The untouched rule goes back to the server exactly as it was folded.
+  assert.ok(series.data.includes("RRULE:FREQ=DA\r\n ILY\r\n"));
+  assert.equal(prop(series.data, "VTODO", "STATUS"), "NEEDS-ACTION");
+});
+
+test("folded lines survive a parse and generate round-trip byte-identically", () => {
+  const ics = buildIcs({
+    extra: ["DESCRIPTION:A long description that a client folded at seventy-fi", " ve octets"],
+  });
+  const completer = new VTodoCompleter({});
+
+  const parsed = completer.parseICS(ics);
+  assert.equal(completer.generateICS(parsed), ics);
+  assert.equal(
+    completer.getElementValue(parsed, "VTODO", "DESCRIPTION"),
+    "A long description that a client folded at seventy-five octets",
+  );
 });

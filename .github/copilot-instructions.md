@@ -18,15 +18,30 @@
 - Shared infrastructure comes from the `lib/mmm-shared` submodule: transport
   (`createTransport`/`createNodeTransport`), `createLogger`, `createErrorFactory` and
   `createLifecycle`. Do not reimplement polling, request correlation or logging locally.
-- The frontend owns no fetch timer. `createLifecycle` drives fetching; rendering happens
-  through `lifecycle.render()` after data arrives, never from an interval callback.
+- The backend owns the schedule (MODULE-PLAN C1-C3): the frontend sends `CONFIGURE` once and
+  `SESSION_STATE` (active/paused); `lib/backend-session.js` runs a `createLifecycle` per
+  instance in `node_helper` and pushes `DATA`/`FETCH_FAILED` events. The frontend lifecycle
+  has no `onFetch` - it only gates rendering (`lifecycle.render()`). `lib/backend-session.js`
+  and `tests/backend-session.test.js` are module-local copies shared with MMM-HomeConnect2,
+  MMM-LibraryMonitor and MMM-Photoprism2; change all copies together.
+- Task filtering by date/completion happens in the backend (`lib/task-filter.js`), not in
+  `TaskRenderer`.
+- File layout: `node_helper.js` only wires the hub. Reading: `lib/webDavHelper.js` (DAV) →
+  `lib/task-pipeline.js` (parse, sort, nest, filter). Writing: `TOGGLE_TASK` is routed by the
+  hub (`hub.route`) to `lib/task-toggle.js` → `lib/vtodo-completer.js`. Toggles of one task run
+  one after another; after the timeout no further write starts (AbortSignal checked before each
+  PUT), and a write that finishes late triggers a refresh. Frontend: the module
+  only holds state; `lib/task-renderer.js` builds the DOM (`renderModule`) and
+  `lib/long-press.js` handles the gesture. Both are loaded via `getScripts()` and tested with
+  the fake DOM in `tests/helpers/fake-dom.js`.
 - `lib/` modules log through `lib/logger.js` (fed by `node_helper`), not `console`, so
   levels and password redaction apply.
 - The long-press toggle is the only path that writes to the server, and it works in both
   directions (`completeVTodo` / `uncompleteVTodo` in `lib/vtodo-completer.js`). Recurring
   tasks are split into a completed occurrence plus a series moved to its next due date.
 - ICS content is CRLF. `parseICS` strips the CR; keep it that way - matching against a
-  component name with a trailing CR silently breaks every lookup.
+  component name with a trailing CR silently breaks every lookup. It also unfolds folded
+  lines (`line`) while keeping the raw lines (`original`) for byte-identical write-back.
 
 ## Quality bar
 

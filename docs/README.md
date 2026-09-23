@@ -16,11 +16,25 @@ This directory contains the repository's additional technical and development do
 
 - Requests are correlated per module instance via MagicMirror identifiers.
 - Long-press handlers are only bound within the current module DOM.
-- The frontend lifecycle comes from `lib/mmm-shared` (`createLifecycle`). With the default
-  `backgroundRefresh: true` the polling timer keeps running while the module is hidden, so
-  data is warm on the next `resume()`. Only with `backgroundRefresh: false` do
-  `suspend()`/`resume()` stop and restart it. The frontend timeout (`frontendTimeout`) is
-  armed per request in `getData()` and is independent of visibility.
+- The backend owns the schedule (`lib/backend-session.js`, a module-local copy shared with
+  the other modules of this author). The frontend sends its config once (`CONFIGURE`) and
+  reports whether it is visible (`SESSION_STATE`); `node_helper` runs one
+  `createLifecycle` from `lib/mmm-shared` per instance on the server - interval, jitter,
+  `quietHours`, backoff - and pushes the result as a `DATA` event. With the default
+  `backgroundRefresh: true` it keeps refreshing while the module is hidden; with `false` it
+  pauses while every display of the instance is hidden. A failed refresh is retried with a
+  growing backoff (1, 2, 4 … 30 min) instead of waiting for the next interval.
+- The backend knows which displays are connected: an instance whose browser socket is gone
+  for 10 minutes is released and no longer fetched. A new connection is greeted with
+  `INIT_REQUIRED`, so a display registers again after a server restart without a reload.
+- Two displays of one instance share its schedule. The first `CONFIGURE` decides; a later
+  one with different credentials is refused (`CONFIG_REJECTED`), other differences are only
+  logged.
+- The config is validated once, at `CONFIGURE` (`CONFIG_INVALID` on errors). Which tasks are
+  shown (`startsInDays`, `dueInDays`, `showWithout*`, `hideCompletedTasksAfter`) is decided in
+  the backend (`lib/task-filter.js`); the frontend renders what it gets.
+- `frontendTimeout` only covers the first load: without any answer the module shows
+  "Request Timeout".
 - The long-press toggle works in both directions: `completeVTodo` for an open task,
   `uncompleteVTodo` for a completed one. The frontend sends the state it now shows
   (`checked`/`unchecked`) and `node_helper` picks the matching path.
@@ -31,5 +45,10 @@ This directory contains the repository's additional technical and development do
 - `lib/webDavHelper.js` keeps one logged-in client per account (URL + user + password) for
   ten minutes. The cache key is the account, so instances with different credentials never
   share a session.
+- One fetch per instance runs at a time. A fetch requested while one is running (the
+  refresh after a toggle) runs right after it, so the display never ends up with data read
+  before the write. The pushed data carries the parsed tasks only, not the raw ICS.
+- `parseICS` unfolds RFC 5545 folded lines for reading but writes untouched properties back
+  with their original folding.
 - The write path is covered by `tests/vtodo-completer.test.js`; run it with
-  `node --run test`. See `docs/AUDIT_2026-09-21.md` for the audit these fixes came from.
+  `node --run test`.

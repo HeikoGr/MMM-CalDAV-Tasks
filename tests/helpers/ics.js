@@ -60,9 +60,7 @@ function prop(ics, component, key) {
  * @returns {number} Number of occurrences.
  */
 function countProp(ics, component, key) {
-  return componentLines(ics, component).filter(
-    (line) => line.split(":")[0].split(";")[0] === key,
-  ).length;
+  return componentLines(ics, component).filter((line) => line.split(":")[0].split(";")[0] === key).length;
 }
 
 /**

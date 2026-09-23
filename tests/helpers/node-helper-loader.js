@@ -38,6 +38,8 @@ function loadNodeHelper(webDavStub) {
     helperPath,
     webDavPath,
     require.resolve("../../lib/vtodo-completer.js"),
+    require.resolve("../../lib/task-pipeline.js"),
+    require.resolve("../../lib/task-toggle.js"),
     path.join(stubDir, "webdav.js"),
     path.join(stubDir, "node_helper.js"),
   ];

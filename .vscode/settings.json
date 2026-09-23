@@ -53,7 +53,18 @@
   "conventionalCommits.promptScopes": true,
   "conventionalCommits.promptBody": true,
   "conventionalCommits.promptFooter": true,
-  "conventionalCommits.scopes": ["tasks", "sync", "webdav", "render", "sort", "transform", "config", "cli", "deps", "devcontainer"],
+  "conventionalCommits.scopes": [
+    "tasks",
+    "sync",
+    "webdav",
+    "render",
+    "sort",
+    "transform",
+    "config",
+    "cli",
+    "deps",
+    "devcontainer"
+  ],
   // Copilot does not read .github/copilot-instructions.md when generating commit messages,
   // so the commit conventions are pointed at explicitly here.
   "github.copilot.chat.commitMessageGeneration.instructions": [

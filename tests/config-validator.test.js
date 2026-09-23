@@ -47,9 +47,7 @@ test("wrong types, unknown enums and out-of-range numbers are rejected", () => {
   assert.equal(valid, false);
   assert.ok(errors.some((e) => e.type === "type" && e.key === "updateInterval"));
   assert.ok(errors.some((e) => e.type === "enum" && e.key === "sortMethod"));
-  assert.ok(
-    errors.some((e) => e.type === "range" && e.key === "mapEmptyPriorityTo"),
-  );
+  assert.ok(errors.some((e) => e.type === "range" && e.key === "mapEmptyPriorityTo"));
 });
 
 test("user values win over defaults", () => {

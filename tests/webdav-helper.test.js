@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { initDAVClient, parseList } = require("../lib/webDavHelper");
+const { initDAVClient, parseList, withTimeout } = require("../lib/webDavHelper");
 
 const accountA = {
   webDavAuth: {
@@ -53,10 +53,7 @@ const icsStr = [
 ].join("\r\n");
 
 test("parseList normalises dates to ISO for the frontend", () => {
-  const [task] = parseList(
-    [{ filename: "https://dav.example/u/t/AAAA.ics", icsStr }],
-    "DD.MM.YYYY HH:mm",
-  );
+  const [task] = parseList([{ filename: "https://dav.example/u/t/AAAA.ics", icsStr }], "DD.MM.YYYY HH:mm");
 
   assert.equal(task.filename, "https://dav.example/u/t/AAAA.ics");
   assert.equal(task.dueISO, "2026-09-22T10:00:00.000Z");
@@ -70,10 +67,7 @@ test("an all-day task is not rendered with a misleading 00:00", () => {
     .replace("DTSTART:20260922T080000Z", "DTSTART;VALUE=DATE:20260922")
     .replace("DUE:20260922T100000Z", "DUE;VALUE=DATE:20260923");
 
-  const [task] = parseList(
-    [{ filename: "https://dav.example/u/t/AAAA.ics", icsStr: allDay }],
-    "DD.MM.YYYY HH:mm",
-  );
+  const [task] = parseList([{ filename: "https://dav.example/u/t/AAAA.ics", icsStr: allDay }], "DD.MM.YYYY HH:mm");
 
   assert.equal(task.dueDateOnly, true);
   assert.ok(!task.dueFormatted.includes(":"), task.dueFormatted);
@@ -85,11 +79,22 @@ test("non-VTODO components are ignored", () => {
     "BEGIN:VEVENT\r\nUID:EVENT\r\nSUMMARY:Not a task\r\nEND:VEVENT\r\nBEGIN:VTODO",
   );
 
-  const tasks = parseList(
-    [{ filename: "https://dav.example/u/t/AAAA.ics", icsStr: withEvent }],
-    "DD.MM.YYYY",
-  );
+  const tasks = parseList([{ filename: "https://dav.example/u/t/AAAA.ics", icsStr: withEvent }], "DD.MM.YYYY");
 
   assert.equal(tasks.length, 1);
   assert.equal(tasks[0].summary, "Timed task");
+});
+
+test("withTimeout rejects a request that takes too long", async () => {
+  await assert.rejects(
+    withTimeout(new Promise(() => {}), 10, "Fetch calendars"),
+    /Fetch calendars timed out after 10ms/,
+  );
+});
+
+test("withTimeout leaves no timer behind once the request answered", async () => {
+  const before = process.getActiveResourcesInfo().filter((r) => r === "Timeout").length;
+  assert.equal(await withTimeout(Promise.resolve("ok"), 60 * 1000, "Fetch"), "ok");
+  const after = process.getActiveResourcesInfo().filter((r) => r === "Timeout").length;
+  assert.equal(after, before);
 });

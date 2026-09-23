@@ -34,119 +34,176 @@ const DONE_TASK = OPEN_TASK.replace(
   "STATUS:COMPLETED\r\nCOMPLETED:20260920T080000Z\r\nPERCENT-COMPLETE:100",
 );
 
+const realWebDav = require("../lib/webDavHelper.js");
+const IDENTIFIER = "module_1_MMM-CalDAV-Tasks";
+
 /**
- * Start a node helper whose WebDAV layer is recorded in memory.
+ * Start a node helper whose WebDAV layer is recorded in memory. The helper is
+ * stopped after the test, so its backend schedule does not keep node alive.
+ * @param {Object} t - The test context.
  * @param {string} ics - The ICS content the server would return.
- * @returns {Object} Helper, recorded writes and sent socket notifications.
+ * @param {Object} [overrides] - Replacements for the WebDAV stub.
+ * @returns {Object} Helper, recorded writes, fetches and sent notifications.
  */
-function startHelper(ics) {
+function startHelper(t, ics, overrides = {}) {
   const puts = [];
   const sent = [];
+  const fetches = [];
 
   const helper = loadNodeHelper({
-    initDAVClient: () => ({ stub: true }),
-    fetchCalendarData: async () => [],
-    parseList: () => [],
-    mapEmptyPriorityTo: (list) => list,
-    mapEmptySortIndexTo: (list) => list,
+    fetchCalendarData: async (cfg) => {
+      fetches.push(cfg);
+      return [
+        {
+          url: "https://dav.example/calendars/user/tasks/",
+          summary: "Tasks",
+          icsStrings: [{ filename: FILENAME, icsStr: ics }],
+        },
+      ];
+    },
+    parseList: realWebDav.parseList,
+    mapEmptyPriorityTo: realWebDav.mapEmptyPriorityTo,
+    mapEmptySortIndexTo: realWebDav.mapEmptySortIndexTo,
     getFileContents: async () => ({ data: ics }),
     putFileContents: async (_config, filename, data, options) => {
       puts.push({ filename, data, options });
       return { ok: true };
     },
+    ...overrides,
   });
 
   helper.sendSocketNotification = (notification, payload) => {
     sent.push({ notification, payload });
   };
   helper.start();
+  t.after(() => helper.stop());
 
-  return { helper, puts, sent };
+  const events = (action) =>
+    sent.filter((entry) => entry.notification === notifications.EVENT && entry.payload.action === action);
+
+  return { helper, puts, sent, fetches, events };
 }
 
-function toggleRequest(status) {
-  return {
-    identifier: "module_1_MMM-CalDAV-Tasks",
-    instanceId: "module_1_MMM-CalDAV-Tasks",
-    requestId: "req-1",
-    action: "TOGGLE_TASK",
-    data: { config, filename: FILENAME, status },
-  };
+function send(helper, action, data) {
+  helper.socketNotificationReceived(notifications.REQUEST, {
+    identifier: IDENTIFIER,
+    instanceId: IDENTIFIER,
+    requestId: `req-${action}`,
+    action,
+    data,
+  });
 }
 
-/** Let the helper's promise chain settle. */
-const settle = () => new Promise((resolve) => setImmediate(resolve));
+function toggle(helper, status) {
+  send(helper, "TOGGLE_TASK", { filename: FILENAME, status });
+}
 
-test('a "checked" toggle completes the task', async () => {
-  const { helper, puts, sent } = startHelper(OPEN_TASK);
+/** Let the helper's promise chains settle. */
+const settle = async () => {
+  for (let i = 0; i < 5; i++) {
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+};
 
-  helper.socketNotificationReceived(
-    notifications.REQUEST,
-    toggleRequest("checked"),
-  );
+test("CONFIGURE starts the backend schedule and pushes the task list", async (t) => {
+  const { helper, fetches, events } = startHelper(t, OPEN_TASK);
+
+  send(helper, "CONFIGURE", { config });
+  await settle();
+
+  assert.equal(fetches.length, 1, "the backend fetches on its own");
+  assert.equal(fetches[0].updateInterval, 10 * 60 * 1000, "defaults applied once, at CONFIGURE");
+  const [calendar] = events("DATA").at(-1).payload.data;
+  assert.equal(calendar.tasks.length, 1);
+  assert.equal(calendar.tasks[0].summary, "Trash");
+  assert.equal(calendar.icsStrings, undefined, "no raw ICS in the payload");
+});
+
+test("tasks hidden by the date options never leave the backend", async (t) => {
+  const oldDone = DONE_TASK.replace("COMPLETED:20260920T080000Z", "COMPLETED:20200101T080000Z");
+  const { helper, events } = startHelper(t, oldDone);
+
+  send(helper, "CONFIGURE", { config });
+  await settle();
+
+  const [calendar] = events("DATA").at(-1).payload.data;
+  assert.deepEqual(calendar.tasks, [], "completed long ago, hidden after 1 day");
+});
+
+test('a "checked" toggle completes the task and refreshes the list', async (t) => {
+  const { helper, puts, sent, fetches } = startHelper(t, OPEN_TASK);
+  send(helper, "CONFIGURE", { config });
+  await settle();
+
+  toggle(helper, "checked");
   await settle();
 
   assert.equal(puts.length, 1);
   assert.equal(prop(puts[0].data, "VTODO", "STATUS"), "COMPLETED");
-  assert.equal(sent.at(-1).notification, notifications.RESPONSE);
-  assert.equal(sent.at(-1).payload.ok, true);
+  const reply = sent.find((entry) => entry.notification === notifications.RESPONSE);
+  assert.equal(reply.payload.ok, true);
+  assert.equal(fetches.length, 2, "the list is fetched again right after the write");
 });
 
-test('an "unchecked" toggle reopens the task instead of completing it again', async () => {
-  const { helper, puts, sent } = startHelper(DONE_TASK);
+test('an "unchecked" toggle reopens the task instead of completing it again', async (t) => {
+  const { helper, puts } = startHelper(t, DONE_TASK);
+  send(helper, "CONFIGURE", { config });
+  await settle();
 
-  helper.socketNotificationReceived(
-    notifications.REQUEST,
-    toggleRequest("unchecked"),
-  );
+  toggle(helper, "unchecked");
   await settle();
 
   assert.equal(puts.length, 1);
   assert.equal(prop(puts[0].data, "VTODO", "STATUS"), "NEEDS-ACTION");
   assert.equal(prop(puts[0].data, "VTODO", "COMPLETED"), null);
   assert.equal(prop(puts[0].data, "VTODO", "PERCENT-COMPLETE"), null);
-  assert.equal(sent.at(-1).payload.ok, true);
 });
 
-test("an invalid config is rejected on the toggle path too", async () => {
-  const { helper, puts, sent } = startHelper(OPEN_TASK);
+test("an invalid config is refused at CONFIGURE and nothing is written", async (t) => {
+  const { helper, puts, sent, fetches, events } = startHelper(t, OPEN_TASK);
 
-  helper.socketNotificationReceived(notifications.REQUEST, {
-    ...toggleRequest("checked"),
-    data: { config: { webDavAuth: { url: "https://dav.example/" } }, filename: FILENAME },
+  send(helper, "CONFIGURE", {
+    config: { webDavAuth: { url: "https://dav.example/" } },
   });
   await settle();
+  assert.equal(events("CONFIG_INVALID").length, 1);
+  assert.equal(fetches.length, 0);
 
-  assert.equal(puts.length, 0, "nothing may be written with a broken config");
+  toggle(helper, "checked");
+  await settle();
+  assert.equal(puts.length, 0, "nothing may be written without a valid config");
   assert.equal(sent.at(-1).notification, notifications.ERROR);
-  assert.equal(sent.at(-1).payload.error.code, "TOGGLE_FAILED");
+  assert.equal(sent.at(-1).payload.error.code, "CONFIG_MISSING");
+  assert.equal(events("INIT_REQUIRED").length, 1, "the frontend is asked for CONFIGURE");
 });
 
-test("a rejected write is reported as an error, not as a successful toggle", async () => {
-  const { helper, sent } = startHelper(OPEN_TASK);
-  helper.socketNotificationReceived(notifications.REQUEST, toggleRequest("checked"));
-  await settle();
-
-  const failing = loadNodeHelper({
-    initDAVClient: () => ({ stub: true }),
-    fetchCalendarData: async () => [],
-    parseList: () => [],
-    mapEmptyPriorityTo: (list) => list,
-    mapEmptySortIndexTo: (list) => list,
-    getFileContents: async () => ({ data: OPEN_TASK }),
+test("a rejected write is reported as an error, not as a successful toggle", async (t) => {
+  const { helper, sent } = startHelper(t, OPEN_TASK, {
     putFileContents: async () => {
       throw new Error("CalDAV write failed with 403 Forbidden");
     },
   });
-  const errors = [];
-  failing.sendSocketNotification = (notification, payload) =>
-    errors.push({ notification, payload });
-  failing.start();
-
-  failing.socketNotificationReceived(notifications.REQUEST, toggleRequest("checked"));
+  send(helper, "CONFIGURE", { config });
   await settle();
 
-  assert.equal(errors.at(-1).notification, notifications.ERROR);
-  assert.match(errors.at(-1).payload.error.message, /403/);
-  assert.equal(sent.at(-1).payload.ok, true, "the first helper still succeeded");
+  toggle(helper, "checked");
+  await settle();
+
+  assert.equal(sent.at(-1).notification, notifications.ERROR);
+  assert.equal(sent.at(-1).payload.error.code, "TOGGLE_TASK_FAILED");
+  assert.match(sent.at(-1).payload.error.message, /403/);
+});
+
+test("a failed fetch is pushed as FETCH_FAILED", async (t) => {
+  const { helper, events } = startHelper(t, OPEN_TASK, {
+    fetchCalendarData: async () => {
+      throw new Error("ECONNREFUSED");
+    },
+  });
+  send(helper, "CONFIGURE", { config });
+  await settle();
+
+  const failure = events("FETCH_FAILED").at(-1);
+  assert.equal(failure.payload.error.code, "FETCH_FAILED");
+  assert.match(failure.payload.error.message, /ECONNREFUSED/);
 });

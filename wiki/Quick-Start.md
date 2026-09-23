@@ -24,9 +24,11 @@ You can run more than one task list in the same MagicMirror setup. If you do, as
 
 ## Lifecycle Notes
 
-- The module fetches data immediately on startup.
-- With the default `backgroundRefresh: true` polling keeps running while the module is
-  hidden or suspended, so the list is already up to date when it becomes visible again.
-- Set `backgroundRefresh: false` to stop polling while hidden; `resume()` then restarts it
-  with a fresh fetch.
+- The module fetches data as soon as the first display connects; the refresh schedule runs
+  in the backend, not in the browser.
+- With the default `backgroundRefresh: true` refreshing continues while the module is
+  hidden, so the list is already up to date when it becomes visible again.
+- Set `backgroundRefresh: false` to pause refreshing while every display hides the module;
+  showing it again fetches if the data is older than `updateInterval`.
+- A failed refresh is retried after 1, 2, 4 … up to 30 minutes.
 - Use `quietHours` (e.g. `{ from: "23:00", to: "06:00" }`) to pause polling overnight.

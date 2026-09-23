@@ -39,4 +39,5 @@ series keeps running. When the recurrence rule has no occurrence left, the task 
 completed and the series ends.
 
 If a write is rejected by the server, the module shows "Update failed / Showing previous
-data" and the task returns to its previous state on the next refresh.
+data" and the task returns to its previous state right away. The notice stays until the
+next successful refresh.
