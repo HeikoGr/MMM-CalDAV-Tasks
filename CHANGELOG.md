@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.3.2](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.3.1...v2.3.2) (2026-09-24)
+
+
+### 🐛 Fixes
+
+* re-report the paused state on a backend restart (mmm-shared 0.3.0 c310517) ([20ec791](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/20ec791d1e4f63644d47063615f3ffeb5b69838a))
+
+
+### 🔧 Tooling
+
+* assign release-please's PR to HeikoGr ([dba39aa](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/dba39aa32c42010e951bbdf2d2d5579eeccf07ff))
+
 ## [2.3.1](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.3.0...v2.3.1) (2026-09-23)
 
 
