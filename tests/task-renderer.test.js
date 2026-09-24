@@ -24,6 +24,7 @@ function task(overrides = {}) {
     summary: "Trash",
     status: "NEEDS-ACTION",
     priority: "5",
+    priorityUnset: true,
     urlIndex: 0,
     dueISO: null,
     startISO: null,
@@ -31,7 +32,7 @@ function task(overrides = {}) {
   };
 }
 
-test("renders calendars, counts open tasks and shows the progress of done ones", (t) => {
+test("renders calendars, counts open tasks without a progress bar", (t) => {
   t.after(installFakeDocument());
   const dom = TaskRenderer.renderModule({
     toDoList: [
@@ -51,7 +52,7 @@ test("renders calendars, counts open tasks and shows the progress of done ones",
   const [calendar] = dom.byClass("MMM-CalDAV-Tasks-Calendar-wrapper");
   assert.equal(calendar.style["--calendar-color"], "#f00");
   assert.equal(dom.byClass("MMM-CalDAV-Tasks-Count")[0].textContent, "1");
-  assert.equal(dom.byClass("MMM-CalDAV-Tasks-Progress-Bar")[0].style.width, "50%");
+  assert.equal(dom.byClass("MMM-CalDAV-Tasks-Progress-Bar").length, 0);
   assert.deepEqual(
     dom.byClass("MMM-CalDAV-Tasks-Summary").map((el) => el.textContent),
     ["Trash", "Dishes"],
@@ -142,4 +143,37 @@ test("releasing early cancels the toggle", (t) => {
   item.dispatch("mousedown");
   item.dispatch("mouseup");
   assert.deepEqual(reported, []);
+});
+
+test("a task in its grace period shows a countdown and is dropped once it ran out", (t) => {
+  t.after(installFakeDocument());
+  const now = new Date("2026-09-23T12:00:00Z");
+  const done = task({ status: "COMPLETED", hideAt: now.getTime() + 30000 });
+  const toDoList = [{ summary: "Home", tasks: [done, task({ uid: "u2" })] }];
+  const graced = { ...config, completedTaskGracePeriod: 60 };
+
+  const dom = TaskRenderer.renderModule({ toDoList, config: graced, now });
+  const countdown = dom.byClass("MMM-CalDAV-Tasks-Hide-Countdown");
+  assert.equal(countdown.length, 1);
+  assert.equal(countdown[0].style.animationDuration, "30000ms");
+  assert.equal(TaskRenderer.nextHideAt(toDoList), now.getTime() + 30000);
+
+  const later = TaskRenderer.renderModule({ toDoList, config: graced, now: new Date(now.getTime() + 31000) });
+  assert.equal(later.byClass("MMM-CalDAV-Tasks-List-Item").length, 1);
+});
+
+test("a priority set on the task shows the iOS-style mark", (t) => {
+  t.after(installFakeDocument());
+  const tasks = [
+    task({ uid: "a", priority: "1", priorityUnset: undefined }),
+    task({ uid: "b", priority: "5", priorityUnset: undefined }),
+    task({ uid: "c", priority: "9", priorityUnset: undefined }),
+    task({ uid: "d" }),
+  ];
+  const dom = TaskRenderer.renderModule({ toDoList: [{ summary: "Home", tasks }], config });
+  assert.deepEqual(
+    dom.byClass("MMM-CalDAV-Tasks-Priority-Mark").map((el) => el.textContent),
+    ["!!!", "!!", "!"],
+  );
+  assert.equal(dom.byClass("MMM-CalDAV-Tasks-Summary")[3].textContent, "Trash");
 });

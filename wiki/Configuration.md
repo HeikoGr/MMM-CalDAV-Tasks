@@ -24,6 +24,7 @@
 | `showWithoutStart` | Show tasks that have no start date. |
 | `showWithoutDue` | Show tasks that have no due date. |
 | `hideCompletedTasksAfter` | Hide completed tasks after the given number of days. |
+| `completedTaskGracePeriod` | Seconds a just-completed task stays visible (with a countdown bar) even if `hideCompletedTasksAfter` would already hide it. Default `60`, `0` turns it off. |
 | `hideDateSectionOnCompletion` | Hide the date section once a task is completed. |
 
 ## Display Options
@@ -56,7 +57,7 @@ Useful CSS selectors include:
 
 - `.MMM-CalDAV-Tasks-wrapper`
 - `.MMM-CalDAV-Tasks-Calendar-wrapper` (carries the calendar color as `--calendar-color`)
-- `.MMM-CalDAV-Tasks-Calendar-Header`, `.MMM-CalDAV-Tasks-Count`, `.MMM-CalDAV-Tasks-Progress-Bar`
+- `.MMM-CalDAV-Tasks-Calendar-Header`, `.MMM-CalDAV-Tasks-Count`
 - `.MMM-CalDAV-Tasks-List-Item`
 - `.MMM-CalDAV-Tasks-Date-Section`, `.MMM-CalDAV-Tasks-Badge`
 - `.MMM-CalDAV-Tasks-Completed`

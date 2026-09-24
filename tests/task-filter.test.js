@@ -50,3 +50,13 @@ test("a hidden task takes its subtasks with it, visible parents keep visible chi
     [["parent", ["open child"]]],
   );
 });
+
+test("a task completed within the grace period stays and carries hideAt", () => {
+  const graced = { ...config, hideCompletedTasksAfter: 0, completedTaskGracePeriod: 60 };
+  const justNow = { status: "COMPLETED", completedISO: "2026-09-23T11:59:30Z" };
+  const earlier = { status: "COMPLETED", completedISO: "2026-09-23T11:58:00Z" };
+  assert.equal(isTaskHidden(justNow, graced, now), false);
+  assert.equal(justNow.hideAt, Date.parse("2026-09-23T12:00:30Z"));
+  assert.equal(isTaskHidden(earlier, graced, now), true);
+  assert.equal(isTaskHidden({ ...justNow }, { ...graced, completedTaskGracePeriod: 0 }, now), true);
+});

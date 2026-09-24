@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { initDAVClient, parseList, withTimeout } = require("../lib/webDavHelper");
+const { calendarDisplayName, initDAVClient, parseList, withTimeout } = require("../lib/webDavHelper");
 
 const accountA = {
   webDavAuth: {
@@ -97,4 +97,14 @@ test("withTimeout leaves no timer behind once the request answered", async () =>
   assert.equal(await withTimeout(Promise.resolve("ok"), 60 * 1000, "Fetch"), "ok");
   const after = process.getActiveResourcesInfo().filter((r) => r === "Timeout").length;
   assert.equal(after, before);
+});
+
+test("calendarDisplayName drops the owner suffix of shared calendars only", () => {
+  const shared = "https://a.example/remote.php/dav/calendars/me/alexandra-1_shared_by_Alex/";
+  assert.equal(calendarDisplayName({ url: shared, displayName: "Alexandra (Alex)" }), "Alexandra");
+  assert.equal(calendarDisplayName({ url: shared, displayName: "Alexandra" }), "Alexandra");
+  assert.equal(
+    calendarDisplayName({ url: "https://a.example/calendars/me/own/", displayName: "Einkauf (Wochenende)" }),
+    "Einkauf (Wochenende)",
+  );
 });

@@ -34,6 +34,7 @@ Module.register("MMM-CalDAV-Tasks", {
     showWithoutStart: true,
     showWithoutDue: true,
     hideCompletedTasksAfter: 1, // 1 day
+    completedTaskGracePeriod: 60, // seconds a just-completed task stays before it is hidden
     dateFormat: "DD.MM.YYYY",
     headings: [],
     toggleTime: 1000, // mseconds - long press duration
@@ -57,6 +58,7 @@ Module.register("MMM-CalDAV-Tasks", {
   error: null,
   lastSuccessfulData: null, // Keep last successful data for graceful fallback
   loadingTimeoutTimer: null, // Timer for frontend timeout detection
+  hideTimer: null, // Redraw when a completed task's grace period ends
   lifecycle: null,
   instanceId: null,
   configValid: false,
@@ -241,7 +243,17 @@ Module.register("MMM-CalDAV-Tasks", {
     this.lifecycle.resume();
   },
 
+  // Redraw once the next just-completed task has run out its grace period.
+  scheduleHideTimer() {
+    clearTimeout(this.hideTimer);
+    const next = TaskRenderer.nextHideAt(this.toDoList);
+    if (next !== null) {
+      this.hideTimer = setTimeout(() => this.lifecycle.render(), Math.max(0, next - Date.now()) + 50);
+    }
+  },
+
   getDom() {
+    this.scheduleHideTimer();
     // All DOM building lives in lib/task-renderer.js, the long press in
     // lib/long-press.js; the module only supplies state and the toggle action.
     return TaskRenderer.renderModule({
