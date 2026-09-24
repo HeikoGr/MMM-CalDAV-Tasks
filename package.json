@@ -16,7 +16,7 @@
   "author": "HeikoGr",
   "license": "MIT",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.21.1"
   },
   "repository": {
     "type": "git",
@@ -47,15 +47,13 @@
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
     "lint-staged": "^17.5.1",
-    "prettier-plugin-jinja-template": "^2.2.0",
     "simple-git-hooks": "^2.14.0"
   },
   "dependencies": {
     "moment": "^2.31.0",
     "node-ical": "^0.27.2",
     "rrule": "^2.8.1",
-    "tsdav": "^2.3.4",
-    "webdav": "^5.11.0"
+    "tsdav": "^2.3.4"
   },
   "simple-git-hooks": {
     "pre-commit": "npx --no-install lint-staged",
