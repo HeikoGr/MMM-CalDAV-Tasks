@@ -4,7 +4,7 @@ MMM-CalDAV-Tasks displays CalDAV task lists in MagicMirror and can optionally to
 
 ## Screenshot
 
-![MMM-CalDAV-Tasks](../assets/example.png)
+![MMM-CalDAV-Tasks](https://raw.githubusercontent.com/HeikoGr/MMM-CalDAV-Tasks/master/img/screenshot.png)
 
 Use this wiki if you want to:
 
