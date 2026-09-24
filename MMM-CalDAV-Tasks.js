@@ -252,6 +252,12 @@ Module.register("MMM-CalDAV-Tasks", {
     }
   },
 
+  // MagicMirror's config is a global `let` in the browser, not a window property -
+  // globalThis.config is undefined there, which left every relative date in English.
+  getLanguage() {
+    return typeof config === "object" && config ? config.language : undefined;
+  },
+
   getDom() {
     this.scheduleHideTimer();
     // All DOM building lives in lib/task-renderer.js, the long press in
@@ -261,7 +267,7 @@ Module.register("MMM-CalDAV-Tasks", {
       error: this.error,
       config: this.config,
       instanceId: this.instanceId || this.identifier,
-      language: globalThis.config?.language,
+      language: this.getLanguage(),
       bindItem: (item) =>
         window.CalDavTasksLongPress.bindLongPress(item, {
           toggleTime: this.config.toggleTime,
