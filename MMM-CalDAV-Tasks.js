@@ -180,6 +180,8 @@ Module.register("MMM-CalDAV-Tasks", {
       if (payload?.action === "INIT_REQUIRED") {
         if ((own || payload?.identifier === "*") && this.configValid) {
           this.sendConfigure();
+          // A restarted backend has lost the paused state too.
+          this.lifecycle?.reportSessionState?.("init-required");
         }
         return;
       }
