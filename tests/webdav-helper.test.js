@@ -99,6 +99,32 @@ test("withTimeout leaves no timer behind once the request answered", async () =>
   assert.equal(after, before);
 });
 
+test("withTimeout cancels the request it gave up on", async () => {
+  let received = null;
+  const request = (signal) => {
+    received = signal;
+    return new Promise(() => {});
+  };
+
+  await assert.rejects(withTimeout(request, 10, "Fetch calendars"), /Fetch calendars timed out after 10ms/);
+  assert.equal(received.aborted, true, "the HTTP request must be aborted, not left running");
+});
+
+test("withTimeout does not abort a request that answered in time", async () => {
+  let received = null;
+  const result = await withTimeout(
+    (signal) => {
+      received = signal;
+      return Promise.resolve("ok");
+    },
+    60 * 1000,
+    "Fetch",
+  );
+
+  assert.equal(result, "ok");
+  assert.equal(received.aborted, false);
+});
+
 test("calendarDisplayName drops the owner suffix of shared calendars only", () => {
   const shared = "https://a.example/remote.php/dav/calendars/me/alexandra-1_shared_by_Alex/";
   assert.equal(calendarDisplayName({ url: shared, displayName: "Alexandra (Alex)" }), "Alexandra");
