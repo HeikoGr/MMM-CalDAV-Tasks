@@ -156,7 +156,10 @@ test("a task in its grace period shows a countdown and is dropped once it ran ou
   const countdown = dom.byClass("MMM-CalDAV-Tasks-Hide-Countdown");
   assert.equal(countdown.length, 1);
   assert.equal(countdown[0].style.animationDuration, "30000ms");
-  assert.equal(TaskRenderer.nextHideAt(toDoList), now.getTime() + 30000);
+  assert.equal(TaskRenderer.nextHideAt(toDoList, now.getTime()), now.getTime() + 30000);
+  // Once the grace period is over the task stays in the data until the next fetch; it must not
+  // be scheduled again (that redrew the module every 50 ms).
+  assert.equal(TaskRenderer.nextHideAt(toDoList, now.getTime() + 31000), null);
 
   const later = TaskRenderer.renderModule({ toDoList, config: graced, now: new Date(now.getTime() + 31000) });
   assert.equal(later.byClass("MMM-CalDAV-Tasks-List-Item").length, 1);

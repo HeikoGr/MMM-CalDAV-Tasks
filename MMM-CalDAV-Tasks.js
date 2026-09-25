@@ -83,9 +83,6 @@ Module.register("MMM-CalDAV-Tasks", {
       redact: true,
     });
 
-    // Flag for check if module is loaded
-    this.loaded = false;
-
     // developerMode: show the default cursor for easier development. Set once -
     // it is a document-wide preference, not per render.
     if (this.config.developerMode) {
