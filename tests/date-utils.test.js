@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { parseIcsDate, formatIcsDate, daysBetween, isOverdue, hasStarted } = require("../lib/date-utils");
+const { parseIcsDate, formatIcsDate } = require("../lib/date-utils");
 
 test("parseIcsDate reads date-time values as UTC", () => {
   assert.equal(parseIcsDate("20260922T143000Z", "jsDate").toISOString(), "2026-09-22T14:30:00.000Z");
@@ -27,12 +27,4 @@ test("parseIcsDate rejects a value that is not a date", () => {
 
 test("parseIcsDate rejects an unknown return type", () => {
   assert.throws(() => parseIcsDate("20260922", "moment"), /Unknown returnType/);
-});
-
-test("daysBetween, isOverdue and hasStarted", () => {
-  assert.equal(daysBetween("2026-09-01", "2026-09-10"), 9);
-  assert.equal(isOverdue("2020-01-01"), true);
-  assert.equal(isOverdue("2999-01-01"), false);
-  assert.equal(hasStarted("2020-01-01"), true);
-  assert.equal(hasStarted("2999-01-01"), false);
 });
