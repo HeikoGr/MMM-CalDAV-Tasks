@@ -134,3 +134,25 @@ test("calendarDisplayName drops the owner suffix of shared calendars only", () =
     "Einkauf (Wochenende)",
   );
 });
+
+test("a calendar without component set or display name is skipped instead of failing the fetch", async (t) => {
+  const { DAVClient } = require("tsdav");
+  const { fetchCalendarData } = require("../lib/webDavHelper");
+  t.mock.method(DAVClient.prototype, "login", async () => {});
+  t.mock.method(DAVClient.prototype, "fetchCalendars", async () => [
+    { url: "https://cloud.example/cal/bare/" },
+    { url: "https://cloud.example/cal/tasks/", components: ["VTODO"], displayName: "Tasks" },
+  ]);
+  t.mock.method(DAVClient.prototype, "fetchCalendarObjects", async () => []);
+
+  const data = await fetchCalendarData({
+    webDavAuth: { url: "https://cloud.example/remote.php/dav/", username: "bare-server", password: "p" },
+    includeCalendars: ["tasks"],
+    requestTimeout: 1000,
+  });
+
+  assert.deepEqual(
+    data.map((calendar) => calendar.summary),
+    ["Tasks"],
+  );
+});

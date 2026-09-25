@@ -9,7 +9,7 @@
 | `updateInterval` | Refresh interval in milliseconds. Default: 10 min. The long-press toggle renders optimistically and triggers its own refresh, so it does not need a short interval. |
 | `backgroundRefresh` | Keep refreshing while the module is hidden (e.g. under MMM-Carousel). Default `true`, so showing the module never causes a request. With `false`, the backend pauses while every display hides the module. |
 | `quietHours` | Optional window without any polling, e.g. `{ from: "23:00", to: "06:00" }`. |
-| `sortMethod` | Sorting mode such as `priority`, `priority desc`, `created`, `modified desc`. |
+| `sortMethod` | Sorting mode: `priority`, `priority desc`, `created`, `created desc`, `modified`, `modified desc`. A manual order you set by dragging tasks in Apple Reminders or the Nextcloud Tasks app (`X-APPLE-SORT-ORDER`) takes precedence; `sortMethod` orders the tasks without one. Tasks without a creation/modification date sort last. |
 | `headings` | Optional array of headings for grouped output. |
 | `toggleTime` | Long-press time in milliseconds before a task is toggled. |
 | `requestTimeout` | Timeout in milliseconds for each CalDAV request in the backend (login, calendar list, calendar objects) and for a whole toggle. Default: 30 s. |
@@ -24,7 +24,7 @@
 | `showWithoutStart` | Show tasks that have no start date. |
 | `showWithoutDue` | Show tasks that have no due date. |
 | `hideCompletedTasksAfter` | Hide completed tasks after the given number of days. |
-| `completedTaskGracePeriod` | Seconds a just-completed task stays visible (with a countdown bar) even if `hideCompletedTasksAfter` would already hide it. Default `60`, `0` turns it off. |
+| `completedTaskGracePeriod` | Seconds a just-completed task stays visible (with a countdown bar) even if `hideCompletedTasksAfter` would already hide it. Only has an effect when `hideCompletedTasksAfter` is shorter than the grace period, i.e. in practice with `hideCompletedTasksAfter: 0`; with the default `1` a completed task stays for a day anyway. Default `60`, `0` turns it off. |
 | `hideDateSectionOnCompletion` | Hide the date section once a task is completed. |
 
 ## Display Options
