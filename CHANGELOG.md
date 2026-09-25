@@ -3,6 +3,41 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.4.0](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.3.2...v2.4.0) (2026-09-25)
+
+
+### 🔌 Features
+
+* **render:** count down just-completed tasks, show priority marks, clean shared calendar names ([54f49c0](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/54f49c061c80f2d17ac095df21ef8643582bb5ae))
+
+
+### 🐛 Fixes
+
+* log each instance at its own logLevel in the backend ([6ed6e00](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/6ed6e00ddae52f5f3c0448ffdfe37e78a90258d2))
+* **render:** show relative dates in MagicMirror's language ([860a5d4](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/860a5d4dd20b4cba7a8328c4a91ee219d40823fe))
+* **webdav:** cancel a CalDAV request once it timed out ([4a93e7d](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/4a93e7d3bcbba481dd49016042954f8e3584ff41))
+
+
+### 🧱 Refactoring
+
+* **transform:** drop a commented-out debug line ([30ce555](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/30ce555db71443bf86138eebac5be0fba7001378))
+
+
+### 📚 Documentation
+
+* add an anonymized screenshot under img/ ([515b4be](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/515b4be369a261917b4047671b3c051b20cdf675))
+
+
+### 📦 Build & Dependencies
+
+* **deps:** drop unused webdav and prettier plugin, require MagicMirror's node version ([807a51d](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/807a51d28f50769cc375251b689c8fd67c9bd1f0))
+
+
+### 🔧 Tooling
+
+* describe the pinned node version correctly ([3586eb3](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/3586eb3dd49a4930b98bd2eafdc4185f82898afb))
+* develop branch model and PR title check ([33f3a78](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/33f3a78202ffc1bfccb21c0b88d5eaec3bd38150))
+
 ## [2.3.2](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.3.1...v2.3.2) (2026-09-24)
 
 
