@@ -49,7 +49,7 @@
 | `mapEmptyPriorityTo` | Fallback priority value for tasks without a priority. |
 | `mapEmptySortIndexTo` | Fallback sort index for tasks without one. |
 | `developerMode` | Development aid: shows the default mouse cursor on the mirror page. |
-| `logLevel` | Optional: `none`, `error`, `warn`, `info` or `debug`. All output goes through MagicMirror's `Log`, so the global `logLevel` in `config.js` decides; this option can only narrow it for this module (e.g. `"warn"` with global `DEBUG`). Unset means the global level alone. Applies in the browser console and in the backend (`pm2 logs`); the backend follows the last instance that configured it. |
+| `logLevel` | Optional: `none`, `error`, `warn`, `info` or `debug`. All output goes through MagicMirror's `Log`, so the global `logLevel` in `config.js` decides; this option can only narrow it for this module (e.g. `"warn"` with global `DEBUG`). Unset means the global level alone. Applies per instance, in the browser console and in the backend (`pm2 logs`). Backend lines without an instance (CalDAV login fallback, write errors) follow the global level. |
 
 ## Styling Hooks
 

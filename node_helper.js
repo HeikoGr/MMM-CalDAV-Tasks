@@ -40,18 +40,12 @@ const CRITICAL_CONFIG_KEYS = Object.freeze(["webDavAuth"]);
 
 module.exports = NodeHelper.create({
   start() {
-    // The module's own logLevel arrives with CONFIGURE; until then only the
-    // global level applies.
-    this.logLevel = undefined;
-    this.logger = shared.createLogger({
-      moduleName: MODULE_NAME,
-      identifier: "node_helper",
-      consoleRef: logSink,
-      getLevel: () => this.logLevel,
-      structured: true,
-      redact: true,
-    });
-    // Route the lib/ modules through the same logger instead of bare console.
+    // One logger per instance: its logLevel (from CONFIGURE) narrows the global
+    // level for that instance only. Until CONFIGURE only the global level applies.
+    this.loggers = new Map();
+    this.logLevels = new Map();
+    this.logger = this.getLogger("node_helper");
+    // The lib/ modules without an instance (DAV login, write errors) log here.
     setLogger(this.logger);
 
     /*
@@ -71,15 +65,15 @@ module.exports = NodeHelper.create({
         backgroundRefresh: config.backgroundRefresh !== false,
         quietHours: config.quietHours,
       }),
-      onConfigured: (_identifier, config) => {
-        this.logLevel = config.logLevel;
+      onConfigured: (identifier, config) => {
+        this.logLevels.set(identifier, config.logLevel);
       },
       fetch: ({ identifier, config, reason }) => this.fetchTasks(identifier, config, reason),
     });
 
     this.hub.route("TOGGLE_TASK", async ({ identifier, config, data }) => {
       await toggleTask(config, data.filename, data.status, {
-        logger: this.logger,
+        logger: this.getLogger(identifier),
         onLateSettle: () => this.hub.fetchNow(identifier, "task-toggled-late"),
       });
       // The list changed on the server; do not wait for the next interval.
@@ -98,14 +92,32 @@ module.exports = NodeHelper.create({
     this.hub.socketNotificationReceived(notification, payload);
   },
 
+  getLogger(identifier) {
+    if (!this.loggers.has(identifier)) {
+      this.loggers.set(
+        identifier,
+        shared.createLogger({
+          moduleName: MODULE_NAME,
+          identifier,
+          consoleRef: logSink,
+          getLevel: () => this.logLevels.get(identifier),
+          structured: true,
+          redact: true,
+        }),
+      );
+    }
+    return this.loggers.get(identifier);
+  },
+
   async fetchTasks(identifier, config, reason) {
+    const logger = this.getLogger(identifier);
     const startTime = Date.now();
-    this.logger.debug(`Fetching tasks for ${identifier} (${reason})`);
+    logger.debug(`Fetching tasks for ${identifier} (${reason})`);
 
     const calendarData = await fetchCalendarData(config);
     const { calendars, taskCount } = buildTaskLists(calendarData, config);
 
-    this.logger.info(
+    logger.info(
       `Fetched ${calendars.length} calendar(s), ${taskCount} task(s) for ${identifier} in ${Date.now() - startTime}ms (${reason})`,
     );
     return calendars;

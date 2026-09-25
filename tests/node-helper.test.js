@@ -207,3 +207,33 @@ test("a failed fetch is pushed as FETCH_FAILED", async (t) => {
   assert.equal(failure.payload.error.code, "FETCH_FAILED");
   assert.match(failure.payload.error.message, /ECONNREFUSED/);
 });
+
+test("each instance logs at its own logLevel", async (t) => {
+  const lines = [];
+  const originalDebug = console.debug;
+  console.debug = (line) => lines.push(String(line));
+  t.after(() => {
+    console.debug = originalDebug;
+  });
+
+  const { helper } = startHelper(t, OPEN_TASK);
+  const quiet = "module_1_MMM-CalDAV-Tasks";
+  const verbose = "module_2_MMM-CalDAV-Tasks";
+  for (const [identifier, logLevel] of [
+    [quiet, "warn"],
+    [verbose, "debug"],
+  ]) {
+    helper.socketNotificationReceived(notifications.REQUEST, {
+      identifier,
+      instanceId: identifier,
+      requestId: `req-${identifier}`,
+      action: "CONFIGURE",
+      data: { config: { ...config, logLevel } },
+    });
+  }
+  await settle();
+
+  const fetchLines = (identifier) => lines.filter((line) => line.includes(`Fetching tasks for ${identifier}`));
+  assert.equal(fetchLines(verbose).length, 1, "the debug instance logs its fetch");
+  assert.equal(fetchLines(quiet).length, 0, "the warn instance stays quiet, although configured first");
+});
