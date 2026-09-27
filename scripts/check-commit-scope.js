@@ -3,7 +3,7 @@
  * Guard against commit types that understate what the commit actually changes.
  *
  * Why this exists: a commit typed as `chore` or `docs` can still contain a real behavior change
- * in `lib/` or `node_helper.js`. commitlint only checks the *format* of the message, not whether
+ * in `lib/` or `node_helper.js`. check-commit-msg.js only checks the *format* of the message, not whether
  * the type matches the diff. When a low-signal type slips onto a runtime change, that change
  * never reaches the changelog and has to be reconstructed from diffs later.
  *
@@ -84,7 +84,7 @@ function main() {
 
   const subject = fs.readFileSync(messageFile, "utf8").split("\n")[0].trim();
   const match = subject.match(/^([a-z]+)(\([^)]*\))?(!)?:/);
-  if (!match) return; // commitlint reports malformed subjects; not this guard's job.
+  if (!match) return; // check-commit-msg.js reports malformed subjects; not this guard's job.
 
   const [, type, , breaking] = match;
   if (breaking || !LOW_SIGNAL_TYPES.has(type)) return;
