@@ -1,7 +1,7 @@
 {
   "name": "mmm-caldav-tasks",
-  "type": "commonjs",
   "version": "2.4.0",
+  "private": true,
   "description": "MagicMirror module to display and manage CalDAV tasks (to-dos)",
   "keywords": [
     "magicmirror",
@@ -12,35 +12,40 @@
     "todo",
     "nextcloud"
   ],
-  "main": "MMM-CalDAV-Tasks.js",
-  "author": "HeikoGr",
-  "license": "MIT",
-  "engines": {
-    "node": ">=22.21.1"
+  "homepage": "https://github.com/HeikoGr/MMM-CalDAV-Tasks#readme",
+  "bugs": {
+    "url": "https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/HeikoGr/MMM-CalDAV-Tasks.git"
   },
+  "license": "MIT",
+  "author": "HeikoGr",
+  "type": "commonjs",
+  "main": "MMM-CalDAV-Tasks.js",
+  "engines": {
+    "node": ">=22.21.1"
+  },
   "scripts": {
     "prepare": "node scripts/install-hooks.js",
     "postinstall": "node scripts/install-mmm-shared-submodule.js",
-    "test": "node --test tests/*.test.js",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "check": "node --run mmcheck",
+    "test": "node --test tests/*.test.js",
+    "check": "node scripts/magicmirror-check.mjs --current",
+    "shared:update": "git submodule update --remote --init --checkout lib/mmm-shared && git submodule status lib/mmm-shared",
+    "deps:update": "npx --yes npm-check-updates -u && npm install && biome migrate --write",
     "debug": "node scripts/cli-debug.js",
     "debug:help": "node scripts/cli-debug.js help",
     "debug:config": "node scripts/cli-debug.js test-config",
-    "debug:fetch": "node scripts/cli-debug.js fetch",
-    "mmcheck": "node scripts/magicmirror-check.mjs --devcontainer-only --current",
-    "deps:update": "npx --yes npm-check-updates -u && npm install && npx @biomejs/biome migrate --write",
-    "shared:update": "git submodule update --remote --init --checkout lib/mmm-shared && git submodule status lib/mmm-shared"
+    "debug:fetch": "node scripts/cli-debug.js fetch"
   },
-  "lint-staged": {
-    "*.{js,cjs,mjs,jsx,ts,tsx,json,jsonc,css}": [
-      "biome check --write --files-ignore-unknown=true"
-    ]
+  "dependencies": {
+    "moment": "^2.31.0",
+    "node-ical": "^0.27.2",
+    "rrule": "^2.8.1",
+    "tsdav": "^2.3.4"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
@@ -49,11 +54,10 @@
     "lint-staged": "^17.5.1",
     "simple-git-hooks": "^2.14.0"
   },
-  "dependencies": {
-    "moment": "^2.31.0",
-    "node-ical": "^0.27.2",
-    "rrule": "^2.8.1",
-    "tsdav": "^2.3.4"
+  "lint-staged": {
+    "*.{js,cjs,mjs,jsx,ts,tsx,json,jsonc,css}": [
+      "biome check --write --files-ignore-unknown=true"
+    ]
   },
   "simple-git-hooks": {
     "pre-commit": "npx --no-install lint-staged",
