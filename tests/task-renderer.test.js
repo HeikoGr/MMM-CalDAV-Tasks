@@ -44,11 +44,11 @@ test("renders calendars, counts open tasks without a progress bar", (t) => {
     ],
     error: null,
     config,
-    instanceId: "module_1",
+    identifier: "module_1",
     now: new Date("2026-09-23T12:00:00Z"),
   });
 
-  assert.equal(dom.dataset.instanceId, "module_1");
+  assert.equal(dom.dataset.identifier, "module_1");
   const [calendar] = dom.byClass("MMM-CalDAV-Tasks-Calendar-wrapper");
   assert.equal(calendar.style["--calendar-color"], "#f00");
   assert.equal(dom.byClass("MMM-CalDAV-Tasks-Count")[0].textContent, "1");
