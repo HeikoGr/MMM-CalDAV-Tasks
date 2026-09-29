@@ -154,7 +154,7 @@ test("an UNTIL rule that has run out also completes in place", async () => {
 test("a relative VALARM trigger survives completion untouched", async () => {
   const { completer, puts } = makeCompleter(buildIcs({ rrule: "FREQ=DAILY", alarm: ["TRIGGER:-PT15M"] }));
 
-  // Parsing "-PT15M" as a date used to throw and abort the whole completion.
+  // A relative trigger ("-PT15M") is no date; parsing it as one would abort the completion.
   await completer.completeVTodo({}, FILENAME, new Date("2026-09-22T12:00:00Z"));
 
   const series = puts[1];
@@ -272,10 +272,10 @@ test("a failing write propagates instead of reporting success", async () => {
 
 test("CRLF content is recognised as recurring just like LF content", async () => {
   /*
-   * Every RFC 5545 server returns CRLF. The parser used to keep the CR on the
-   * component name, so "VTODO\r" never matched "VTODO": no property was ever
-   * found, completion appended its properties after END:VCALENDAR and the
-   * recurring path was never entered at all.
+   * Every RFC 5545 server returns CRLF. A CR left on the component name
+   * ("VTODO\r") matches no "VTODO": no property would be found, completion
+   * would append its properties after END:VCALENDAR and never take the
+   * recurring path.
    */
   const crlf = buildIcs({ rrule: "FREQ=DAILY" });
   const lf = crlf.replace(/\r\n/g, "\n");

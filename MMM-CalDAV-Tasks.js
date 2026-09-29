@@ -60,16 +60,13 @@ Module.register("MMM-CalDAV-Tasks", {
   loadingTimeoutTimer: null, // Timer for frontend timeout detection
   hideTimer: null, // Redraw when a completed task's grace period ends
   lifecycle: null,
-  instanceId: null,
   configValid: false,
 
   start() {
-    this.instanceId = this.identifier;
     this.shared = globalThis.MMModuleShared;
     this.transport = this.shared.createTransport({
       moduleName: "MMM-CalDAV-Tasks",
       identifier: this.identifier,
-      instanceId: this.identifier,
       sendSocketNotification: this.sendSocketNotification.bind(this),
     });
     this.notifications = this.transport.notifications;
@@ -263,7 +260,7 @@ Module.register("MMM-CalDAV-Tasks", {
       toDoList: this.toDoList,
       error: this.error,
       config: this.config,
-      instanceId: this.instanceId || this.identifier,
+      identifier: this.identifier,
       language: this.getLanguage(),
       bindItem: (item) =>
         window.CalDavTasksLongPress.bindLongPress(item, {
