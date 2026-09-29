@@ -20,9 +20,8 @@ const accountB = {
 
 test("each instance gets its own DAV client", () => {
   /*
-   * The client used to live in a module-level variable that every call
-   * reassigned, so two instances logging in at the same time could end up
-   * reading the other account's calendars.
+   * A client shared across accounts would let two instances logging in at the
+   * same time read the other account's calendars.
    */
   const clientA = initDAVClient(accountA);
   const clientB = initDAVClient(accountB);
@@ -135,14 +134,36 @@ test("calendarDisplayName drops the owner suffix of shared calendars only", () =
   );
 });
 
+/** A login that only sets the discovered account, as DAVClient.login() does. */
+async function fakeLogin() {
+  this.account = { rootUrl: "https://cloud.example/", homeUrl: "https://cloud.example/cal/" };
+}
+
+/** PROPFIND responses of a calendar home listing these calendars. */
+function davListing(calendars) {
+  return calendars.map(({ url, components = [], displayName, ctag }) => ({
+    href: new URL(url).pathname,
+    props: {
+      resourcetype: { collection: {}, calendar: {} },
+      ...(displayName ? { displayname: displayName } : {}),
+      ...(ctag ? { getctag: ctag } : {}),
+      ...(components.length
+        ? { supportedCalendarComponentSet: { comp: components.map((name) => ({ _attributes: { name } })) } }
+        : {}),
+    },
+  }));
+}
+
 test("a calendar without component set or display name is skipped instead of failing the fetch", async (t) => {
   const { DAVClient } = require("tsdav");
   const { fetchCalendarData } = require("../lib/webDavHelper");
-  t.mock.method(DAVClient.prototype, "login", async () => {});
-  t.mock.method(DAVClient.prototype, "fetchCalendars", async () => [
-    { url: "https://cloud.example/cal/bare/" },
-    { url: "https://cloud.example/cal/tasks/", components: ["VTODO"], displayName: "Tasks" },
-  ]);
+  t.mock.method(DAVClient.prototype, "login", fakeLogin);
+  t.mock.method(DAVClient.prototype, "propfind", async () =>
+    davListing([
+      { url: "https://cloud.example/cal/bare/" },
+      { url: "https://cloud.example/cal/tasks/", components: ["VTODO"], displayName: "Tasks" },
+    ]),
+  );
   t.mock.method(DAVClient.prototype, "fetchCalendarObjects", async () => []);
 
   const data = await fetchCalendarData({
@@ -154,5 +175,84 @@ test("a calendar without component set or display name is skipped instead of fai
   assert.deepEqual(
     data.map((calendar) => calendar.summary),
     ["Tasks"],
+  );
+});
+
+test("the account discovery is reused across fetch cycles and repeated after a failure", async (t) => {
+  const { DAVClient } = require("tsdav");
+  const { fetchCalendarData } = require("../lib/webDavHelper");
+  const login = t.mock.method(DAVClient.prototype, "login", fakeLogin);
+  let failNext = false;
+  t.mock.method(DAVClient.prototype, "propfind", async () => {
+    if (failNext) {
+      failNext = false;
+      throw new Error("401 Unauthorized");
+    }
+    return davListing([{ url: "https://cloud.example/cal/tasks/", components: ["VTODO"], displayName: "Tasks" }]);
+  });
+  t.mock.method(DAVClient.prototype, "fetchCalendarObjects", async () => []);
+  const config = {
+    webDavAuth: { url: "https://cloud.example/remote.php/dav/", username: "reuse", password: "p" },
+    includeCalendars: [],
+    requestTimeout: 1000,
+  };
+
+  // Eleven minutes apart, like two cycles of the default 10-minute interval with jitter.
+  const now = Date.now();
+  const clock = t.mock.method(Date, "now", () => now);
+  await fetchCalendarData(config);
+  clock.mock.mockImplementation(() => now + 11 * 60 * 1000);
+  await fetchCalendarData(config);
+  assert.equal(login.mock.callCount(), 1, "no new discovery per cycle");
+
+  failNext = true;
+  await assert.rejects(fetchCalendarData(config));
+  await fetchCalendarData(config);
+  assert.equal(login.mock.callCount(), 2, "a failed request discards the client");
+});
+
+test("a calendar with an unchanged ctag is not fetched again; the others are fetched side by side", async (t) => {
+  const { DAVClient } = require("tsdav");
+  const { fetchCalendarData } = require("../lib/webDavHelper");
+  t.mock.method(DAVClient.prototype, "login", fakeLogin);
+  const ctags = { a: "1", b: "1", c: undefined };
+  t.mock.method(DAVClient.prototype, "propfind", async () =>
+    davListing(
+      Object.entries(ctags).map(([name, ctag]) => ({
+        url: `https://cloud.example/cal/${name}/`,
+        components: ["VTODO"],
+        displayName: name,
+        ctag,
+      })),
+    ),
+  );
+  let active = 0;
+  let maxActive = 0;
+  const fetched = [];
+  t.mock.method(DAVClient.prototype, "fetchCalendarObjects", async ({ calendar }) => {
+    active += 1;
+    maxActive = Math.max(maxActive, active);
+    fetched.push(calendar.displayName);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    active -= 1;
+    return [{ url: `${calendar.url}task.ics`, data: `ctag ${ctags[calendar.displayName]}` }];
+  });
+  const config = {
+    webDavAuth: { url: "https://cloud.example/remote.php/dav/", username: "ctag", password: "p" },
+    includeCalendars: [],
+    requestTimeout: 1000,
+  };
+
+  await fetchCalendarData(config);
+  assert.deepEqual(fetched.sort(), ["a", "b", "c"]);
+  assert.equal(maxActive, 3, "calendars are fetched at the same time");
+
+  fetched.length = 0;
+  ctags.b = "2";
+  const data = await fetchCalendarData(config);
+  assert.deepEqual(fetched.sort(), ["b", "c"], "unchanged a is reused, changed b and ctag-less c are fetched");
+  assert.deepEqual(
+    data.map((calendar) => calendar.icsStrings[0].icsStr),
+    ["ctag 1", "ctag 2", "ctag undefined"],
   );
 });

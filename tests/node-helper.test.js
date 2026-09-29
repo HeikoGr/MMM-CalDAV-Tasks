@@ -87,7 +87,6 @@ function startHelper(t, ics, overrides = {}) {
 function send(helper, action, data) {
   helper.socketNotificationReceived(notifications.REQUEST, {
     identifier: IDENTIFIER,
-    instanceId: IDENTIFIER,
     requestId: `req-${action}`,
     action,
     data,
@@ -225,7 +224,6 @@ test("each instance logs at its own logLevel", async (t) => {
   ]) {
     helper.socketNotificationReceived(notifications.REQUEST, {
       identifier,
-      instanceId: identifier,
       requestId: `req-${identifier}`,
       action: "CONFIGURE",
       data: { config: { ...config, logLevel } },
