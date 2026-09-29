@@ -3,6 +3,40 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.4.1](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.0...v2.4.1) (2026-09-29)
+
+
+### ⚡ Performance
+
+* fetch only the calendars whose ctag changed, with one PROPFIND for the calendar list ([2e2672a](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/2e2672a223d6b00dde021223515a3e79a08aeab9))
+* keep the CalDAV account discovery for 24 hours instead of 10 minutes ([2e2672a](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/2e2672a223d6b00dde021223515a3e79a08aeab9))
+
+
+### 🧱 Refactoring
+
+* describe the current behavior in comments ([2e2672a](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/2e2672a223d6b00dde021223515a3e79a08aeab9))
+* name the instance identifier the same everywhere ([2e2672a](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/2e2672a223d6b00dde021223515a3e79a08aeab9))
+
+
+### 📦 Build & Dependencies
+
+* **deps:** bump mmm-shared to 0.4.0 ([6d2ac00](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/6d2ac00e0a9da27654732682aa8706cf55617f7c))
+* **deps:** replace commitlint with a built-in commit message check ([#39](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/39)) ([7b57133](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/7b571337a8bc094396892c9a087cfd71b89bb09e))
+
+
+### 🔧 Tooling
+
+* keep ci-only commits out of releases and the changelog ([#38](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/38)) ([0536aa5](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/0536aa5b167b1b62c43c1c644fafda59b8383ace))
+* open the release PR to the default branch automatically, use RELEASE_TOKEN ([#33](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/33)) ([10e4028](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/10e40280d1d44eafada102da226de9d41c54c153))
+* skip the commit message check on the release PR ([#36](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/36)) ([4dd59b4](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/4dd59b4cfdcbcffec1b83c4764fa9d7d2b6b208d))
+* treat the mmm-shared submodule pointer as a dependency in the commit scope check ([6d2ac00](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/6d2ac00e0a9da27654732682aa8706cf55617f7c))
+
+
+### 🔧 Maintenance
+
+* list ci and chore commits in the changelog ([2e2672a](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/2e2672a223d6b00dde021223515a3e79a08aeab9))
+* restart instead of stop in the pm2 clean task, warn about PID 1 ([#41](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/41)) ([bf1d7a7](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/bf1d7a70ee9235b8f454985434b7e2c76a5a5b14))
+
 ## [2.4.0](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.3.2...v2.4.0) (2026-09-25)
 
 
