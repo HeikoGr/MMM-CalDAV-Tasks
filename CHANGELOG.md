@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.4.2](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.1...v2.4.2) (2026-10-04)
+
+
+### 📦 Build & Dependencies
+
+* **deps:** refresh dependencies and group weekly updates ([#46](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/46)) ([5a03e6b](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/5a03e6b1d9303d1997dd24bcfbfc1fea2c9061bf))
+
+
+### 🔧 Maintenance
+
+* **deps-dev:** bump lint-staged from 17.5.1 to 17.6.0 ([#45](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/45)) ([8743ee3](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/8743ee3d51384c946485d4baa041bac7423b44b3))
+
 ## [2.4.1](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.0...v2.4.1) (2026-09-29)
 
 
