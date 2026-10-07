@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.4.3](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.2...v2.4.3) (2026-10-07)
+
+
+### 🔧 Tooling
+
+* ship releases via auto-merged release-ship PR and drop commit hooks ([#49](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/49)) ([02457f0](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/02457f00ef65baa4966018f89819f12ce9c058e3))
+
 ## [2.4.2](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.1...v2.4.2) (2026-10-04)
 
 
