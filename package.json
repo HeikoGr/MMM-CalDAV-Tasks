@@ -44,7 +44,7 @@
     "moment": "^2.31.0",
     "node-ical": "^0.27.3",
     "rrule": "^2.8.1",
-    "tsdav": "^2.3.5"
+    "tsdav": "^2.4.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15"
