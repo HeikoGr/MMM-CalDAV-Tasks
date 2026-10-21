@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.4.4](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.3...v2.4.4) (2026-10-21)
+
+
+### 📦 Build & Dependencies
+
+* **deps:** update dependencies and Biome to 2.6 ([#55](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/55)) ([8653098](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/86530980820c4bdbfa07c88441272207ff5b6583))
+
+
+### 🔧 Maintenance
+
+* **deps:** bump tsdav from 2.3.5 to 2.4.0 in the npm group ([#52](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/52)) ([c0b8edd](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/c0b8edd07a2a800413182f7679a29470ef30aeba))
+* **deps:** bump tsdav from 2.4.0 to 2.5.0 in the npm group ([#54](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/54)) ([b870d14](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/b870d14a03463d65c570dee12654339554b60790))
+
 ## [2.4.3](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.2...v2.4.3) (2026-10-07)
 
 
