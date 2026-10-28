@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.4.5](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.4...v2.4.5) (2026-10-28)
+
+
+### 📦 Build & Dependencies
+
+* **deps:** read the Biome schema from node_modules and update mmm-shared ([#59](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/59)) ([ad97a1a](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/ad97a1a2afc024765282f44a44c7796bfe81c6eb))
+
+
+### 🔧 Maintenance
+
+* **deps-dev:** bump @biomejs/biome from 2.6.2 to 2.6.3 in the npm group ([#58](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/58)) ([1dcb481](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/1dcb4811d54568bff48237f6ca5f709aea5e20af))
+
 ## [2.4.4](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.3...v2.4.4) (2026-10-21)
 
 

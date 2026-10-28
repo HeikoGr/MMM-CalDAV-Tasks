@@ -1,6 +1,6 @@
 {
   "name": "mmm-caldav-tasks",
-  "version": "2.4.4",
+  "version": "2.4.5",
   "private": true,
   "description": "MagicMirror module to display and manage CalDAV tasks (to-dos)",
   "keywords": [
@@ -47,6 +47,6 @@
     "tsdav": "^2.5.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.6.2"
+    "@biomejs/biome": "^2.6.3"
   }
 }
