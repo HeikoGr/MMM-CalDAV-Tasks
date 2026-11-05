@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.4.7](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.6...v2.4.7) (2026-11-05)
+
+
+### 📦 Build & Dependencies
+
+* **deps:** bump Biome to 2.6.5 and move the devcontainer to the trixie-slim image ([#65](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/65)) ([0bdf939](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/0bdf93934be718e3edf48b5a9b955a8ef31cb6f6))
+
 ## [2.4.6](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.5...v2.4.6) (2026-11-02)
 
 
