@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.4.9](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.8...v2.4.9) (2026-11-11)
+
+
+### 🔧 Tooling
+
+* only accept release PRs on the default branch ([#74](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/74)) ([cc9d5cc](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/cc9d5cc9da2a3eb9eba2a2175109b0d46213836e))
+
+
+### 🔧 Maintenance
+
+* **deps:** bump node-ical from 0.27.5 to 0.27.6 in the npm group ([#73](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/73)) ([19fcc3f](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/19fcc3f5abae2baa8dba7fd405bd8ae748afefa7))
+
 ## [2.4.8](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.7...v2.4.8) (2026-11-11)
 
 
