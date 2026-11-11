@@ -1,6 +1,6 @@
 {
   "name": "mmm-caldav-tasks",
-  "version": "2.4.7",
+  "version": "2.4.8",
   "private": true,
   "description": "MagicMirror module to display and manage CalDAV tasks (to-dos)",
   "keywords": [
@@ -25,7 +25,7 @@
   "type": "commonjs",
   "main": "MMM-CalDAV-Tasks.js",
   "engines": {
-    "node": ">=22.21.1"
+    "node": ">=22.22.2 <23 || >=24"
   },
   "scripts": {
     "postinstall": "node scripts/install-mmm-shared-submodule.js",
@@ -42,11 +42,11 @@
   },
   "dependencies": {
     "moment": "^2.31.0",
-    "node-ical": "^0.27.3",
+    "node-ical": "^0.27.5",
     "rrule": "^2.8.1",
     "tsdav": "^2.5.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.6.5"
+    "@biomejs/biome": "^2.6.6"
   }
 }
