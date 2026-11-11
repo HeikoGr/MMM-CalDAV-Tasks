@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.4.8](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.7...v2.4.8) (2026-11-11)
+
+
+### 🔧 Tooling
+
+* keep the write token away from Dependabot code and test Node 22 and 24 ([#70](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/70)) ([4fcb2d6](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/4fcb2d68e5a437c069a285fe62d3545c236b24e3))
+
+
+### 🔧 Maintenance
+
+* **deps:** bump node-ical from 0.27.4 to 0.27.5 in the npm group ([#69](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/69)) ([003eaa8](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/003eaa8bd12fdb30329a69a0d79bdd6103b3f9f8))
+* **deps:** bump the npm group with 2 updates ([#68](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/68)) ([5555749](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/55557491d99b2ac29ac48d70423b6344144903eb))
+
 ## [2.4.7](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.6...v2.4.7) (2026-11-05)
 
 
