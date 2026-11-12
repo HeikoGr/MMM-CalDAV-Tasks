@@ -77,7 +77,7 @@ Commands:
   toggle <uid>      Complete an open task, or reopen a completed one, by UID
 
 Options:
-  --config <path>      Path to config file (default: ./config/config.js)
+  --config <path>      Path to config file (default: ./config/.config.js)
   --show-completed     Show completed tasks (default: hidden)
   --show-file          Show task filenames
   --show-uid           Show task UIDs
@@ -290,7 +290,7 @@ node scripts/cli-debug.js toggle invalid-uid
 
 ### Config File
 
-By default, the tool reads configuration from `config/config.js`.
+By default, the tool reads configuration from `config/.config.js`.
 
 **Supported formats:**
 
@@ -424,14 +424,14 @@ node scripts/cli-debug.js fetch --show-uid | grep "Task name"
 
 **1. Config file not found**
 ```
-❌ Config file not found: ./config/config.js
+❌ Config file not found: ./config/.config.js
 
-💡 Tip: Create config/config.js from config/config.template.js
+💡 Tip: Create config/.config.js from config/config.template.js
 ```
 
 **Solution:**
 ```bash
-cp config/config.template.js config/config.js
+cp config/config.template.js config/.config.js
 # Edit config.js with your settings
 ```
 
