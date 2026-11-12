@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.5.0](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.9...v2.5.0) (2026-11-12)
+
+
+### 🔌 Features
+
+* translate display texts and send only the displayed task fields ([#78](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/78)) ([61e1eec](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/61e1eecc27b4ef686def17641548e624c857d5dc))
+
 ## [2.4.9](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.8...v2.4.9) (2026-11-11)
 
 
