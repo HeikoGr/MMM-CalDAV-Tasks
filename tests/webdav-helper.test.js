@@ -256,3 +256,106 @@ test("a calendar with an unchanged ctag is not fetched again; the others are fet
     ["ctag 1", "ctag 2", "ctag undefined"],
   );
 });
+
+const TASKS_CALENDAR = { url: "https://cloud.example/cal/tasks/", components: ["VTODO"], displayName: "Tasks" };
+
+function writeConfig(username) {
+  return {
+    webDavAuth: { url: "https://cloud.example/remote.php/dav/", username, password: "p" },
+    requestTimeout: 50,
+  };
+}
+
+test("reading an object for a toggle aborts a hanging REPORT and discards the client", async (t) => {
+  const { DAVClient } = require("tsdav");
+  const { getFileContents } = require("../lib/webDavHelper");
+  const login = t.mock.method(DAVClient.prototype, "login", fakeLogin);
+  t.mock.method(DAVClient.prototype, "propfind", async () => davListing([TASKS_CALENDAR]));
+  let signal = null;
+  t.mock.method(DAVClient.prototype, "fetchCalendarObjects", async ({ fetchOptions }) => {
+    signal = fetchOptions?.signal ?? null;
+    return new Promise(() => {}); // the server never answers
+  });
+  const config = writeConfig("hanging-read");
+
+  await assert.rejects(getFileContents(config, `${TASKS_CALENDAR.url}a.ics`), /timed out after 50ms/);
+  assert.ok(signal, "the REPORT gets the timeout's signal");
+  assert.equal(signal.aborted, true, "and is cancelled, not left running");
+
+  t.mock.method(DAVClient.prototype, "fetchCalendarObjects", async () => [{ url: "x", data: "ok" }]);
+  assert.deepEqual(await getFileContents(config, `${TASKS_CALENDAR.url}a.ics`), { url: "x", data: "ok" });
+  assert.equal(login.mock.callCount(), 2, "the next request logs in again");
+});
+
+test("a rejected PUT throws and discards the client; a new object is written with If-None-Match", async (t) => {
+  const { DAVClient } = require("tsdav");
+  const { putFileContents } = require("../lib/webDavHelper");
+  const login = t.mock.method(DAVClient.prototype, "login", fakeLogin);
+  t.mock.method(DAVClient.prototype, "propfind", async () => davListing([TASKS_CALENDAR]));
+  const update = t.mock.method(DAVClient.prototype, "updateCalendarObject", async () => ({
+    ok: false,
+    status: 412,
+    statusText: "Precondition Failed",
+  }));
+  const config = writeConfig("rejected-put");
+  const url = `${TASKS_CALENDAR.url}new.ics`;
+
+  await assert.rejects(putFileContents(config, url, "ICS", { create: true }), /CalDAV write failed with 412/);
+  const [request] = update.mock.calls[0].arguments;
+  assert.deepEqual(request.headers, { "If-None-Match": "*" });
+  assert.equal(request.calendar.url, TASKS_CALENDAR.url, "written through the owning calendar");
+
+  update.mock.mockImplementation(async () => ({ ok: true, status: 204 }));
+  await putFileContents(config, `${TASKS_CALENDAR.url}old.ics`, "ICS");
+  assert.equal(update.mock.calls[1].arguments[0].headers, undefined, "an update may replace the object");
+  assert.equal(login.mock.callCount(), 2, "the rejected write discarded the client");
+});
+
+test("a failed principal discovery on Nextcloud falls back to the derived DAV URLs", async (t) => {
+  const { DAVClient } = require("tsdav");
+  const { fetchCalendarData } = require("../lib/webDavHelper");
+  t.mock.method(DAVClient.prototype, "login", async () => {
+    throw new Error("cannot find principalUrl");
+  });
+  const createAccount = t.mock.method(DAVClient.prototype, "createAccount", async ({ account }) => ({
+    ...account,
+    accountType: "caldav",
+  }));
+  t.mock.method(DAVClient.prototype, "propfind", async () => davListing([TASKS_CALENDAR]));
+  t.mock.method(DAVClient.prototype, "fetchCalendarObjects", async () => []);
+
+  const data = await fetchCalendarData({
+    webDavAuth: { url: "https://cloud.example/nc/remote.php/dav/", username: "jane doe", password: "p" },
+    includeCalendars: [],
+    requestTimeout: 1000,
+  });
+
+  assert.deepEqual(
+    data.map((calendar) => calendar.summary),
+    ["Tasks"],
+  );
+  assert.deepEqual(createAccount.mock.calls[0].arguments[0].account, {
+    rootUrl: "https://cloud.example/nc/remote.php/dav/",
+    principalUrl: "https://cloud.example/nc/remote.php/dav/principals/users/jane%20doe/",
+    homeUrl: "https://cloud.example/nc/remote.php/dav/calendars/jane%20doe/",
+  });
+});
+
+test("a login error other than principal discovery is not retried", async (t) => {
+  const { DAVClient } = require("tsdav");
+  const { fetchCalendarData } = require("../lib/webDavHelper");
+  t.mock.method(DAVClient.prototype, "login", async () => {
+    throw new Error("401 Unauthorized");
+  });
+  const createAccount = t.mock.method(DAVClient.prototype, "createAccount", async () => ({}));
+
+  await assert.rejects(
+    fetchCalendarData({
+      webDavAuth: { url: "https://cloud.example/remote.php/dav/", username: "wrong-password", password: "p" },
+      includeCalendars: [],
+      requestTimeout: 1000,
+    }),
+    /401/,
+  );
+  assert.equal(createAccount.mock.callCount(), 0);
+});

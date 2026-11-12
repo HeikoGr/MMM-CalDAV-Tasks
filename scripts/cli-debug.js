@@ -10,7 +10,7 @@
  *   toggle <uid>   - Toggle task completion status
  *
  * Options:
- *   --config <path>  - Path to config file (default: ./config/config.js)
+ *   --config <path>  - Path to config file (default: ./config/.config.js)
  */
 
 // CLI tool requires process.exit() for proper exit codes
@@ -53,7 +53,7 @@ const { validateConfig } = require("../lib/config-validator");
 
 // Configuration
 let config = null;
-let configPath = path.join(__dirname, "..", "config", "config.js");
+let configPath = path.join(__dirname, "..", "config", ".config.js");
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -80,7 +80,7 @@ function loadConfig() {
   try {
     if (!fs.existsSync(configPath)) {
       console.error(`❌ Config file not found: ${configPath}`);
-      console.log("\n💡 Tip: Create config/config.js from config/config.template.js");
+      console.log("\n💡 Tip: Create config/.config.js from config/config.template.js");
       process.exit(1);
     }
 
@@ -384,7 +384,7 @@ Commands:
   toggle <uid>      Complete an open task, or reopen a completed one, by UID
 
 Options:
-  --config <path>      Path to config file (default: ./config/config.js)
+  --config <path>      Path to config file (default: ./config/.config.js)
   --show-completed     Show completed tasks (default: hidden)
   --show-file          Show task filenames
   --show-uid           Show task UIDs
@@ -399,7 +399,7 @@ Examples:
     node scripts/cli-debug.js fetch --config /path/to/custom-config.js
 
 Configuration:
-  The tool reads configuration from config/config.js
+  The tool reads configuration from config/.config.js
   Create this file from config/config.template.js
 
 For more information, see: https://github.com/Coernel82/MMM-CalDAV-Tasks

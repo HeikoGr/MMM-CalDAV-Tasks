@@ -26,6 +26,10 @@
   from the `lib/mmm-shared` submodule (tests there); change it in the mmm-shared repo.
 - Task filtering by date/completion happens in the backend (`lib/task-filter.js`), not in
   `TaskRenderer`.
+- Only the fields in `DISPLAY_FIELDS` (`lib/task-pipeline.js`) reach the browser; description,
+  attendees, location and the rest of the parsed VTODO stay on the server. A field the renderer
+  starts to read must be added there (the render comparison in `tests/task-pipeline.test.js`
+  catches a missing one).
 - File layout: `node_helper.js` only wires the hub. Reading: `lib/webDavHelper.js` (DAV) →
   `lib/task-pipeline.js` (parse, sort, nest, filter). Writing: `TOGGLE_TASK` is routed by the
   hub (`hub.route`) to `lib/task-toggle.js` → `lib/vtodo-completer.js`. Toggles of one task run

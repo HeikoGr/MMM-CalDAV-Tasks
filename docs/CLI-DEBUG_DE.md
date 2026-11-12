@@ -18,7 +18,7 @@ Das Tool ist bereits im Modul enthalten. Keine zusätzliche Installation erforde
 
 ## Konfiguration
 
-Das Tool liest standardmäßig die Konfiguration aus `config/config.js`. Diese Datei kann entweder:
+Das Tool liest standardmäßig die Konfiguration aus `config/.config.js`. Diese Datei kann entweder:
 
 1. **Eine vollständige MagicMirror-Konfiguration sein** (wie in der Hauptinstallation)
 2. **Eine Standalone-Konfiguration sein** (nur das MMM-CalDAV-Tasks config-Objekt)
@@ -197,7 +197,7 @@ Das Tool verwendet die gleichen Backend-Module wie `node_helper.js`:
 ### Workflow
 
 1. **Konfiguration laden**
-   - Liest `config/config.js`
+   - Liest `config/.config.js`
    - Erkennt MagicMirror- vs. Standalone-Format
    - Extrahiert MMM-CalDAV-Tasks config
 
@@ -224,7 +224,7 @@ Das Tool behandelt folgende Fehler:
 
 | Fehler | Meldung | Lösung |
 |--------|---------|--------|
-| Config nicht gefunden | ❌ Config file not found | config/config.js erstellen |
+| Config nicht gefunden | ❌ Config file not found | config/.config.js erstellen |
 | Modul nicht konfiguriert | ❌ MMM-CalDAV-Tasks module not found | Modul in config.js hinzufügen |
 | Ungültige Config | ❌ Configuration has errors | Fehler in Ausgabe beheben |
 | Server nicht erreichbar | ❌ Error fetching tasks | URL, Credentials prüfen |
@@ -312,7 +312,7 @@ npm install
 node --run debug:config
 
 # Template kopieren
-cp config/config.template.js config/config.js
+cp config/config.template.js config/.config.js
 ```
 
 ### "Error fetching tasks"
@@ -338,7 +338,7 @@ cp config/config.template.js config/config.js
 
 ## Lizenz
 
-MIT License - siehe [LICENSE.txt](LICENSE.txt)
+MIT License - siehe [LICENSE](../LICENSE)
 
 ## Support
 
