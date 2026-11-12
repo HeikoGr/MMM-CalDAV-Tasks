@@ -1,0 +1,18 @@
+{
+  "LOADING": "Loading...",
+  "ALL_DONE": "All done",
+  "ERROR": "Error",
+  "UPDATE_FAILED": "Update failed",
+  "REQUEST_FAILED": "Request failed",
+  "SHOWING_PREVIOUS_DATA": "Showing previous data",
+  "REQUEST_TIMEOUT": "Request Timeout",
+  "TIMEOUT_NO_RESPONSE": "No response from CalDAV server.",
+  "TIMEOUT_CHECK_CONNECTION": "Check your network connection and server settings.",
+  "TIMEOUT_AFTER": "Timeout after {seconds}s",
+  "CONFIG_ERROR": "Configuration Error",
+  "CONFIG_DIFFERS": "Config differs from the running instance: {keys}",
+  "CONFIG_URL_MISSING": "Required config \"webDavAuth.url\" is missing.",
+  "CONFIG_URL_HINT": "Please configure your CalDAV server URL, username and password.",
+  "CONFIG_CREDENTIALS_MISSING": "Required credentials missing in webDavAuth.",
+  "CONFIG_CREDENTIALS_HINT": "Please provide username and password (use an app password!)."
+}

@@ -1,0 +1,18 @@
+{
+  "LOADING": "Lade …",
+  "ALL_DONE": "Alles erledigt",
+  "ERROR": "Fehler",
+  "UPDATE_FAILED": "Aktualisierung fehlgeschlagen",
+  "REQUEST_FAILED": "Anfrage fehlgeschlagen",
+  "SHOWING_PREVIOUS_DATA": "Angezeigt wird der letzte Stand",
+  "REQUEST_TIMEOUT": "Zeitüberschreitung",
+  "TIMEOUT_NO_RESPONSE": "Keine Antwort vom CalDAV-Server.",
+  "TIMEOUT_CHECK_CONNECTION": "Netzwerkverbindung und Servereinstellungen prüfen.",
+  "TIMEOUT_AFTER": "Keine Antwort nach {seconds} s",
+  "CONFIG_ERROR": "Konfigurationsfehler",
+  "CONFIG_DIFFERS": "Die Konfiguration weicht von der laufenden Instanz ab: {keys}",
+  "CONFIG_URL_MISSING": "Die Angabe \"webDavAuth.url\" fehlt.",
+  "CONFIG_URL_HINT": "Bitte URL des CalDAV-Servers, Benutzername und Passwort angeben.",
+  "CONFIG_CREDENTIALS_MISSING": "In webDavAuth fehlen die Zugangsdaten.",
+  "CONFIG_CREDENTIALS_HINT": "Bitte Benutzername und Passwort angeben (ein App-Passwort verwenden!)."
+}

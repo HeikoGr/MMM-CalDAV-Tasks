@@ -52,8 +52,6 @@ Module.register("MMM-CalDAV-Tasks", {
     frontendTimeout: 60000, // 60 seconds before showing timeout error in frontend
   },
 
-  requiresVersion: "2.1.0", // Required version of MagicMirror
-
   toDoList: null,
   error: null,
   lastSuccessfulData: null, // Keep last successful data for graceful fallback
@@ -124,6 +122,13 @@ Module.register("MMM-CalDAV-Tasks", {
     ];
   },
 
+  getTranslations() {
+    return {
+      de: "translations/de.json",
+      en: "translations/en.json",
+    };
+  },
+
   getStyles() {
     return ["MMM-CalDAV-Tasks.css", "font-awesome.css"];
   },
@@ -140,9 +145,9 @@ Module.register("MMM-CalDAV-Tasks", {
           return;
         }
         this.error = {
-          title: "Request Timeout",
-          lines: ["No response from CalDAV server.", "Check your network connection and server settings."],
-          hint: `Timeout after ${this.config.frontendTimeout / 1000}s`,
+          title: this.translate("REQUEST_TIMEOUT"),
+          lines: [this.translate("TIMEOUT_NO_RESPONSE"), this.translate("TIMEOUT_CHECK_CONNECTION")],
+          hint: this.translate("TIMEOUT_AFTER", { seconds: this.config.frontendTimeout / 1000 }),
         };
         this.lifecycle.render();
         this.logger.error(`Frontend timeout - no response after ${this.config.frontendTimeout}ms`);
@@ -162,9 +167,9 @@ Module.register("MMM-CalDAV-Tasks", {
   showError(title, message) {
     if (this.lastSuccessfulData) {
       this.toDoList = this.lastSuccessfulData;
-      this.error = { title, lines: [message], hint: "Showing previous data" };
+      this.error = { title, lines: [message], hint: this.translate("SHOWING_PREVIOUS_DATA") };
     } else {
-      this.error = { title: "Error", lines: [message] };
+      this.error = { title: this.translate("ERROR"), lines: [message] };
     }
     this.lifecycle.render();
   },
@@ -200,16 +205,16 @@ Module.register("MMM-CalDAV-Tasks", {
         case "FETCH_FAILED":
           this.clearLoadingTimeout();
           this.logger.warn("Update failed", payload.error);
-          this.showError("Update failed", payload?.error?.message || "Request failed");
+          this.showError(this.translate("UPDATE_FAILED"), payload?.error?.message || this.translate("REQUEST_FAILED"));
           break;
         case "CONFIG_INVALID":
         case "CONFIG_REJECTED":
           this.clearLoadingTimeout();
           this.error = {
-            title: "Configuration Error",
+            title: this.translate("CONFIG_ERROR"),
             lines: [
               payload?.error?.message ||
-                `Config differs from the running instance: ${(payload?.data?.mismatchKeys || []).join(", ")}`,
+                this.translate("CONFIG_DIFFERS", { keys: (payload?.data?.mismatchKeys || []).join(", ") }),
             ],
           };
           this.lifecycle.render();
@@ -225,7 +230,7 @@ Module.register("MMM-CalDAV-Tasks", {
     // the backend fetches right away and pushes the new list.
     if (notification === this.notifications.ERROR && own && payload?.action === "TOGGLE_TASK") {
       this.logger.error("Toggle failed", payload.error);
-      this.showError("Update failed", payload?.error?.message || "Request failed");
+      this.showError(this.translate("UPDATE_FAILED"), payload?.error?.message || this.translate("REQUEST_FAILED"));
     }
   },
 
@@ -262,6 +267,7 @@ Module.register("MMM-CalDAV-Tasks", {
       config: this.config,
       identifier: this.identifier,
       language: this.getLanguage(),
+      translate: (key) => this.translate(key),
       bindItem: (item) =>
         window.CalDavTasksLongPress.bindLongPress(item, {
           toggleTime: this.config.toggleTime,
@@ -275,11 +281,8 @@ Module.register("MMM-CalDAV-Tasks", {
     // Frontend validation only checks required credentials.
     if (!config.webDavAuth?.url) {
       this.error = {
-        title: "Configuration Error",
-        lines: [
-          'Required config "webDavAuth.url" is missing.',
-          "Please configure your CalDAV server URL, username and password.",
-        ],
+        title: this.translate("CONFIG_ERROR"),
+        lines: [this.translate("CONFIG_URL_MISSING"), this.translate("CONFIG_URL_HINT")],
       };
       this.logger.error("Missing required webDavAuth configuration");
       return false;
@@ -287,11 +290,8 @@ Module.register("MMM-CalDAV-Tasks", {
 
     if (!config.webDavAuth.username || !config.webDavAuth.password) {
       this.error = {
-        title: "Configuration Error",
-        lines: [
-          "Required credentials missing in webDavAuth.",
-          "Please provide username and password (use an app password!).",
-        ],
+        title: this.translate("CONFIG_ERROR"),
+        lines: [this.translate("CONFIG_CREDENTIALS_MISSING"), this.translate("CONFIG_CREDENTIALS_HINT")],
       };
       this.logger.error("Missing webDavAuth credentials");
       return false;
