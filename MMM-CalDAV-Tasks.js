@@ -54,7 +54,6 @@ Module.register("MMM-CalDAV-Tasks", {
 
   toDoList: null,
   error: null,
-  lastSuccessfulData: null, // Keep last successful data for graceful fallback
   loadingTimeoutTimer: null, // Timer for frontend timeout detection
   hideTimer: null, // Redraw when a completed task's grace period ends
   lifecycle: null,
@@ -138,10 +137,10 @@ Module.register("MMM-CalDAV-Tasks", {
    * backend asks for it (INIT_REQUIRED, e.g. after a server restart).
    */
   sendConfigure() {
-    if (!this.loadingTimeoutTimer && !this.lastSuccessfulData) {
+    if (!this.loadingTimeoutTimer && !this.toDoList) {
       this.loadingTimeoutTimer = setTimeout(() => {
         this.loadingTimeoutTimer = null;
-        if (this.lastSuccessfulData) {
+        if (this.toDoList) {
           return;
         }
         this.error = {
@@ -164,9 +163,9 @@ Module.register("MMM-CalDAV-Tasks", {
     }
   },
 
+  // A failed refresh keeps the last task list on screen (re-rendering it also reverts an optimistic toggle).
   showError(title, message) {
-    if (this.lastSuccessfulData) {
-      this.toDoList = this.lastSuccessfulData;
+    if (this.toDoList) {
       this.error = { title, lines: [message], hint: this.translate("SHOWING_PREVIOUS_DATA") };
     } else {
       this.error = { title: this.translate("ERROR"), lines: [message] };
@@ -182,7 +181,7 @@ Module.register("MMM-CalDAV-Tasks", {
         if ((own || payload?.identifier === "*") && this.configValid) {
           this.sendConfigure();
           // A restarted backend has lost the paused state too.
-          this.lifecycle?.reportSessionState?.("init-required");
+          this.lifecycle.reportSessionState("init-required");
         }
         return;
       }
@@ -193,7 +192,6 @@ Module.register("MMM-CalDAV-Tasks", {
       switch (payload.action) {
         case "DATA":
           this.clearLoadingTimeout();
-          this.lastSuccessfulData = payload.data;
           this.toDoList = payload.data;
           this.error = null;
           this.logger.debug("received payload", {
@@ -272,7 +270,7 @@ Module.register("MMM-CalDAV-Tasks", {
         window.CalDavTasksLongPress.bindLongPress(item, {
           toggleTime: this.config.toggleTime,
           hideDateSectionOnCompletion: this.config.hideDateSectionOnCompletion,
-          onToggle: ({ filename, uid, status }) => this.transport.sendRequest("TOGGLE_TASK", { filename, uid, status }),
+          onToggle: ({ filename, status }) => this.transport.sendRequest("TOGGLE_TASK", { filename, status }),
         }),
     });
   },

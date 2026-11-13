@@ -46,8 +46,8 @@ const mockNodeHelperModule = {
 require.cache.node_helper = mockNodeHelperModule;
 
 // Load node_helper functions directly
-const { transformData, sortList, appendUrlIndex } = require("../lib/transformer");
-const { parseList, mapEmptyPriorityTo, mapEmptySortIndexTo, fetchCalendarData } = require("../lib/webDavHelper");
+const { prepareTasks } = require("../lib/task-pipeline");
+const { fetchCalendarData } = require("../lib/webDavHelper");
 const VTodoCompleter = require("../lib/vtodo-completer.js");
 const { validateConfig } = require("../lib/config-validator");
 
@@ -178,14 +178,7 @@ async function fetchTasks() {
 
     // Iterate over all calendars
     for (let i = 0; i < calendarData.length; i++) {
-      const icsList = calendarData[i].icsStrings;
-      const rawList = parseList(icsList, effectiveConfig.dateFormat);
-      const priorityList = mapEmptyPriorityTo(rawList, effectiveConfig.mapEmptyPriorityTo);
-      const sortIndexList = mapEmptySortIndexTo(priorityList, effectiveConfig.mapEmptySortIndexTo);
-      const indexedList = appendUrlIndex(sortIndexList, i);
-      const sortedList = sortList(indexedList, effectiveConfig.sortMethod);
-      const sortedAppleList = sortList(sortedList, "apple");
-      const nestedList = transformData(sortedAppleList);
+      const nestedList = prepareTasks(calendarData[i].icsStrings, effectiveConfig).tasks;
 
       allTasks = allTasks.concat(nestedList);
       calendarData[i].tasks = nestedList;
