@@ -508,7 +508,7 @@ node scripts/cli-debug.js fetch --show-completed > tasks.txt
 The CLI tool uses the following modules:
 - `config-validator.js` - Configuration validation
 - `webDavHelper.js` - CalDAV communication
-- `transformer.js` - Data transformation
+- `task-pipeline.js` - Parsing, sorting and nesting (`prepareTasks()`)
 - `vtodo-completer.js` - Task completion logic
 - `date-utils.js` - Date formatting (indirectly via vtodo-completer)
 
@@ -521,7 +521,7 @@ scripts/cli-debug.js
     ├── fetchTasks()           - Fetches tasks via webDavHelper
     │   ├── validateConfig()   - Normalizes config
     │   ├── fetchCalendarData() - Gets raw CalDAV data
-    │   ├── transformData()    - Transforms to task format
+    │   ├── prepareTasks()     - Parses, sorts and nests the tasks
     │   └── Display output     - Formatted console output
     └── toggleTask(uid)        - Toggles task status
         ├── fetchTasks()       - Find task by UID

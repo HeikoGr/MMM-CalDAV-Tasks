@@ -106,7 +106,7 @@ test("with language de no visible status or error text stays English", (t) => {
   // A failed update without and with previous data, a failed toggle, a config conflict.
   mod.socketNotificationReceived("EVENT", { identifier: "m1", action: "FETCH_FAILED", error: {} });
   seen.push(...shownTexts(mod.error));
-  mod.lastSuccessfulData = [];
+  mod.toDoList = [];
   mod.socketNotificationReceived("ERROR", { identifier: "m1", action: "TOGGLE_TASK", error: {} });
   seen.push(...shownTexts(mod.error));
   mod.socketNotificationReceived("EVENT", {

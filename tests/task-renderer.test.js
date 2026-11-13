@@ -25,7 +25,6 @@ function task(overrides = {}) {
     status: "NEEDS-ACTION",
     priority: "5",
     priorityUnset: true,
-    urlIndex: 0,
     dueISO: null,
     startISO: null,
     ...overrides,
@@ -121,7 +120,7 @@ test("a long press flips the item and reports the state it now shows", (t) => {
   item.dispatch("mousedown");
   pending.shift()();
 
-  assert.deepEqual(reported, [{ filename: task().filename, uid: "u1", status: "checked" }]);
+  assert.deepEqual(reported, [{ filename: task().filename, status: "checked" }]);
   assert.ok(item.classList.contains("MMM-CalDAV-Tasks-Completed"));
   assert.ok(item.querySelector(".fa").classList.contains("fa-check-square"));
 });
@@ -179,4 +178,29 @@ test("a priority set on the task shows the iOS-style mark", (t) => {
     ["!!!", "!!", "!"],
   );
   assert.equal(dom.byClass("MMM-CalDAV-Tasks-Summary")[3].textContent, "Trash");
+});
+
+test("config.headings puts one heading over each calendar's list, before its first task", (t) => {
+  t.after(installFakeDocument());
+  const dom = TaskRenderer.renderModule({
+    toDoList: [
+      { summary: "Home", tasks: [task({ children: [task({ uid: "c1" })] }), task({ uid: "u2" })] },
+      { summary: "Work", tasks: [task({ uid: "w1" })] },
+      { summary: "Shop", tasks: [task({ uid: "s1" })] },
+    ],
+    error: null,
+    config: { ...config, headings: ["Private", "null", "Errands"] },
+    now: new Date("2026-09-23T12:00:00Z"),
+  });
+
+  const headings = dom.byClass("MMM-CalDAV-Tasks-Heading-Item");
+  assert.deepEqual(
+    headings.map((item) => [item.children[0].className, item.textContent]),
+    [
+      ["MMM-CalDAV-Tasks-Heading-0", "Private"],
+      ["MMM-CalDAV-Tasks-Heading-2", "Errands"],
+    ],
+  );
+  const [firstList] = dom.byClass("MMM-CalDAV-Tasks-Calendar-wrapper")[0].children.filter((c) => c.tagName === "ul");
+  assert.equal(firstList.children[0], headings[0]);
 });

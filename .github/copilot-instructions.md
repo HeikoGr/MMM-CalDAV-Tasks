@@ -30,8 +30,11 @@
   attendees, location and the rest of the parsed VTODO stay on the server. A field the renderer
   starts to read must be added there (the render comparison in `tests/task-pipeline.test.js`
   catches a missing one).
-- File layout: `node_helper.js` only wires the hub. Reading: `lib/webDavHelper.js` (DAV) →
-  `lib/task-pipeline.js` (parse, sort, nest, filter). Writing: `TOGGLE_TASK` is routed by the
+- File layout: `node_helper.js` only wires the hub. Reading: `lib/webDavHelper.js` (DAV only) →
+  `lib/task-pipeline.js` (parse ICS, fill empty priority/sort index, sort, nest, filter;
+  `prepareTasks()` is everything but the filter, also used by `scripts/cli-debug.js`). Request
+  timeouts for both paths: `lib/with-timeout.js`. Calendar headings (`config.headings`) are picked
+  by the calendar's place in the list, in the renderer. Writing: `TOGGLE_TASK` is routed by the
   hub (`hub.route`) to `lib/task-toggle.js` → `lib/vtodo-completer.js`. Toggles of one task run
   one after another; after the timeout no further write starts (AbortSignal checked before each
   PUT), and a write that finishes late triggers a refresh. Frontend: the module

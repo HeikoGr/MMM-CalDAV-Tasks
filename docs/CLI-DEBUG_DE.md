@@ -204,8 +204,7 @@ Das Tool verwendet die gleichen Backend-Module wie `node_helper.js`:
 2. **fetch: Tasks abrufen**
    - Validiert Konfiguration
    - Ruft `fetchCalendarData()` auf
-   - Parst ICS-Daten mit `parseList()`
-   - Transformiert und sortiert Tasks
+   - Bereitet die Tasks mit `prepareTasks()` auf (ICS parsen, sortieren, verschachteln)
    - Zeigt formatierte Ausgabe
 
 3. **toggle: Status ändern**
