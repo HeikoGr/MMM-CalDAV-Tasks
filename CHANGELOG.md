@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.5.1](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.5.0...v2.5.1) (2026-11-13)
+
+
+### 🧱 Refactoring
+
+* one task pipeline, shared timeout helper, headings by calendar ([#81](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/81)) ([8f6a0a8](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/8f6a0a8ea6c4727b6ce2f3e3295f42a0d6a1cdc4))
+
 ## [2.5.0](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.4.9...v2.5.0) (2026-11-12)
 
 
