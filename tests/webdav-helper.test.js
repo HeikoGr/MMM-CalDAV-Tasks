@@ -1,7 +1,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { calendarDisplayName, initDAVClient, parseList, withTimeout } = require("../lib/webDavHelper");
+const { calendarDisplayName, initDAVClient } = require("../lib/webDavHelper");
+const { parseList } = require("../lib/task-pipeline");
+const { withTimeout } = require("../lib/with-timeout");
 
 const accountA = {
   webDavAuth: {

@@ -34,7 +34,6 @@ const DONE_TASK = OPEN_TASK.replace(
   "STATUS:COMPLETED\r\nCOMPLETED:20260920T080000Z\r\nPERCENT-COMPLETE:100",
 );
 
-const realWebDav = require("../lib/webDavHelper.js");
 const IDENTIFIER = "module_1_MMM-CalDAV-Tasks";
 
 /**
@@ -61,9 +60,6 @@ function startHelper(t, ics, overrides = {}) {
         },
       ];
     },
-    parseList: realWebDav.parseList,
-    mapEmptyPriorityTo: realWebDav.mapEmptyPriorityTo,
-    mapEmptySortIndexTo: realWebDav.mapEmptySortIndexTo,
     getFileContents: async () => ({ data: ics }),
     putFileContents: async (_config, filename, data, options) => {
       puts.push({ filename, data, options });

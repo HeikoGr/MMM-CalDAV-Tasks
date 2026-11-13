@@ -117,28 +117,9 @@ test("only the fields the display renders reach the browser, and it renders the 
   ];
 
   // The same pipeline without the last step, as it ran before (CT-PRIV-01).
-  const { parseList, mapEmptyPriorityTo, mapEmptySortIndexTo } = require("../lib/webDavHelper");
-  const { transformData, sortList, appendUrlIndex } = require("../lib/transformer");
+  const { prepareTasks } = require("../lib/task-pipeline");
   const { filterVisibleTasks } = require("../lib/task-filter");
-  const full = filterVisibleTasks(
-    transformData(
-      sortList(
-        sortList(
-          appendUrlIndex(
-            mapEmptySortIndexTo(
-              mapEmptyPriorityTo(parseList(icsStrings, config.dateFormat), config.mapEmptyPriorityTo),
-              config.mapEmptySortIndexTo,
-            ),
-            0,
-          ),
-          config.sortMethod,
-        ),
-        "apple",
-      ),
-    ),
-    config,
-    now,
-  );
+  const full = filterVisibleTasks(prepareTasks(icsStrings, config).tasks, config, now);
 
   const [calendar] = buildTaskLists([{ url: "cal", summary: "Cal", icsStrings }], config, now).calendars;
   const payload = JSON.stringify(calendar.tasks);
