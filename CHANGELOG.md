@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.5.2](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.5.1...v2.5.2) (2026-11-15)
+
+
+### 🐛 Fixes
+
+* write tasks back with If-Match and compute "today" in the ICS time base ([#84](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/84)) ([e9cbe2d](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/e9cbe2dcfad401e8d82247d16f9c269ce564aae5))
+
+
+### 🔧 Maintenance
+
+* update mmm-shared and trust GitHub's published SSH host keys ([#85](https://github.com/HeikoGr/MMM-CalDAV-Tasks/issues/85)) ([594b83d](https://github.com/HeikoGr/MMM-CalDAV-Tasks/commit/594b83d32efb162ed514ff696a2c433e39bdc58f))
+
 ## [2.5.1](https://github.com/HeikoGr/MMM-CalDAV-Tasks/compare/v2.5.0...v2.5.1) (2026-11-13)
 
 
