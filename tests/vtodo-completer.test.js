@@ -47,10 +47,10 @@ function buildIcs({ rrule = null, alarm = null, extra = [] } = {}) {
  * @param {string} ics - The ICS content the server would return.
  * @returns {{completer: Object, puts: Array}} Completer and recorded writes.
  */
-function makeCompleter(ics) {
+function makeCompleter(ics, etag = '"read-etag"') {
   const puts = [];
   const completer = new VTodoCompleter({
-    getFileContents: async () => ({ data: ics }),
+    getFileContents: async () => ({ data: ics, etag }),
     putFileContents: async (_config, filename, data, options) => {
       puts.push({ filename, data, options });
       return { ok: true };
@@ -59,7 +59,26 @@ function makeCompleter(ics) {
   return { completer, puts };
 }
 
-const startOfToday = new Date(new Date().setHours(0, 0, 0, 0));
+// Today's local date in the time base of the ICS values (wall-clock digits as UTC).
+const startOfToday = (() => {
+  const now = new Date();
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+})();
+
+test("every write back to an object that was read carries its ETag, a new object none", async () => {
+  const single = makeCompleter(buildIcs());
+  await single.completer.completeVTodo({}, FILENAME, new Date("2026-09-22T12:00:00Z"));
+  assert.deepEqual(single.puts[0].options, { etag: '"read-etag"' });
+
+  const reopened = makeCompleter(buildIcs());
+  await reopened.completer.uncompleteVTodo({}, FILENAME);
+  assert.deepEqual(reopened.puts[0].options, { etag: '"read-etag"' });
+
+  const series = makeCompleter(buildIcs({ rrule: "FREQ=WEEKLY" }));
+  await series.completer.completeVTodo({}, FILENAME, new Date("2026-09-22T12:00:00Z"));
+  assert.deepEqual(series.puts[0].options, { create: true }, "the completed copy is new");
+  assert.deepEqual(series.puts[1].options, { etag: '"read-etag"' }, "the series was read");
+});
 
 test("completing a non-recurring task marks it done in place", async () => {
   const { completer, puts } = makeCompleter(buildIcs());
@@ -319,11 +338,14 @@ test("a COUNT rule that fell behind only keeps the occurrences still ahead", asy
    * straight to today and the skipped ones must be counted as used up rather
    * than deducting a single step.
    */
+  // The local date two days ago: the module compares against the local calendar day.
+  const start = new Date();
+  start.setDate(start.getDate() - 2);
+  const ymd = [start.getFullYear(), start.getMonth() + 1, start.getDate()]
+    .map((part) => String(part).padStart(2, "0"))
+    .join("");
   const { completer, puts } = makeCompleter(
-    buildIcs({ rrule: "FREQ=DAILY;COUNT=5" }).replace(
-      "DTSTART:20200105T080000Z",
-      `DTSTART:${new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10).replace(/-/g, "")}T080000Z`,
-    ),
+    buildIcs({ rrule: "FREQ=DAILY;COUNT=5" }).replace("DTSTART:20200105T080000Z", `DTSTART:${ymd}T080000Z`),
   );
 
   await completer.completeVTodo({}, FILENAME, new Date());
