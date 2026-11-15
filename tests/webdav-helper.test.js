@@ -302,14 +302,20 @@ test("a rejected PUT throws and discards the client; a new object is written wit
   const config = writeConfig("rejected-put");
   const url = `${TASKS_CALENDAR.url}new.ics`;
 
-  await assert.rejects(putFileContents(config, url, "ICS", { create: true }), /CalDAV write failed with 412/);
+  await assert.rejects(
+    putFileContents(config, url, "ICS", { create: true, etag: '"ignored"' }),
+    /CalDAV write failed with 412/,
+  );
   const [request] = update.mock.calls[0].arguments;
   assert.deepEqual(request.headers, { "If-None-Match": "*" });
+  assert.equal(request.calendarObject.etag, undefined, "a new object has no ETag to match");
   assert.equal(request.calendar.url, TASKS_CALENDAR.url, "written through the owning calendar");
 
   update.mock.mockImplementation(async () => ({ ok: true, status: 204 }));
-  await putFileContents(config, `${TASKS_CALENDAR.url}old.ics`, "ICS");
-  assert.equal(update.mock.calls[1].arguments[0].headers, undefined, "an update may replace the object");
+  await putFileContents(config, `${TASKS_CALENDAR.url}old.ics`, "ICS", { etag: '"v7"' });
+  const [updateRequest] = update.mock.calls[1].arguments;
+  assert.equal(updateRequest.headers, undefined);
+  assert.equal(updateRequest.calendarObject.etag, '"v7"', "tsdav sends it as If-Match");
   assert.equal(login.mock.callCount(), 2, "the rejected write discarded the client");
 });
 
